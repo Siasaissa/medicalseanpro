@@ -257,7 +257,7 @@
                             <h5>Payment & Fees Configuration</h5>
                         </div>
 
-                        <form action="{{ route('doctor.payment.update') }}" method="POST">
+                        <form action="#" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="setting-card">
