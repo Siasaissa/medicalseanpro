@@ -160,15 +160,15 @@
 										<a href="#">Home <i class="fas fa-brands"></i></a>
 									</li>
 									
-									<li class="has-submenu">
+									<!--<li class="has-submenu">
 										<a href="{{ route('login') }}">Pharmacy</i></a>
-									</li>
+									</li>-->
 									<li class="has-submenu">
 										<a href="#">About Us</a>
 									</li>
-									<li class="has-submenu">
+									<!--<li class="has-submenu">
 										<a href="#">Blog Grid</i></a>
-									</li>
+									</li>-->
 									<li class="menu">
 										<a href="{{ route('login') }}">Login</a>
 									</li>
