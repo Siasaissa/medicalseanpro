@@ -209,7 +209,7 @@
                             <h5>Consultation Modes Setup</h5>
                         </div>
 
-                        <form action="{{ route('doctor.consultation.update') }}" method="POST">
+                        <form action="#" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="setting-card">
