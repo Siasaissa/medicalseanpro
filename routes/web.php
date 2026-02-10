@@ -160,4 +160,20 @@ Route::get('/booking/confirmation/{booking}', [BookingController::class, 'confir
 Route::get('/token', [BookingController::class, 'showToken']);
 
 
+// Doctor Profile Routes
+Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () {
+    // Existing routes
+    Route::get('/profile/settings', [ProfileController::class, 'ProSetting'])->name('doctor.profile.settings');
+    Route::put('/profile/update', [ProfileController::class, 'updateProfile1'])->name('doctor.profile.update');
+    Route::get('/password', [ProfileController::class, 'password'])->name('doctor.password');
+    Route::put('/password/update', [ProfileController::class, 'updatePassword'])->name('doctor.password.update');
+    
+    // New routes for added sections
+    Route::put('/speciality/update', [ProfileController::class, 'updateSpeciality'])->name('doctor.speciality.update');
+    Route::put('/availability/update', [ProfileController::class, 'updateAvailability'])->name('doctor.availability.update');
+    Route::put('/consultation/update', [ProfileController::class, 'updateConsultation'])->name('doctor.consultation.update');
+    Route::put('/payment/update', [ProfileController::class, 'updatePayment'])->name('doctor.payment.update');
+    Route::put('/experiences/update', [ProfileController::class, 'updateExperiences'])->name('doctor.experiences.update');
+    Route::put('/qualifications/update', [ProfileController::class, 'updateQualifications'])->name('doctor.qualifications.update');
+});
 require __DIR__.'/auth.php';

@@ -93,7 +93,7 @@
                             <h5>Speciality & Services</h5>
                         </div>
 
-                        <form action="#" method="POST">
+                        <form action="{{ route('doctor.speciality.update') }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="setting-card">
@@ -153,7 +153,7 @@
                             <h5>Availability Schedule</h5>
                         </div>
 
-                        <form action="#" method="POST">
+                        <form action="{{ route('doctor.availability.update') }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="setting-card">
@@ -209,7 +209,7 @@
                             <h5>Consultation Modes Setup</h5>
                         </div>
 
-                        <form action="#" method="POST">
+                        <form action="{{ route('doctor.consultation.update') }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="setting-card">
@@ -257,7 +257,7 @@
                             <h5>Payment & Fees Configuration</h5>
                         </div>
 
-                        <form action="#" method="POST">
+                        <form action="{{ route('doctor.payment.update') }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="setting-card">
