@@ -93,7 +93,7 @@
                             <h5>Speciality & Services</h5>
                         </div>
 
-                        <form action="{{ route('doctor.speciality.update') }}" method="POST">
+                        <form action="#" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="setting-card">
