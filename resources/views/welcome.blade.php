@@ -74,7 +74,7 @@
 				<div class="container">
 					<div class="topbar-info">
 						<div class="d-flex align-items-center gap-3 header-info">
-							<p><i class="isax isax-message-text5 me-1"></i><a href="/cdn-cgi/l/email-protection" class="__cf_email__" >dopehacker051@gmail.com</a></p>
+							<p><i class="isax isax-message-text5 me-1"></i><a href="/cdn-cgi/l/email-protection" class="__cf_email__" >info@medicalsean.org</a></p>
 							<p><i class="isax isax-call5 me-1"></i>+255 613803662</p>
 						</div>
 						<ul>
