@@ -39,9 +39,12 @@
 									<li class="menu">
 										<form method="POST" action="{{ route('logout') }}">
 											@csrf
-											Logout</i>
+											<button type="submit" style="background:none;border:none;padding:0;color:inherit;cursor:pointer;">
+												Logout
+											</button>
 										</form>
 									</li>
+
 									<li class="menu">
 										<a href="{{ route('dashboard') }}">Home</i></a>
 									</li>
