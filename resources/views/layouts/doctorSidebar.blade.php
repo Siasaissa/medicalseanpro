@@ -19,16 +19,7 @@
 			</div>
 		</div>
 	</div>
-	<!--<div class="doctor-available-head">
-		<div class="input-block input-block-new">
-			<label class="form-label">Availability <span class="text-danger">*</span></label>
-			<select class="select form-control" id="availabilitySelect">
-				<option value="available" {{ ($availability == 'available') ? 'selected' : '' }}>I am Available Now</option>
-<option value="not_available" {{ ($availability == 'not_available') ? 'selected' : '' }}>Not Available</option>
 
-			</select>
-		</div>
-	</div>-->
 	<div class="dashboard-widget">
 		<nav class="dashboard-menu">
 			<ul>
