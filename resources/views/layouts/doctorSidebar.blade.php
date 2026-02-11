@@ -19,7 +19,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="doctor-available-head">
+	<!--<div class="doctor-available-head">
 		<div class="input-block input-block-new">
 			<label class="form-label">Availability <span class="text-danger">*</span></label>
 			<select class="select form-control" id="availabilitySelect">
@@ -28,7 +28,7 @@
 
 			</select>
 		</div>
-	</div>
+	</div>-->
 	<div class="dashboard-widget">
 		<nav class="dashboard-menu">
 			<ul>
