@@ -6,7 +6,7 @@
     <div class="main-wrapper">
 
         <!-- Header -->
-     @include('layouts.doctorHeader')
+       <!-- @include('layouts.doctorHeader')
         <!-- /Header -->
 
         <!-- Breadcrumb -->
