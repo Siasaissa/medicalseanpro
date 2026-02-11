@@ -37,7 +37,10 @@
 										<a href="#">Blog Grid</i></a>
 									</li>
 									<li class="menu">
-										<a href="{{ route('logout') }}">Logout</i></a>
+										<form method="POST" action="{{ route('logout') }}">
+											@csrf
+											Logout</i>
+										</form>
 									</li>
 									<li class="menu">
 										<a href="{{ route('dashboard') }}">Home</i></a>
