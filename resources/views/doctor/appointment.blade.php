@@ -109,8 +109,8 @@
                                             $appointmentEnd = $appointmentStart->copy()->addMinutes((int)$booking->service_time);
                                             $now = Carbon::now();
                                             $patient = $booking->patient;
-                                            $patientImage = $patient?->profile_image 
-                                                ? asset('storage/' . $patient->profile_image) 
+                                            $patientImage = $patient?->profile 
+                                                ? asset('storage/' . $patient->profile->dp) 
                                                 : asset('images/default.jpeg');
                                             $bookingId = str_pad($booking->id, 4, '0', STR_PAD_LEFT);
                                         @endphp
