@@ -65,15 +65,16 @@
                                                     $patientImage = $patient?->profile_image ? asset('storage/' . $patient->profile_image) : asset('images/default.jpeg');
                                                     $lastMessage = $chatMessages->last();
                                                     $unreadCount = $chatMessages->where('sender_id', $patient?->id)->where('receiver_id', Auth::id())->where('is_read', 0)->count();
+                                                    $isActive = request()->get('booking') == $bookingId;
                                                 @endphp
 
-                                                <li class="user-list-item chat-user-item {{ request()->get('booking') == $bookingId ? 'active' : '' }}" 
+                                                <li class="user-list-item chat-user-item {{ $isActive ? 'active' : '' }}" 
                                                     data-booking-id="{{ $bookingId }}"
                                                     data-patient-id="{{ $patient?->id }}"
                                                     data-patient-name="{{ $patient?->name ?? 'Unknown Patient' }}"
                                                     data-patient-image="{{ $patientImage }}">
-                                                    <a href="{{ route('doctor.chat', ['booking' => $bookingId]) }}"
-                                                       onclick="handleChatClick(event, {{ $bookingId }})">
+                                                    <a href="javascript:void(0);"
+                                                       onclick="loadChat({{ $bookingId }}, {{ $patient?->id }}, '{{ $patient?->name ?? 'Unknown Patient' }}', '{{ $patientImage }}')">
                                                         <div class="avatar avatar-online">
                                                             <img src="{{ $patientImage }}" alt="{{ $patient?->name ?? 'Patient' }}">
                                                         </div>
@@ -295,7 +296,7 @@
 
                             </div>
                             <div class="chat-footer">
-                                <form action="{{ route('chat.store') }}" method="POST" id="chatForm">
+                                <form onsubmit="sendMessage(event)" id="chatForm">
                                     @csrf
 
                                     <!-- Hidden fields -->
@@ -332,22 +333,22 @@
                                     </div>
 
                                     <div class="smile-foot emoj-action-foot">
-                                        <a href="#" class="action-circle"><i class="fa-regular fa-face-smile"></i></a>
-                                        <div class="emoj-group-list-foot down-emoji-circle">
+                                        <a href="#" class="action-circle emoji-toggle"><i class="fa-regular fa-face-smile"></i></a>
+                                        <div class="emoj-group-list-foot down-emoji-circle d-none">
                                             <ul>
-                                                <li><a href="javascript:void(0);"><img
+                                                <li><a href="javascript:void(0);" data-emoji="😊"><img
                                                             src="{{asset('images/emoj-icon-01.svg')}}" alt="Icon"></a>
                                                 </li>
-                                                <li><a href="javascript:void(0);"><img
+                                                <li><a href="javascript:void(0);" data-emoji="😂"><img
                                                             src="{{asset('images/emoj-icon-02.svg')}}" alt="Icon"></a>
                                                 </li>
-                                                <li><a href="javascript:void(0);"><img
+                                                <li><a href="javascript:void(0);" data-emoji="❤️"><img
                                                             src="{{asset('images/emoj-icon-03.svg')}}" alt="Icon"></a>
                                                 </li>
-                                                <li><a href="javascript:void(0);"><img
+                                                <li><a href="javascript:void(0);" data-emoji="👍"><img
                                                             src="{{asset('images/emoj-icon-04.svg')}}" alt="Icon"></a>
                                                 </li>
-                                                <li><a href="javascript:void(0);"><img
+                                                <li><a href="javascript:void(0);" data-emoji="🎉"><img
                                                             src="{{asset('images/emoj-icon-05.svg')}}" alt="Icon"></a>
                                                 </li>
                                                 <li class="add-emoj"><a href="javascript:void(0);"><i
@@ -508,53 +509,326 @@
         }
     </style>
 
-    <!-- Mobile Chat Toggle Script -->
     <script>
+        // Store current chat state
+        let currentBookingId = '{{ request()->get('booking') }}';
+        let currentPatientId = '{{ $currentPatientId ?? '' }}';
+        let currentPatientName = '{{ $currentPatient?->name ?? '' }}';
+        let currentPatientImage = '{{ $currentPatientImage ?? asset('images/default.jpeg') }}';
+        
         // Get current booking ID from URL
         function getCurrentBookingId() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('booking');
         }
 
-        // Function to handle chat click (from sidebar)
-        function handleChatClick(event, bookingId) {
-            // Check if we're on mobile (screen width less than 992px)
+        // Function to load chat via AJAX
+        function loadChat(bookingId, patientId, patientName, patientImage) {
+            // Prevent default link behavior
+            event?.preventDefault();
+            
+            // Update current state
+            currentBookingId = bookingId;
+            currentPatientId = patientId;
+            currentPatientName = patientName;
+            currentPatientImage = patientImage;
+            
+            // Update URL without page reload
+            const url = new URL(window.location);
+            url.searchParams.set('booking', bookingId);
+            window.history.pushState({}, '', url);
+            
+            // Update header
+            document.getElementById('currentPatientAvatar').src = patientImage;
+            document.getElementById('currentPatientName').innerHTML = patientName;
+            document.getElementById('currentPatientStatus').innerHTML = 'Online';
+            document.getElementById('typingPatientImage').src = patientImage;
+            
+            // Update hidden fields
+            document.getElementById('receiverIdField').value = patientId;
+            document.getElementById('bookingIdField').value = bookingId;
+            
+            // Enable message input and send button
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendMessageBtn').disabled = false;
+            
+            // Show chat messages, hide sidebar on mobile
             if (window.innerWidth < 992) {
-                // Don't prevent default - let the link navigate
-                // But hide sidebar and show chat with a slight delay
-                setTimeout(function() {
-                    const sidebar = document.getElementById('chatSidebar');
-                    const chatMessages = document.getElementById('chatMessages');
+                document.getElementById('chatSidebar').classList.add('d-none');
+                document.getElementById('chatMessages').style.display = 'block';
+                document.getElementById('chatMessages').classList.remove('d-none');
+            }
+            
+            // Remove active class from all chats
+            document.querySelectorAll('.user-list-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Add active class to clicked chat
+            const activeChat = document.querySelector(`[data-booking-id="${bookingId}"]`);
+            if (activeChat) {
+                activeChat.classList.add('active');
+            }
+            
+            // Fetch messages for this booking
+            fetch(`/doctor/chat/messages/${bookingId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.innerHTML = '';
+                
+                if (data.messages && data.messages.length > 0) {
+                    let lastDate = null;
                     
-                    if (sidebar) sidebar.classList.add('d-none');
-                    if (chatMessages) {
-                        chatMessages.style.display = 'block';
-                        chatMessages.classList.remove('d-none');
-                    }
-                }, 50);
+                    data.messages.forEach(msg => {
+                        const msgDate = new Date(msg.created_at);
+                        const dateStr = msgDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        const isToday = new Date(msg.created_at).toDateString() === new Date().toDateString();
+                        const isYesterday = new Date(msg.created_at).toDateString() === new Date(Date.now() - 86400000).toDateString();
+                        
+                        // Add date divider
+                        if (lastDate !== dateStr) {
+                            const dateDiv = document.createElement('div');
+                            dateDiv.className = 'chat-line';
+                            let dateText = dateStr;
+                            if (isToday) dateText = 'Today';
+                            else if (isYesterday) dateText = 'Yesterday';
+                            dateDiv.innerHTML = `<span class="chat-date">${dateText}</span>`;
+                            messagesContainer.appendChild(dateDiv);
+                            lastDate = dateStr;
+                        }
+                        
+                        // Add message
+                        const isCurrentUser = msg.sender_id == {{ Auth::id() }};
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = isCurrentUser ? 'chats chats-right' : 'chats';
+                        
+                        const timeString = msgDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                        const senderName = isCurrentUser ? '{{ Auth::user()->name }}' : patientName;
+                        const senderImage = isCurrentUser 
+                            ? '{{ Auth::user()->profile_image ? asset("storage/" . Auth::user()->profile_image) : asset("images/default.jpeg") }}'
+                            : patientImage;
+                        
+                        if (isCurrentUser) {
+                            messageDiv.innerHTML = `
+                                <div class="chat-content">
+                                    <div class="chat-profile-name text-end justify-content-end">
+                                        <h6>${senderName} <span>${timeString}</span></h6>
+                                    </div>
+                                    <div class="message-content">${msg.message}</div>
+                                </div>
+                                <div class="chat-avatar">
+                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                                </div>
+                            `;
+                        } else {
+                            messageDiv.innerHTML = `
+                                <div class="chat-avatar">
+                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                                </div>
+                                <div class="chat-content">
+                                    <div class="chat-profile-name">
+                                        <h6>${senderName} <span>${timeString}</span></h6>
+                                    </div>
+                                    <div class="message-content">${msg.message}</div>
+                                </div>
+                            `;
+                        }
+                        
+                        messagesContainer.appendChild(messageDiv);
+                    });
+                } else {
+                    messagesContainer.innerHTML = '<div class="text-center text-muted p-5"><p>No messages yet. Start the conversation!</p></div>';
+                }
+                
+                // Scroll to bottom
+                const chatBody = document.getElementById('chatMessagesBody');
+                if (chatBody) {
+                    setTimeout(() => {
+                        chatBody.scrollTop = chatBody.scrollHeight;
+                    }, 100);
+                }
+                
+                // Mark messages as read
+                markMessagesAsRead(bookingId);
+            })
+            .catch(error => console.error('Error loading messages:', error));
+            
+            // Re-initialize Echo for new booking
+            if (window.Echo) {
+                initializeEcho(bookingId);
             }
         }
 
-        // Function to show sidebar on mobile when back arrow is clicked
-        function showSidebarOnMobile() {
-            const sidebar = document.getElementById('chatSidebar');
-            const chatMessages = document.getElementById('chatMessages');
+        // Function to mark messages as read
+        function markMessagesAsRead(bookingId) {
+            fetch(`/doctor/chat/mark-read/${bookingId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update unread count in sidebar
+                const chatItem = document.querySelector(`[data-booking-id="${bookingId}"]`);
+                if (chatItem) {
+                    const badge = chatItem.querySelector('.new-message-count');
+                    if (badge) {
+                        badge.remove();
+                    }
+                }
+            })
+            .catch(error => console.error('Error marking messages as read:', error));
+        }
+
+        // Function to send message via AJAX
+        function sendMessage(event) {
+            event.preventDefault();
             
-            if (sidebar) sidebar.classList.remove('d-none');
-            if (chatMessages) {
-                chatMessages.style.display = 'none';
-                chatMessages.classList.add('d-none');
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message || !currentBookingId || !currentPatientId) {
+                return false;
             }
             
-            // Remove booking ID from URL without refreshing
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('input[name="_token"]').value);
+            formData.append('receiver_id', currentPatientId);
+            formData.append('booking_id', currentBookingId);
+            formData.append('message', message);
+            
+            // Clear input immediately
+            messageInput.value = '';
+            messageInput.focus();
+            
+            fetch('{{ route("chat.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Message will appear via Echo
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                // Put message back on error
+                messageInput.value = message;
+            });
+            
+            return false;
+        }
+
+        // Function to show sidebar on mobile
+        function showSidebarOnMobile() {
+            document.getElementById('chatSidebar').classList.remove('d-none');
+            document.getElementById('chatMessages').style.display = 'none';
+            document.getElementById('chatMessages').classList.add('d-none');
+            
+            // Remove booking from URL
             const url = new URL(window.location);
             url.searchParams.delete('booking');
             window.history.pushState({}, '', url);
+            
+            currentBookingId = null;
         }
 
-        // On page load, check if we're on mobile and handle visibility
+        // Initialize Echo for real-time messages
+        function initializeEcho(bookingId) {
+            if (window.Echo && bookingId) {
+                // Leave previous channel
+                if (window.currentChannel) {
+                    window.currentChannel.stopListening('.MessageSent');
+                    window.Echo.leave(`chat.${window.currentBookingId}`);
+                }
+                
+                window.currentBookingId = bookingId;
+                
+                // Listen for messages
+                window.currentChannel = window.Echo.channel(`chat.${bookingId}`);
+                window.currentChannel.listen('.MessageSent', (e) => {
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    if (messagesContainer && e.message.booking_id == currentBookingId) {
+                        const isCurrentUser = e.message.sender_id === {{ Auth::id() }};
+                        
+                        // Remove "No messages" placeholder if exists
+                        const noMessages = messagesContainer.querySelector('.text-center.text-muted.p-5');
+                        if (noMessages) {
+                            noMessages.remove();
+                        }
+                        
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = isCurrentUser ? 'chats chats-right' : 'chats';
+                        
+                        const now = new Date();
+                        const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                        
+                        const senderName = isCurrentUser ? '{{ Auth::user()->name }}' : currentPatientName;
+                        const senderImage = isCurrentUser 
+                            ? '{{ Auth::user()->profile_image ? asset("storage/" . Auth::user()->profile_image) : asset("images/default.jpeg") }}'
+                            : currentPatientImage;
+                        
+                        if (isCurrentUser) {
+                            messageDiv.innerHTML = `
+                                <div class="chat-content">
+                                    <div class="chat-profile-name text-end justify-content-end">
+                                        <h6>${senderName} <span>${timeString}</span></h6>
+                                    </div>
+                                    <div class="message-content">${e.message.message}</div>
+                                </div>
+                                <div class="chat-avatar">
+                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                                </div>
+                            `;
+                        } else {
+                            messageDiv.innerHTML = `
+                                <div class="chat-avatar">
+                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                                </div>
+                                <div class="chat-content">
+                                    <div class="chat-profile-name">
+                                        <h6>${senderName} <span>${timeString}</span></h6>
+                                    </div>
+                                    <div class="message-content">${e.message.message}</div>
+                                </div>
+                            `;
+                        }
+                        
+                        messagesContainer.appendChild(messageDiv);
+                        
+                        // Scroll to bottom
+                        const chatBody = document.getElementById('chatMessagesBody');
+                        if (chatBody) {
+                            chatBody.scrollTop = chatBody.scrollHeight;
+                        }
+                        
+                        // Mark as read if it's from patient
+                        if (!isCurrentUser) {
+                            markMessagesAsRead(currentBookingId);
+                        }
+                    }
+                });
+            }
+        }
+
+        // On page load
         document.addEventListener('DOMContentLoaded', function() {
-            const currentBookingId = getCurrentBookingId();
+            const urlBookingId = getCurrentBookingId();
             
             // Initialize tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -562,36 +836,31 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
             
+            // Check if we're on mobile
             if (window.innerWidth < 992) {
-                // Check if there's a booking ID in URL
-                if (currentBookingId) {
-                    // Hide sidebar, show chat messages
-                    document.getElementById('chatSidebar').classList.add('d-none');
-                    document.getElementById('chatMessages').style.display = 'block';
-                    document.getElementById('chatMessages').classList.remove('d-none');
-                    
-                    // Highlight the active chat in sidebar
-                    const activeChat = document.querySelector(`[data-booking-id="${currentBookingId}"]`);
+                if (urlBookingId) {
+                    // Find the chat item and load it
+                    const activeChat = document.querySelector(`[data-booking-id="${urlBookingId}"]`);
                     if (activeChat) {
-                        activeChat.classList.add('active');
+                        const patientId = activeChat.dataset.patientId;
+                        const patientName = activeChat.dataset.patientName;
+                        const patientImage = activeChat.dataset.patientImage;
+                        loadChat(urlBookingId, patientId, patientName, patientImage);
                     }
-                } else {
-                    // No booking selected, show sidebar
-                    document.getElementById('chatSidebar').classList.remove('d-none');
-                    document.getElementById('chatMessages').style.display = 'none';
-                    document.getElementById('chatMessages').classList.add('d-none');
                 }
-            } else {
-                // Desktop view - show both
-                document.getElementById('chatSidebar').classList.remove('d-none');
-                document.getElementById('chatMessages').style.display = 'block';
-                document.getElementById('chatMessages').classList.remove('d-none');
             }
-
+            
             // Scroll to bottom of messages
-            const chatBody = document.querySelector('.chat-body');
+            const chatBody = document.getElementById('chatMessagesBody');
             if (chatBody) {
                 chatBody.scrollTop = chatBody.scrollHeight;
+            }
+            
+            // Initialize Echo if booking exists
+            if (urlBookingId && window.Echo) {
+                setTimeout(() => {
+                    initializeEcho(urlBookingId);
+                }, 500);
             }
             
             // Chat search functionality
@@ -624,47 +893,73 @@
                     }
                 });
             }
+            
+            // Emoji toggle
+            const emojiToggle = document.querySelector('.emoji-toggle');
+            if (emojiToggle) {
+                emojiToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const emojiPanel = document.querySelector('.emoj-group-list-foot');
+                    if (emojiPanel) {
+                        emojiPanel.classList.toggle('d-none');
+                    }
+                });
+            }
+            
+            // Emoji picker
+            document.querySelectorAll('[data-emoji]').forEach(emoji => {
+                emoji.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const emojiChar = this.getAttribute('data-emoji');
+                    const input = document.getElementById('messageInput');
+                    if (input) {
+                        input.value += emojiChar;
+                        input.focus();
+                    }
+                });
+            });
         });
 
         // Handle window resize
         window.addEventListener('resize', function() {
-            const currentBookingId = getCurrentBookingId();
-            
             if (window.innerWidth >= 992) {
-                // On desktop, show both sidebar and chat
+                // Desktop: show both
                 document.getElementById('chatSidebar').classList.remove('d-none');
                 document.getElementById('chatMessages').style.display = 'block';
                 document.getElementById('chatMessages').classList.remove('d-none');
             } else {
-                // On mobile, maintain current state
+                // Mobile: show based on selection
                 if (currentBookingId) {
-                    // If chat is open, keep it that way
                     document.getElementById('chatSidebar').classList.add('d-none');
                     document.getElementById('chatMessages').style.display = 'block';
                     document.getElementById('chatMessages').classList.remove('d-none');
                 } else {
-                    // If no chat open, show sidebar
                     document.getElementById('chatSidebar').classList.remove('d-none');
                     document.getElementById('chatMessages').style.display = 'none';
                     document.getElementById('chatMessages').classList.add('d-none');
                 }
             }
         });
-        
+
         // Handle browser back/forward
         window.addEventListener('popstate', function() {
             const bookingId = getCurrentBookingId();
             
-            if (window.innerWidth < 992) {
-                if (bookingId) {
-                    document.getElementById('chatSidebar').classList.add('d-none');
-                    document.getElementById('chatMessages').style.display = 'block';
-                    document.getElementById('chatMessages').classList.remove('d-none');
-                } else {
+            if (bookingId) {
+                const chatItem = document.querySelector(`[data-booking-id="${bookingId}"]`);
+                if (chatItem) {
+                    const patientId = chatItem.dataset.patientId;
+                    const patientName = chatItem.dataset.patientName;
+                    const patientImage = chatItem.dataset.patientImage;
+                    loadChat(bookingId, patientId, patientName, patientImage);
+                }
+            } else {
+                if (window.innerWidth < 992) {
                     document.getElementById('chatSidebar').classList.remove('d-none');
                     document.getElementById('chatMessages').style.display = 'none';
                     document.getElementById('chatMessages').classList.add('d-none');
                 }
+                currentBookingId = null;
             }
         });
     </script>
@@ -682,79 +977,34 @@
             forceTLS: false,
             disableStats: true,
         });
-
-        const bookingId = document.querySelector('input[name="booking_id"]')?.value;
-
-        if (bookingId) {
-            // Listen for messages
-            window.Echo.channel(`chat.${bookingId}`)
-                .listen('.MessageSent', (e) => {
-                    const messagesContainer = document.querySelector('.messages');
-                    if (messagesContainer && e.message.booking_id == bookingId) {
-                        // Create new message element
-                        const isCurrentUser = e.message.sender_id === {{ Auth::id() }};
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = isCurrentUser ? 'chats chats-right' : 'chats';
-                        
-                        const now = new Date();
-                        const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                        
-                        const senderName = isCurrentUser ? '{{ Auth::user()->name }}' : e.message.sender.name;
-                        const senderImage = isCurrentUser 
-                            ? '{{ Auth::user()->profile_image ? asset("storage/" . Auth::user()->profile_image) : asset("images/default.jpeg") }}'
-                            : (e.message.sender.profile_image ? `/storage/${e.message.sender.profile_image}` : '{{ asset("images/default.jpeg") }}');
-                        
-                        if (isCurrentUser) {
-                            messageDiv.innerHTML = `
-                                <div class="chat-content">
-                                    <div class="chat-profile-name text-end justify-content-end">
-                                        <h6>${senderName} <span>${timeString}</span></h6>
-                                    </div>
-                                    <div class="message-content">
-                                        ${e.message.message}
-                                    </div>
-                                </div>
-                                <div class="chat-avatar">
-                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
-                                </div>
-                            `;
-                        } else {
-                            messageDiv.innerHTML = `
-                                <div class="chat-avatar">
-                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
-                                </div>
-                                <div class="chat-content">
-                                    <div class="chat-profile-name">
-                                        <h6>${senderName} <span>${timeString}</span></h6>
-                                    </div>
-                                    <div class="message-content">
-                                        ${e.message.message}
-                                    </div>
-                                </div>
-                            `;
-                        }
-                        
-                        messagesContainer.appendChild(messageDiv);
-                        
-                        // Scroll to bottom
-                        const chatBody = document.querySelector('.chat-body');
-                        if (chatBody) {
-                            chatBody.scrollTop = chatBody.scrollHeight;
-                        }
-                    }
-                });
-        }
-
-        // Handle form submission to clear input after sending
-        const chatForm = document.getElementById('chatForm');
-        if (chatForm) {
-            chatForm.addEventListener('submit', function() {
-                setTimeout(function() {
-                    document.getElementById('messageInput').value = '';
-                }, 100);
-            });
+        
+        // Initialize Echo if booking exists
+        const initialBookingId = document.querySelector('input[name="booking_id"]')?.value;
+        if (initialBookingId && window.initializeEcho) {
+            setTimeout(() => {
+                window.initializeEcho(initialBookingId);
+            }, 500);
         }
     </script>
+
+    <!-- Add these routes to your web.php -->
+    <!--
+    Route::get('/doctor/chat/messages/{bookingId}', function($bookingId) {
+        $messages = App\Models\Chat::where('booking_id', $bookingId)
+            ->with('sender')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        return response()->json(['messages' => $messages]);
+    })->middleware('auth');
+    
+    Route::post('/doctor/chat/mark-read/{bookingId}', function($bookingId) {
+        App\Models\Chat::where('booking_id', $bookingId)
+            ->where('receiver_id', Auth::id())
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+        return response()->json(['success' => true]);
+    })->middleware('auth');
+    -->
 
     <script src="{{asset('js/jquery-3.7.1.min.js')}}"></script>
     <script src="{{asset('js/bootstrap.bundle.min.js')}}"></script>
