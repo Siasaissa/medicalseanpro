@@ -125,13 +125,13 @@
                                                 <ul>
                                                     <li>
                                                         <div class="patinet-information">
-                                                            <a href="javascript:void(0);" onclick="showAppointmentDetails({{ $booking->id }})">
+                                                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#appointmentDetailsModal{{ $booking->id }}">
                                                                 <img src="{{ $patientImage }}" alt="{{ $patient->name ?? 'Patient' }}" onerror="this.src='{{ asset('images/default.jpeg') }}'">
                                                             </a>
                                                             <div class="patient-info">
                                                                 <p>#APT000{{ $booking->id }}</p>
                                                                 <h6>
-                                                                    <a href="javascript:void(0);" onclick="showAppointmentDetails({{ $booking->id }})">
+                                                                    <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#appointmentDetailsModal{{ $booking->id }}">
                                                                         {{ $patient->name ?? 'Unknown Patient' }}
                                                                     </a>
                                                                 </h6>
@@ -157,18 +157,13 @@
                                                     <li class="appointment-action">
                                                         <ul>
                                                             <li>
-                                                                <a href="javascript:void(0);" onclick="showAppointmentDetails({{ $booking->id }})" data-bs-toggle="tooltip" title="View Details">
+                                                                <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#appointmentDetailsModal{{ $booking->id }}" data-bs-toggle="tooltip" title="View Details">
                                                                     <i class="isax isax-eye4"></i>
                                                                 </a>
                                                             </li>
                                                             <li>
                                                                 <a href="{{ route('doctor.chat', ['booking' => $booking->id]) }}" data-bs-toggle="tooltip" title="Chat">
                                                                     <i class="isax isax-messages-25"></i>
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a href="javascript:void(0);" onclick="cancelAppointment({{ $booking->id }})" data-bs-toggle="tooltip" title="Cancel">
-                                                                    <i class="isax isax-close-circle5"></i>
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -198,6 +193,140 @@
                                                         </li>
                                                     @endif
                                                 </ul>
+                                            </div>
+
+                                            <!-- APPOINTMENT DETAILS MODAL - UPCOMING -->
+                                            <div class="modal fade custom-modal" id="appointmentDetailsModal{{ $booking->id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Appointment Details</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    <div class="d-flex align-items-center mb-4">
+                                                                        <img src="{{ $patientImage }}" alt="{{ $patient->name ?? 'Patient' }}" 
+                                                                             style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #0d6efd;"
+                                                                             onerror="this.src='{{ asset('images/default.jpeg') }}'">
+                                                                        <div>
+                                                                            <h4 class="mb-1">{{ $patient->name ?? 'Unknown Patient' }}</h4>
+                                                                            <p class="text-muted mb-1">Patient ID: #PAT{{ str_pad($patient->id ?? '0', 4, '0', STR_PAD_LEFT) }}</p>
+                                                                            @if ($now->between($appointmentStart, $appointmentEnd))
+                                                                                <span class="badge bg-warning">In Progress</span>
+                                                                            @elseif ($now->lt($appointmentStart))
+                                                                                <span class="badge bg-primary">Upcoming</span>
+                                                                            @else
+                                                                                <span class="badge bg-success">Completed</span>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <hr>
+                                                            
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <h6 class="fw-bold mb-3">Appointment Information</h6>
+                                                                    <ul class="info-details">
+                                                                        <li>
+                                                                            <span class="title">Booking ID:</span>
+                                                                            <span class="text">#APT000{{ $booking->id }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Date:</span>
+                                                                            <span class="text">{{ Carbon::parse($booking->appointment_datetime)->format('F d, Y') }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Time:</span>
+                                                                            <span class="text">{{ Carbon::parse($booking->appointment_datetime)->format('h:i A') }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Duration:</span>
+                                                                            <span class="text">{{ $booking->service_time ?? 30 }} minutes</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Service:</span>
+                                                                            <span class="text">{{ $booking->service_name ?? 'General Consultation' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Type:</span>
+                                                                            <span class="text"><span class="badge bg-{{ $booking->appointment_type == 'video' ? 'primary' : ($booking->appointment_type == 'voice' ? 'info' : 'success') }}">{{ strtoupper($booking->appointment_type) }}</span></span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                                
+                                                                <div class="col-md-6">
+                                                                    <h6 class="fw-bold mb-3">Patient Information</h6>
+                                                                    <ul class="info-details">
+                                                                        <li>
+                                                                            <span class="title">Full Name:</span>
+                                                                            <span class="text">{{ $patient->name ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Email:</span>
+                                                                            <span class="text">{{ $patient->email ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Phone:</span>
+                                                                            <span class="text">{{ $patient->phone ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Gender:</span>
+                                                                            <span class="text">{{ $patient->gender ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Age:</span>
+                                                                            <span class="text">
+                                                                                @if($patient->date_of_birth)
+                                                                                    {{ Carbon::parse($patient->date_of_birth)->age }} years
+                                                                                @else
+                                                                                    N/A
+                                                                                @endif
+                                                                            </span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            @if($booking->notes)
+                                                                <div class="row mt-3">
+                                                                    <div class="col-md-12">
+                                                                        <h6 class="fw-bold mb-2">Additional Notes</h6>
+                                                                        <p class="text-muted p-3 bg-light rounded">{{ $booking->notes }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                            
+                                                            <hr>
+                                                            
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    <div class="d-flex justify-content-end gap-2">
+                                                                        @if ($now->lt($appointmentEnd))
+                                                                            <a href="
+                                                                                @if ($booking->appointment_type == 'chat')
+                                                                                    {{ route('doctor.chat', ['booking' => $booking->id]) }}
+                                                                                @elseif ($booking->appointment_type == 'video')
+                                                                                    {{ route('doctor.video', ['booking' => $booking->id]) }}
+                                                                                @elseif ($booking->appointment_type == 'voice')
+                                                                                    {{ route('doctor.voice', ['booking' => $booking->id]) }}
+                                                                                @endif
+                                                                            " class="btn btn-primary">
+                                                                                <i class="isax isax-calendar-tick5 me-1"></i> Attend
+                                                                            </a>
+                                                                        @endif
+                                                                        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                                                                            <i class="isax isax-printer me-1"></i> Print
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         @endif
                                     @endforeach
@@ -237,13 +366,13 @@
                                                 <ul>
                                                     <li>
                                                         <div class="patinet-information">
-                                                            <a href="javascript:void(0);" onclick="showAppointmentDetails({{ $booking->id }})">
+                                                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#completedAppointmentModal{{ $booking->id }}">
                                                                 <img src="{{ $patientImage }}" alt="{{ $patient->name ?? 'Patient' }}" onerror="this.src='{{ asset('images/default.jpeg') }}'">
                                                             </a>
                                                             <div class="patient-info">
                                                                 <p>#APT000{{ $booking->id }}</p>
                                                                 <h6>
-                                                                    <a href="javascript:void(0);" onclick="showAppointmentDetails({{ $booking->id }})">
+                                                                    <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#completedAppointmentModal{{ $booking->id }}">
                                                                         {{ $patient->name ?? 'Unknown Patient' }}
                                                                     </a>
                                                                 </h6>
@@ -259,11 +388,126 @@
                                                         </ul>
                                                     </li>
                                                     <li class="appointment-detail-btn">
-                                                        <a href="javascript:void(0);" onclick="showAppointmentDetails({{ $booking->id }})" class="btn btn-outline-primary btn-sm">
+                                                        <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#completedAppointmentModal{{ $booking->id }}" class="btn btn-outline-primary btn-sm">
                                                             <i class="isax isax-eye4 me-1"></i> View Details
                                                         </a>
                                                     </li>
                                                 </ul>
+                                            </div>
+
+                                            <!-- APPOINTMENT DETAILS MODAL - COMPLETED -->
+                                            <div class="modal fade custom-modal" id="completedAppointmentModal{{ $booking->id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Appointment Details</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    <div class="d-flex align-items-center mb-4">
+                                                                        <img src="{{ $patientImage }}" alt="{{ $patient->name ?? 'Patient' }}" 
+                                                                             style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #28a745;"
+                                                                             onerror="this.src='{{ asset('images/default.jpeg') }}'">
+                                                                        <div>
+                                                                            <h4 class="mb-1">{{ $patient->name ?? 'Unknown Patient' }}</h4>
+                                                                            <p class="text-muted mb-1">Patient ID: #PAT{{ str_pad($patient->id ?? '0', 4, '0', STR_PAD_LEFT) }}</p>
+                                                                            <span class="badge bg-success">Completed</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <hr>
+                                                            
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <h6 class="fw-bold mb-3">Appointment Information</h6>
+                                                                    <ul class="info-details">
+                                                                        <li>
+                                                                            <span class="title">Booking ID:</span>
+                                                                            <span class="text">#APT000{{ $booking->id }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Date:</span>
+                                                                            <span class="text">{{ Carbon::parse($booking->appointment_datetime)->format('F d, Y') }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Time:</span>
+                                                                            <span class="text">{{ Carbon::parse($booking->appointment_datetime)->format('h:i A') }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Duration:</span>
+                                                                            <span class="text">{{ $booking->service_time ?? 30 }} minutes</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Service:</span>
+                                                                            <span class="text">{{ $booking->service_name ?? 'General Consultation' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Type:</span>
+                                                                            <span class="text"><span class="badge bg-secondary">{{ strtoupper($booking->appointment_type) }}</span></span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                                
+                                                                <div class="col-md-6">
+                                                                    <h6 class="fw-bold mb-3">Patient Information</h6>
+                                                                    <ul class="info-details">
+                                                                        <li>
+                                                                            <span class="title">Full Name:</span>
+                                                                            <span class="text">{{ $patient->name ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Email:</span>
+                                                                            <span class="text">{{ $patient->email ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Phone:</span>
+                                                                            <span class="text">{{ $patient->phone ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Gender:</span>
+                                                                            <span class="text">{{ $patient->gender ?? 'N/A' }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <span class="title">Age:</span>
+                                                                            <span class="text">
+                                                                                @if($patient->date_of_birth)
+                                                                                    {{ Carbon::parse($patient->date_of_birth)->age }} years
+                                                                                @else
+                                                                                    N/A
+                                                                                @endif
+                                                                            </span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            @if($booking->notes)
+                                                                <div class="row mt-3">
+                                                                    <div class="col-md-12">
+                                                                        <h6 class="fw-bold mb-2">Additional Notes</h6>
+                                                                        <p class="text-muted p-3 bg-light rounded">{{ $booking->notes }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                            
+                                                            <hr>
+                                                            
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    <div class="d-flex justify-content-end gap-2">
+                                                                        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                                                                            <i class="isax isax-printer me-1"></i> Print
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         @endif
                                     @endforeach
@@ -295,49 +539,6 @@
        
     </div>
     <!-- /Main Wrapper -->
-    
-    <!-- APPOINTMENT DETAILS MODAL -->
-    <div class="modal fade custom-modal" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Appointment Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="appointmentDetailsContent">
-                    <!-- Content will be loaded dynamically -->
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- CANCEL APPOINTMENT MODAL -->
-    <div class="modal fade" id="cancelAppointmentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Cancel Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to cancel this appointment?</p>
-                    <div class="mb-3">
-                        <label class="form-label">Reason for cancellation (optional)</label>
-                        <textarea class="form-control" id="cancelReason" rows="3" placeholder="Please provide a reason..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">Cancel Appointment</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <style>
         /* Appointment Card Styling */
@@ -380,6 +581,7 @@
             object-fit: cover;
             border: 2px solid #fff;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
         }
         
         .patient-info p {
@@ -397,6 +599,7 @@
         .patient-info h6 a {
             color: #2c3e50;
             text-decoration: none;
+            cursor: pointer;
         }
         
         .patient-info h6 a:hover {
@@ -560,12 +763,9 @@
 
     <script>
         // ============================================
-        // APPOINTMENT MANAGEMENT SYSTEM
+        // APPOINTMENT MANAGEMENT - PURE BOOTSTRAP MODALS
         // ============================================
         
-        let currentCancelBookingId = null;
-        
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             initializeTooltips();
             initializeDateRangePicker();
@@ -577,277 +777,6 @@
             // Initialize pagination for completed appointments
             initializePagination('completed');
         });
-        
-        // ============================================
-        // SHOW APPOINTMENT DETAILS MODAL
-        // ============================================
-        function showAppointmentDetails(bookingId) {
-            const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
-            const contentDiv = document.getElementById('appointmentDetailsContent');
-            
-            // Show loading state
-            contentDiv.innerHTML = `
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            `;
-            
-            modal.show();
-            
-            // Fetch appointment details via AJAX
-            fetch(`/doctor/appointment/details/${bookingId}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    displayAppointmentDetails(data.booking, data.patient, data.doctor);
-                } else {
-                    contentDiv.innerHTML = '<div class="alert alert-danger">Failed to load appointment details</div>';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                contentDiv.innerHTML = '<div class="alert alert-danger">Error loading appointment details</div>';
-            });
-        }
-        
-        // ============================================
-        // DISPLAY APPOINTMENT DETAILS IN MODAL
-        // ============================================
-        function displayAppointmentDetails(booking, patient, doctor) {
-            const contentDiv = document.getElementById('appointmentDetailsContent');
-            const appointmentDate = new Date(booking.appointment_datetime);
-            const isCompleted = new Date(booking.appointment_datetime) < new Date();
-            const isCurrent = new Date() >= new Date(booking.appointment_datetime) && 
-                             new Date() <= new Date(booking.appointment_datetime).setMinutes(new Date(booking.appointment_datetime).getMinutes() + parseInt(booking.service_time || 30));
-            
-            const patientImage = patient.profile_image 
-                ? `/storage/${patient.profile_image}` 
-                : '{{ asset("images/default.jpeg") }}';
-            
-            const formattedDate = appointmentDate.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            
-            const formattedTime = appointmentDate.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit', 
-                hour12: true 
-            });
-            
-            let statusBadge = '';
-            let statusClass = '';
-            
-            if (isCompleted) {
-                statusBadge = 'Completed';
-                statusClass = 'success';
-            } else if (isCurrent) {
-                statusBadge = 'In Progress';
-                statusClass = 'warning';
-            } else {
-                statusBadge = 'Upcoming';
-                statusClass = 'primary';
-            }
-            
-            contentDiv.innerHTML = `
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="d-flex align-items-center mb-4">
-                            <img src="${patientImage}" alt="${patient.name}" 
-                                 style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #0d6efd;">
-                            <div>
-                                <h4 class="mb-1">${patient.name || 'Unknown Patient'}</h4>
-                                <p class="text-muted mb-1">Patient ID: #PAT${String(patient.id || '').padStart(4, '0')}</p>
-                                <span class="badge bg-${statusClass}">${statusBadge}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="fw-bold mb-3">Appointment Information</h6>
-                        <ul class="info-details">
-                            <li>
-                                <span class="title">Booking ID:</span>
-                                <span class="text">#APT${String(booking.id || '').padStart(4, '0')}</span>
-                            </li>
-                            <li>
-                                <span class="title">Date:</span>
-                                <span class="text">${formattedDate}</span>
-                            </li>
-                            <li>
-                                <span class="title">Time:</span>
-                                <span class="text">${formattedTime}</span>
-                            </li>
-                            <li>
-                                <span class="title">Duration:</span>
-                                <span class="text">${booking.service_time || 30} minutes</span>
-                            </li>
-                            <li>
-                                <span class="title">Service:</span>
-                                <span class="text">${booking.service_name || 'General Consultation'}</span>
-                            </li>
-                            <li>
-                                <span class="title">Type:</span>
-                                <span class="text"><span class="badge bg-${booking.appointment_type == 'video' ? 'primary' : (booking.appointment_type == 'voice' ? 'info' : 'success')}">${booking.appointment_type?.toUpperCase() || 'CHAT'}</span></span>
-                            </li>
-                        </ul>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <h6 class="fw-bold mb-3">Patient Information</h6>
-                        <ul class="info-details">
-                            <li>
-                                <span class="title">Full Name:</span>
-                                <span class="text">${patient.name || 'N/A'}</span>
-                            </li>
-                            <li>
-                                <span class="title">Email:</span>
-                                <span class="text">${patient.email || 'N/A'}</span>
-                            </li>
-                            <li>
-                                <span class="title">Phone:</span>
-                                <span class="text">${patient.phone || 'N/A'}</span>
-                            </li>
-                            <li>
-                                <span class="title">Gender:</span>
-                                <span class="text">${patient.gender || 'N/A'}</span>
-                            </li>
-                            <li>
-                                <span class="title">Age:</span>
-                                <span class="text">${patient.date_of_birth ? calculateAge(patient.date_of_birth) : 'N/A'}</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                
-                ${booking.notes ? `
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <h6 class="fw-bold mb-2">Additional Notes</h6>
-                        <p class="text-muted p-3 bg-light rounded">${booking.notes}</p>
-                    </div>
-                </div>
-                ` : ''}
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="d-flex justify-content-end gap-2">
-                            ${!isCompleted ? `
-                                <a href="${booking.appointment_type == 'chat' ? '/doctor/chat?booking=' + booking.id : 
-                                          (booking.appointment_type == 'video' ? '/doctor/video/' + booking.id : 
-                                           '/doctor/voice/' + booking.id)}" class="btn btn-primary">
-                                    <i class="isax isax-calendar-tick5 me-1"></i> Attend
-                                </a>
-                            ` : ''}
-                            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
-                                <i class="isax isax-printer me-1"></i> Print
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // CALCULATE AGE FROM DATE OF BIRTH
-        // ============================================
-        function calculateAge(dob) {
-            const birthDate = new Date(dob);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            return age + ' years';
-        }
-        
-        // ============================================
-        // CANCEL APPOINTMENT
-        // ============================================
-        function cancelAppointment(bookingId) {
-            currentCancelBookingId = bookingId;
-            const modal = new bootstrap.Modal(document.getElementById('cancelAppointmentModal'));
-            modal.show();
-        }
-        
-        // Confirm cancellation
-        document.getElementById('confirmCancelBtn')?.addEventListener('click', function() {
-            if (!currentCancelBookingId) return;
-            
-            const reason = document.getElementById('cancelReason')?.value || '';
-            
-            fetch(`/doctor/appointment/cancel/${currentCancelBookingId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')?.value || '',
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ reason: reason })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close modal
-                    bootstrap.Modal.getInstance(document.getElementById('cancelAppointmentModal')).hide();
-                    
-                    // Show success message
-                    showToast('Appointment cancelled successfully', 'success');
-                    
-                    // Remove the appointment from UI
-                    const appointmentItem = document.querySelector(`[data-booking-id="apt000${currentCancelBookingId}"]`);
-                    if (appointmentItem) {
-                        appointmentItem.remove();
-                    }
-                    
-                    // Reload page after 1 second
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                } else {
-                    showToast('Failed to cancel appointment', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error cancelling appointment', 'danger');
-            });
-        });
-        
-        // ============================================
-        // SHOW TOAST MESSAGE
-        // ============================================
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `alert alert-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-4`;
-            toast.style.zIndex = '9999';
-            toast.style.minWidth = '300px';
-            toast.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
         
         // ============================================
         // INITIALIZE TOOLTIPS
@@ -1037,32 +966,6 @@
             renderPage(1);
         }
     </script>
-
-    <!-- Add these routes to web.php -->
-    <!--
-    Route::get('/doctor/appointment/details/{bookingId}', function($bookingId) {
-        $booking = App\Models\Booking::with(['patient', 'doctor'])->find($bookingId);
-        if (!$booking) {
-            return response()->json(['success' => false]);
-        }
-        return response()->json([
-            'success' => true,
-            'booking' => $booking,
-            'patient' => $booking->patient,
-            'doctor' => $booking->doctor
-        ]);
-    })->middleware('auth');
-    
-    Route::post('/doctor/appointment/cancel/{bookingId}', function($bookingId) {
-        $booking = App\Models\Booking::find($bookingId);
-        if ($booking) {
-            $booking->status = 'cancelled';
-            $booking->save();
-            return response()->json(['success' => true]);
-        }
-        return response()->json(['success' => false]);
-    })->middleware('auth');
-    -->
 
     <!-- jQuery -->
     <script src="{{asset('js/jquery-3.7.1.min.js')}}"></script>
