@@ -338,28 +338,17 @@
 									@endif
 									
 									<li class="appointment-detail-btn">
-    @if ($booking->status === 'pending')
-
-        <a href="{{ route('patient.pay', ['booking' => $booking->id]) }}"
-           class="btn btn-md btn-warning">
-            <i class="isax isax-money-send me-1"></i> Confirm Payment
-        </a>
-
-    @elseif ($booking->status === 'paid')
-
-        <button class="btn btn-md btn-success" disabled>
-            <i class="isax isax-tick-circle me-1"></i> Payment Confirmed
-        </button>
-
-    @elseif ($booking->status === 'failed')
-
-        <span class="text-danger fw-bold">
-            Payment Failed
-        </span>
-
-    @endif
-</li>
-
+										<a href="
+											@if ($booking->status == 'pending')
+												{{ route('chat.index') }}
+												
+											@else($booking->status == 'paid')
+												#
+											@endif
+										" class="btn btn-md btn-primary-gradient">
+											<i class="isax isax-calendar-tick5 me-1"></i> Confirm Payment
+										</a>
+									</li>
 								</ul>
 							</div>
 						@endif
