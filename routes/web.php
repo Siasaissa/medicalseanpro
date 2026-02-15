@@ -177,6 +177,4 @@ Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () 
     Route::put('/qualifications/update', [ProfileController::class, 'updateQualifications'])->name('doctor.qualifications.update');
 });
 
-Route::get('/verify-pending-payments', [BookingController::class, 'verifyPendingPayments']);
-
 require __DIR__.'/auth.php';
