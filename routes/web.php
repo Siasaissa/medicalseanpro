@@ -176,4 +176,7 @@ Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () 
     Route::put('/experiences/update', [ProfileController::class, 'updateExperiences'])->name('doctor.experiences.update');
     Route::put('/qualifications/update', [ProfileController::class, 'updateQualifications'])->name('doctor.qualifications.update');
 });
+
+//Route::post('/clickpesa/webhook', [BookingController::class, 'clickpesaWebhook']);
+
 require __DIR__.'/auth.php';

@@ -23,7 +23,10 @@ protected $fillable = [
     'total',
     'phone',             
     'payment_gateway',
-    'status'   
+    'status',
+    'payment_reference',
+    'transaction_id',
+    'payment_response'
 ];
 
     // Relations

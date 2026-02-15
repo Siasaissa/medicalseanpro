@@ -305,5 +305,65 @@ public function chat(Request $request)
     return view('patient.chat', compact('doctorName'));
 }
 
+public function clickpesaWebhook(Request $request)
+{
+    Log::info('ClickPesa Webhook Received', $request->all());
+
+    try {
+
+        $orderReference = $request->input('orderReference');
+        $status = $request->input('status');
+        $transactionId = $request->input('transactionId');
+        $amount = $request->input('amount');
+
+        if (!$orderReference) {
+            return response()->json(['message' => 'Invalid request'], 400);
+        }
+
+        $booking = Booking::where('payment_reference', $orderReference)->first();
+
+        if (!$booking) {
+            return response()->json(['message' => 'Booking not found'], 404);
+        }
+
+        // Prevent duplicate processing
+        if ($booking->status === 'paid') {
+            return response()->json(['message' => 'Already processed'], 200);
+        }
+
+        // Verify amount
+        if ((float)$booking->total !== (float)$amount) {
+            return response()->json(['message' => 'Amount mismatch'], 400);
+        }
+
+        if (strtoupper($status) === 'SUCCESS') {
+
+            $booking->update([
+                'status' => 'paid',
+                'transaction_id' => $transactionId,
+                'payment_response' => json_encode($request->all()),
+            ]);
+
+        } else {
+
+            $booking->update([
+                'status' => 'failed',
+                'payment_response' => json_encode($request->all()),
+            ]);
+        }
+
+        return response()->json(['message' => 'Webhook processed successfully'], 200);
+
+    } catch (\Exception $e) {
+
+        Log::error('Webhook error', [
+            'error' => $e->getMessage()
+        ]);
+
+        return response()->json(['message' => 'Server error'], 500);
+    }
+}
+
+
 
 }
