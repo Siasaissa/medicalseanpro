@@ -225,7 +225,7 @@ class BookingController extends Controller
     {
         $bookings = Booking::where('user_id', Auth::id())->with('doctor')
                             ->orderBy('appointment_datetime', 'desc')
-                            ->where('status', 'paid')
+                            ->where('status', ['paid','pending'])
                             ->get();
 
         $counts = Booking::where('user_id', Auth::id())->with('doctor')
