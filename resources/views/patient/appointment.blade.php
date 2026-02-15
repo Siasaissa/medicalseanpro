@@ -54,7 +54,7 @@
 
 					<div class="col-lg-8 col-xl-9">
 						<div class="book-appointment-head">
-							<a href="{{ route('patient.doctor-grid') }}"></a>
+							<a href="{{ route('patient.doctor-grid') }}">
 							<h3><span >Book a new Appointment </span></h3>
 							<span class="add-icon" style="margin-left: 0.2%;"><i class="fa-solid fa-circle-plus fs-10 " ></i></span>
 							</a>
