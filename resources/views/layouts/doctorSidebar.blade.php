@@ -19,16 +19,7 @@
 			</div>
 		</div>
 	</div>
-	<!--<div class="doctor-available-head">
-		<div class="input-block input-block-new">
-			<label class="form-label">Availability <span class="text-danger">*</span></label>
-			<select class="select form-control" id="availabilitySelect">
-				<option value="available" {{ ($availability == 'available') ? 'selected' : '' }}>I am Available Now</option>
-<option value="not_available" {{ ($availability == 'not_available') ? 'selected' : '' }}>Not Available</option>
 
-			</select>
-		</div>
-	</div>-->
 	<div class="dashboard-widget">
 		<nav class="dashboard-menu">
 			<ul>
@@ -80,41 +71,3 @@
 		</nav>
 	</div>
 </div>
-<script>
-document.getElementById('availabilitySelect').addEventListener('change', function () {
-    let availability = this.value;
-
-    fetch("{{ route('doctor.updateAvailability') }}", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ availability })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            // ✅ Show success message (non-blocking)
-            const msg = document.createElement('div');
-            msg.innerText = `Availability updated to: ${data.availability.replace('_', ' ')}`;
-            msg.style.position = 'fixed';
-            msg.style.bottom = '20px';
-            msg.style.right = '20px';
-            msg.style.background = '#28a745';
-            msg.style.color = 'white';
-            msg.style.padding = '10px 15px';
-            msg.style.borderRadius = '8px';
-            msg.style.zIndex = '9999';
-            msg.style.transition = 'opacity 0.5s ease';
-            document.body.appendChild(msg);
-
-            setTimeout(() => msg.style.opacity = '0', 2000);
-            setTimeout(() => msg.remove(), 2500);
-        } else {
-            alert('Something went wrong.');
-        }
-    })
-    .catch(err => console.error(err));
-});
-</script>
