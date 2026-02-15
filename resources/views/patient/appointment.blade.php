@@ -339,10 +339,10 @@
 									
 									<li class="appointment-detail-btn">
 										<a href="
-											@if ($booking->status == 'pending')
+											@if ($booking->status == 'paid')
 												{{ route('chat.index') }}
 
-											@else($booking->status == 'paid')
+											@else($booking->status == 'pending')
 												#
 											@endif
 										" class="btn btn-md btn-primary-gradient">
