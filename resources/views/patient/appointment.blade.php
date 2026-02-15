@@ -48,7 +48,7 @@
 					<!-- Profile Sidebar -->
 					@include ('layouts.sidebar')
 					<!-- /Profile Sidebar -->
-					<div class="book-appointment-head">
+					<div class="col-lg-8 col-xl-9">
 									<h3><span >Book a new Appointment </span></h3>
 									<span class="add-icon" style="margin-left: 0.2%;"><a href="{{ route('patient.doctor-grid') }}"><i class="fa-solid fa-circle-plus fs-10 " ></i></a></span>
 								</div>
