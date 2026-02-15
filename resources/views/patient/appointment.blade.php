@@ -338,17 +338,28 @@
 									@endif
 									
 									<li class="appointment-detail-btn">
-										<a href="
-											@if ($booking->status == 'pending')
-												{{ route('chat.index') }}
-												
-											@else($booking->status == 'paid')
-												#
-											@endif
-										" class="btn btn-md btn-primary-gradient">
-											<i class="isax isax-calendar-tick5 me-1"></i> Confirm Payment
-										</a>
-									</li>
+    @if ($booking->status === 'pending')
+
+        <a href="{{ route('patient.pay', ['booking' => $booking->id]) }}"
+           class="btn btn-md btn-warning">
+            <i class="isax isax-money-send me-1"></i> Confirm Payment
+        </a>
+
+    @elseif ($booking->status === 'paid')
+
+        <button class="btn btn-md btn-success" disabled>
+            <i class="isax isax-tick-circle me-1"></i> Payment Confirmed
+        </button>
+
+    @elseif ($booking->status === 'failed')
+
+        <span class="text-danger fw-bold">
+            Payment Failed
+        </span>
+
+    @endif
+</li>
+
 								</ul>
 							</div>
 						@endif
@@ -390,7 +401,7 @@
 														class="__cf_email__"
 														data-cfemail="503534313c393e103528313d203c357e333f3d">[email�protected]</a>
 												</li>
-												<li><i class="isax isax-call5"></i>+1 504 368 6874</li>
+												<li><i class="isax isax-call5"></i>+255613803662</li>
 											</ul>
 										</li>
 										<li class="appointment-detail-btn">
