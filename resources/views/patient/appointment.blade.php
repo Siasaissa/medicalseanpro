@@ -336,7 +336,19 @@
 											@endif
 										</span>
 									@endif
+									
+									<li class="appointment-detail-btn">
+										<a href="
+											@if ($booking->status == 'pending')
+												{{ route('chat.index') }}
 
+											@else($booking->status == 'paid')
+												#
+											@endif
+										" class="btn btn-md btn-primary-gradient">
+											<i class="isax isax-calendar-tick5 me-1"></i> Confirm payment
+										</a>
+									</li>
 								</ul>
 							</div>
 						@endif
