@@ -169,7 +169,7 @@ class BookingController extends Controller
                 'total' => $validated['total'],
                 'phone' => $validated['phone'],
                 'payment_gateway' => $validated['payment_gateway'],
-                'status' => 'pending_payment',
+                'status' => 'pending',
                 'payment_reference' => $orderReference,
                 'payment_response' => json_encode($paymentResponse),
             ]);

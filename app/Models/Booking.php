@@ -22,7 +22,8 @@ protected $fillable = [
     'discount',
     'total',
     'phone',             
-    'payment_gateway',   
+    'payment_gateway',
+    'status'   
 ];
 
     // Relations
