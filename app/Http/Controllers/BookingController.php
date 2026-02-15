@@ -114,7 +114,7 @@ class BookingController extends Controller
             }
 
             /** ---------------- PAYMENT PREP ---------------- */
-            $orderReference = 'MEDICALSEAN' . time() . $validated['user_id'];
+            $orderReference = 'SEAN' . time() . $validated['user_id'];
 
 
             $payload = [
