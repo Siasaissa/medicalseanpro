@@ -339,14 +339,14 @@
 									
 									<li class="appointment-detail-btn">
 										<a href="
-											@if ($booking->status == 'paid')
+											@if ($booking->status == 'pending')
 												{{ route('chat.index') }}
-
-											@else($booking->status == 'pending')
+												
+											@else($booking->status == 'paid')
 												#
 											@endif
 										" class="btn btn-md btn-primary-gradient">
-											<i class="isax isax-calendar-tick5 me-1"></i> Confirm payment
+											<i class="isax isax-calendar-tick5 me-1"></i> Confirm Payment
 										</a>
 									</li>
 								</ul>
