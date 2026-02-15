@@ -236,47 +236,12 @@ class BookingController extends Controller
             
         $completed = Booking::where('appointment_datetime', '<', Carbon::now())
                             ->where('user_id', Auth::id())->with('doctor')
-                             ->where('status', ['pending','paid'])
+                            ->where('status', ['pending','paid'])
                             ->count();
 
         return view('patient.appointment', compact('bookings', 'counts','completed'));
     }
 
-public function appointments()
-{
-    $bookings = Booking::where('user_id', auth()->id())
-        ->whereIn('status', ['pending', 'paid'])
-        ->get();
-
-    // 🔥 Auto-check pending bookings before sending to view
-    foreach ($bookings as $booking) {
-
-        if ($booking->status === 'pending') {
-
-            $response = Http::get('https://api.clickpesa.com/payments/status', [
-                'orderReference' => $booking->payment_reference,
-            ]);
-
-            if ($response->successful()) {
-
-                $data = $response->json();
-
-                if (!empty($data['status']) && strtoupper($data['status']) === 'SUCCESS') {
-
-                    $booking->update([
-                        'status' => 'paid',
-                        'transaction_id' => $data['transactionId'] ?? null,
-                        'payment_response' => json_encode($data),
-                    ]);
-                }
-            }
-        }
-    }
-
-    return view('patient.appointments', compact('bookings'));
-}
-
-    
 public function favourites()
 {
     $favourite = Booking::select('doctor_id', DB::raw('COUNT(*) as total'),DB::raw('MAX(appointment_datetime) as last_appointment'))
