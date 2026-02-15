@@ -12,9 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-           $table->column('payment_reference')->default('0')->after('status');
+            $table->string('payment_reference')->nullable()->after('status');
+            $table->string('transaction_id')->nullable()->after('payment_reference');
+            $table->json('payment_response')->nullable()->after('transaction_id');
         });
     }
+
 
     /**
      * Reverse the migrations.
