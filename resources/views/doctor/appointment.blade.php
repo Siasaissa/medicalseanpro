@@ -367,7 +367,7 @@
                                                     <li>
                                                         <div class="patinet-information">
                                                             <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#completedAppointmentModal{{ $booking->id }}">
-                                                                <img src="{{ asset($booking->doctor->profile->dp ?? 'images/profile-06.jpg') }}" onerror="this.src='{{ asset('images/default.jpeg') }}'">
+                                                                <img src="{{ asset($booking->patient->profile->dp ?? 'images/profile-06.jpg') }}" onerror="this.src='{{ asset('images/default.jpeg') }}'">
                                                             </a>
                                                             <div class="patient-info">
                                                                 <p>#APT000{{ $booking->id }}</p>
