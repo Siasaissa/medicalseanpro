@@ -69,7 +69,7 @@ Route::middleware(['auth', 'verified', 'role:patient'])->group(function () {
     
     Route::get('/patient/vitals', fn () => view('patient.vitals'))->name('patient.vitals');
     Route::get('/patient/settings', fn () => view('patient.settings'))->name('patient.settings');
-    Route::get('/patient/doctor-grid', [DoctorGrid::class, 'grid'])->name('patient.doctor-grid');
+    Route::get('/patient/doctor-grid', [DoctorGrid::class, 'grid'])->name('doctor.grid');
 
     Route::get('/doctors/list', [DoctorGrid::class, 'list'])->name('doctor.list');
     Route::get('/doctors/map', [DoctorGrid::class, 'map'])->name('doctor.map');
