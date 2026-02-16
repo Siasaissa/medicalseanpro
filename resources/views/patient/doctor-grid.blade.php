@@ -25,7 +25,7 @@
                 </div>
                 <div class="bg-primary-gradient rounded-pill doctors-search-box">
                     <div class="search-box-one rounded-pill">
-                        <form action="{{ route('doctor.grid') }}" method="GET"> 
+                        <form action="{{ route('patient.doctor-grid') }}" method="GET"> 
                             <div class="search-input search-line">
                                 <i class="isax isax-hospital5 bficon"></i>
                                 <div class="mb-0">
@@ -80,7 +80,7 @@
                             <div class="card-header">
                                 <div class="d-flex align-items-center filter-head justify-content-between">
                                     <h4>Filter</h4>
-                                    <a href="{{ route('doctor.grid') }}" class="text-secondary text-decoration-underline">Clear All</a>
+                                    <a href="{{ route('patient.doctor-grid') }}" class="text-secondary text-decoration-underline">Clear All</a>
                                 </div>
                                 <div class="filter-input">
                                     <div class="position-relative input-icon">
@@ -90,7 +90,7 @@
                                 </div>
                             </div>
                             <div class="card-body p-0">
-                                <form id="filterForm" action="{{ route('doctor.grid') }}" method="GET">
+                                <form id="filterForm" action="{{ route('patient.doctor-grid') }}" method="GET">
                                     <!-- Keep search parameters -->
                                     <input type="hidden" name="search" value="{{ request('search') }}">
                                     <input type="hidden" name="location" value="{{ request('location') }}">
@@ -311,7 +311,7 @@
                                             </a>
                                         </div>
                                     </div>
-                                    <a href="{{ route('doctor.grid') }}" class="btn btn-sm head-icon active me-2"><i class="isax isax-grid-7"></i></a>
+                                    <a href="{{ route('patient.doctor-grid') }}" class="btn btn-sm head-icon active me-2"><i class="isax isax-grid-7"></i></a>
                                     <a href="{{ route('doctor.list') }}" class="btn btn-sm head-icon me-2"><i class="isax isax-row-vertical"></i></a>
                                     <a href="{{ route('doctor.map') }}" class="btn btn-sm head-icon"><i class="isax isax-location"></i></a>
                                 </div>
@@ -379,7 +379,7 @@
                             <div class="col-12">
                                 <div class="text-center py-5">
                                     <h4>No doctors found matching your criteria</h4>
-                                    <a href="{{ route('doctor.grid') }}" class="btn btn-primary mt-3">Clear Filters</a>
+                                    <a href="{{ route('patient.doctor-grid') }}" class="btn btn-primary mt-3">Clear Filters</a>
                                 </div>
                             </div>
                             @endforelse
