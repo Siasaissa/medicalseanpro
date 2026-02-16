@@ -161,7 +161,7 @@
                                                     <li class="mail-info-patient">
                                                         <ul>
                                                             <li><i class="isax isax-sms5"></i>{{ $doctor->email ?? 'No email' }}</li>
-                                                            <li><i class="isax isax-call5"></i>{{ $doctor->phone ?? 'No phone' }}</li>
+                                                            <li><i class="isax isax-call5"></i>{{ $doctor->phone_numbers ?? 'No phone' }}</li>
                                                         </ul>
                                                     </li>
 
@@ -280,7 +280,7 @@
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Phone:</span>
-                                                                            <span class="text">{{ $doctor->phone ?? 'N/A' }}</span>
+                                                                            <span class="text">{{ $doctor->phone_numbers ?? 'N/A' }}</span>
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Specialization:</span>
@@ -471,7 +471,7 @@
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Phone:</span>
-                                                                            <span class="text">{{ $doctor->phone ?? 'N/A' }}</span>
+                                                                            <span class="text">{{ $doctor->phone_numbers ?? 'N/A' }}</span>
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Specialization:</span>
