@@ -407,7 +407,7 @@
                                                             <div class="row">
                                                                 <div class="col-md-12">
                                                                     <div class="d-flex align-items-center mb-4">
-                                                                        <img src="{{ $patientImage }}" alt="{{ $patient->name ?? 'Patient' }}" 
+                                                                        <img src="{{ asset($booking->patinet->profile->dp ?? 'images/profile-06.jpg') }}" 
                                                                              style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #28a745;"
                                                                              onerror="this.src='{{ asset('images/default.jpeg') }}'">
                                                                         <div>
