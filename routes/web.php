@@ -177,4 +177,8 @@ Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () 
     Route::put('/qualifications/update', [ProfileController::class, 'updateQualifications'])->name('doctor.qualifications.update');
 });
 
+Route::get('/doctors', [DoctorGrid::class, 'grid'])->name('doctor.grid');
+Route::get('/doctors/list', [DoctorGrid::class, 'list'])->name('doctor.list');
+Route::get('/doctors/map', [DoctorGrid::class, 'map'])->name('doctor.map');
+
 require __DIR__.'/auth.php';
