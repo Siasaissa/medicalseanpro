@@ -25,7 +25,8 @@ public function grid(Request $request)
                 $q->where('name', 'like', '%' . $request->search . '%')
                   ->orWhereHas('profile', function($profileQuery) use ($request) {
                       $profileQuery->where('hospital', 'like', '%' . $request->search . '%')
-                                  ->orWhere('speciality', 'like', '%' . $request->search . '%');
+                                  ->orWhere('speciality', 'like', '%' . $request->search . '%')
+                                  ->orWhere('primary_speciality', 'like', '%' . $request->search . '%');
                   });
             });
         }
@@ -62,7 +63,10 @@ public function grid(Request $request)
         if ($request->filled('consultation_types')) {
             $query->whereHas('profile', function($q) use ($request) {
                 foreach ($request->consultation_types as $type) {
-                    $q->whereJsonContains('consultation_modes', $type);
+                    $mode = $this->mapConsultationTypeToMode($type);
+                    if ($mode) {
+                        $q->whereJsonContains('consultation_modes', $mode);
+                    }
                 }
             });
         }
@@ -76,13 +80,9 @@ public function grid(Request $request)
             });
         }
 
-        // Availability filter
+        // Enhanced Availability filter
         if ($request->boolean('available')) {
-            // You can implement your availability logic here
-            // This is a placeholder - adjust based on your availability logic
-            $query->whereHas('profile', function($q) {
-                $q->whereNotNull('availability_schedule');
-            });
+            $this->applyAvailabilityFilter($query);
         }
 
         // Sort by price
@@ -106,19 +106,188 @@ public function grid(Request $request)
         $locations = $this->getUniqueLocations();
         $languages = $this->getUniqueLanguages();
         $consultationTypes = $this->getConsultationTypes();
+        
+        // Get counts for filters
+        $specialityCounts = $this->getSpecialityCounts();
+        $genderCounts = $this->getGenderCounts();
 
         $doctors = $query->with('profile')->paginate(12)->withQueryString();
         
         $totalDoctors = $doctors->total();
 
-        return view('patient.doctor-grid', compact(
+        return view('doctor.grid', compact(
             'doctors', 
             'totalDoctors', 
             'specialities', 
             'locations', 
             'languages',
-            'consultationTypes'
+            'consultationTypes',
+            'specialityCounts',
+            'genderCounts'
         ));
+    }
+
+    /**
+     * Enhanced availability filter that checks current time against doctor's schedule
+     */
+    private function applyAvailabilityFilter($query)
+    {
+        $currentTime = Carbon::now();
+        $currentDay = strtolower($currentTime->format('l')); // monday, tuesday, etc.
+        $currentTimeString = $currentTime->format('H:i:s');
+
+        return $query->whereHas('profile', function($q) use ($currentDay, $currentTimeString) {
+            $q->where(function($query) use ($currentDay, $currentTimeString) {
+                $query->whereNotNull('availability_schedule')
+                      ->where('availability_schedule', '!=', '[]')
+                      ->whereRaw("JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".is_available') = true")
+                      ->whereRaw("JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".start_time') <= ?", [$currentTimeString])
+                      ->whereRaw("JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".end_time') >= ?", [$currentTimeString]);
+            });
+
+            // Check break time if exists
+            $q->where(function($query) use ($currentDay, $currentTimeString) {
+                $query->whereRaw("JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_time') IS NULL")
+                      ->orWhereRaw("JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_time') = ''")
+                      ->orWhere(function($subQuery) use ($currentDay, $currentTimeString) {
+                          $subQuery->whereRaw("? NOT BETWEEN JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_start') AND JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_end')", [$currentTimeString]);
+                      });
+            });
+        });
+    }
+
+    /**
+     * Alternative availability filter for MySQL 5.7+ using JSON functions
+     * Use this if your MySQL version supports JSON functions
+     */
+    private function applyAvailabilityFilterMySQL57($query)
+    {
+        $currentTime = Carbon::now();
+        $currentDay = strtolower($currentTime->format('l'));
+        $currentTimeString = $currentTime->format('H:i:s');
+
+        return $query->whereHas('profile', function($q) use ($currentDay, $currentTimeString) {
+            $q->whereNotNull('availability_schedule')
+              ->where('availability_schedule', '!=', '[]')
+              ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".is_available')) = 'true'")
+              ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".start_time')) <= ?", [$currentTimeString])
+              ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".end_time')) >= ?", [$currentTimeString])
+              ->where(function($query) use ($currentDay, $currentTimeString) {
+                  $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_time')) IS NULL")
+                        ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_time')) = ''")
+                        ->orWhere(function($subQuery) use ($currentDay, $currentTimeString) {
+                            $breakStart = "JSON_UNQUOTE(JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_start'))";
+                            $breakEnd = "JSON_UNQUOTE(JSON_EXTRACT(availability_schedule, '$.\"$currentDay\".break_end'))";
+                            $subQuery->whereRaw("? NOT BETWEEN $breakStart AND $breakEnd", [$currentTimeString]);
+                        });
+              });
+        });
+    }
+
+    /**
+     * Alternative for PostgreSQL using JSONB functions
+     */
+    private function applyAvailabilityFilterPostgreSQL($query)
+    {
+        $currentTime = Carbon::now();
+        $currentDay = strtolower($currentTime->format('l'));
+        $currentTimeString = $currentTime->format('H:i:s');
+
+        return $query->whereHas('profile', function($q) use ($currentDay, $currentTimeString) {
+            $q->whereNotNull('availability_schedule')
+              ->where('availability_schedule', '!=', '[]')
+              ->whereRaw("availability_schedule->'$.\"$currentDay\"'->>'is_available' = 'true'")
+              ->whereRaw("(availability_schedule->'$.\"$currentDay\"'->>'start_time')::time <= ?::time", [$currentTimeString])
+              ->whereRaw("(availability_schedule->'$.\"$currentDay\"'->>'end_time')::time >= ?::time", [$currentTimeString])
+              ->where(function($query) use ($currentDay, $currentTimeString) {
+                  $query->whereRaw("availability_schedule->'$.\"$currentDay\"'->>'break_time' IS NULL")
+                        ->orWhereRaw("availability_schedule->'$.\"$currentDay\"'->>'break_time' = ''")
+                        ->orWhere(function($subQuery) use ($currentDay, $currentTimeString) {
+                            $subQuery->whereRaw("?::time NOT BETWEEN (availability_schedule->'$.\"$currentDay\"'->>'break_start')::time AND (availability_schedule->'$.\"$currentDay\"'->>'break_end')::time", [$currentTimeString]);
+                        });
+              });
+        });
+    }
+
+    /**
+     * Check if a specific doctor is currently available
+     * Useful for displaying real-time availability status
+     */
+    public function checkDoctorAvailability($profile)
+    {
+        if (!$profile->availability_schedule || empty($profile->availability_schedule)) {
+            return false;
+        }
+
+        $currentTime = Carbon::now();
+        $currentDay = strtolower($currentTime->format('l'));
+        $currentTimeString = $currentTime->format('H:i:s');
+
+        $schedule = $profile->availability_schedule;
+
+        // Check if doctor is available on this day
+        if (!isset($schedule[$currentDay]) || 
+            !($schedule[$currentDay]['is_available'] ?? false)) {
+            return false;
+        }
+
+        $daySchedule = $schedule[$currentDay];
+        
+        // Check if current time is within working hours
+        $startTime = $daySchedule['start_time'] ?? null;
+        $endTime = $daySchedule['end_time'] ?? null;
+        
+        if (!$startTime || !$endTime) {
+            return false;
+        }
+
+        $isWithinWorkingHours = $currentTimeString >= $startTime && $currentTimeString <= $endTime;
+        
+        if (!$isWithinWorkingHours) {
+            return false;
+        }
+
+        // Check if current time is within break time
+        $hasBreak = !empty($daySchedule['break_time'] ?? '');
+        if ($hasBreak) {
+            $breakStart = $daySchedule['break_start'] ?? null;
+            $breakEnd = $daySchedule['break_end'] ?? null;
+            
+            if ($breakStart && $breakEnd) {
+                $isOnBreak = $currentTimeString >= $breakStart && $currentTimeString <= $breakEnd;
+                if ($isOnBreak) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get availability status for multiple doctors
+     */
+    public function getDoctorsAvailabilityStatus($doctors)
+    {
+        $statuses = [];
+        foreach ($doctors as $doctor) {
+            if ($doctor->profile) {
+                $statuses[$doctor->id] = $this->checkDoctorAvailability($doctor->profile);
+            }
+        }
+        return $statuses;
+    }
+
+    private function mapConsultationTypeToMode($type)
+    {
+        $map = [
+            'voice' => 'voice_call',
+            'video' => 'video_call',
+            'chat' => 'chat',
+            'home_visit' => 'home_visit'
+        ];
+        
+        return $map[$type] ?? null;
     }
 
     private function getUniqueSpecialities()
@@ -164,13 +333,47 @@ public function grid(Request $request)
     private function getConsultationTypes()
     {
         return [
-            'video' => 'Video Call',
             'voice' => 'Audio Call',
+            'video' => 'Video Call',
             'chat' => 'Chat',
             'home_visit' => 'Home Visit'
         ];
     }
 
+    private function getSpecialityCounts()
+    {
+        $counts = [];
+        $specialities = $this->getUniqueSpecialities();
+        
+        foreach ($specialities as $speciality) {
+            $count = User::where('role', 'doctor')
+                ->whereHas('profile', function($q) use ($speciality) {
+                    $q->where('speciality', $speciality)
+                      ->orWhere('primary_speciality', $speciality)
+                      ->orWhereJsonContains('secondary_specialities', $speciality);
+                })->count();
+            
+            if ($count > 0) {
+                $counts[$speciality] = $count;
+            }
+        }
+        
+        return $counts;
+    }
+
+    private function getGenderCounts()
+    {
+        return [
+            'male' => User::where('role', 'doctor')
+                ->whereHas('profile', function($q) {
+                    $q->where('sex', 'male');
+                })->count(),
+            'female' => User::where('role', 'doctor')
+                ->whereHas('profile', function($q) {
+                    $q->where('sex', 'female');
+                })->count()
+        ];
+    }
 public function show($doctorId)
 {
     $doctor = User::findOrFail($doctorId);

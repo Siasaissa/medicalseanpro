@@ -335,19 +335,22 @@
                                         <div class="d-flex active-bar align-items-center justify-content-between p-3">
                                             <a href="#" class="text-indigo fw-medium fs-14">{{ $doctor->profile->primary_speciality ?? $doctor->profile->speciality ?? 'General' }}</a>
                                             @php
-                                                $isAvailable = $doctor->profile->availability_schedule ? true : false;
-                                            @endphp
-                                            @if($isAvailable)
-                                            <span class="badge bg-success-light d-inline-flex align-items-center">
-                                                <i class="fa-solid fa-circle fs-5 me-1"></i>
-                                                Available
-                                            </span>
-                                            @else
-                                            <span class="badge bg-danger-light d-inline-flex align-items-center">
-                                                <i class="fa-solid fa-circle fs-5 me-1"></i>
-                                                Not Available
-                                            </span>
-                                            @endif
+												// Create an instance of DoctorController to check availability
+												$doctorController = app('App\Http\Controllers\DoctorController');
+												$isAvailable = $doctorController->checkDoctorAvailability($doctor->profile);
+											@endphp
+
+											@if($isAvailable)
+												<span class="badge bg-success-light d-inline-flex align-items-center">
+													<i class="fa-solid fa-circle fs-5 me-1"></i>
+													Available Now
+												</span>
+											@else
+												<span class="badge bg-danger-light d-inline-flex align-items-center">
+													<i class="fa-solid fa-circle fs-5 me-1"></i>
+													Not Available
+												</span>
+											@endif
                                         </div>
                                         <div class="p-3 pt-0">
                                             <div class="doctor-info-detail mb-3 pb-3">
