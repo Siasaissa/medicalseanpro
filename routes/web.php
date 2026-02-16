@@ -70,6 +70,10 @@ Route::middleware(['auth', 'verified', 'role:patient'])->group(function () {
     Route::get('/patient/vitals', fn () => view('patient.vitals'))->name('patient.vitals');
     Route::get('/patient/settings', fn () => view('patient.settings'))->name('patient.settings');
     Route::get('/patient/doctor-grid', [DoctorGrid::class, 'grid'])->name('patient.doctor-grid');
+
+    Route::get('/doctors/list', [DoctorGrid::class, 'list'])->name('doctor.list');
+    Route::get('/doctors/map', [DoctorGrid::class, 'map'])->name('doctor.map');
+
     Route::get('/patient/booking/{doctor}', [DoctorGrid::class, 'show'])->name('patient.booking');
 
     Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
@@ -177,8 +181,5 @@ Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () 
     Route::put('/qualifications/update', [ProfileController::class, 'updateQualifications'])->name('doctor.qualifications.update');
 });
 
-Route::get('/doctors', [DoctorGrid::class, 'grid'])->name('doctor.grid');
-Route::get('/doctors/list', [DoctorGrid::class, 'list'])->name('doctor.list');
-Route::get('/doctors/map', [DoctorGrid::class, 'map'])->name('doctor.map');
 
 require __DIR__.'/auth.php';
