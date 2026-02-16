@@ -53,6 +53,8 @@ public function grid(Request $request)
             });
         }
 
+        $doctors = $query->with('profile')->paginate(12)->withQueryString();
+        
         // Gender filter
         if ($request->filled('gender')) {
             $query->whereHas('profile', function($q) use ($request) {
