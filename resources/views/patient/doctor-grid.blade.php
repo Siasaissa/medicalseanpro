@@ -399,13 +399,7 @@
                             @endif
                         </div>
 
-                        <!-- Pagination 
-                        <div class="row">
-                            <div class="col-md-12">
-                                {{ $doctors->links() }}
-                            </div>
-                        </div>
-						-->
+
                     </div>
                 </div>
             </div>
