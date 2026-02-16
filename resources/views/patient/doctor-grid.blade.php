@@ -207,13 +207,13 @@
                                                 @php $selectedConsultationTypes = request('consultation_types', []) @endphp
                                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                                     <div class="form-check">
-                                                        <input class="form-check-input consultation-filter" type="checkbox" name="consultation_types[]" value="voice" id="consult_voice" {{ in_array('voice', $selectedConsultationTypes) ? 'checked' : '' }}>
+                                                        <input class="form-check-input consultation-filter" type="checkbox" name="consultation_types[]" value="voice_call" id="consult_voice" {{ in_array('voice', $selectedConsultationTypes) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="consult_voice">Audio Call</label>
                                                     </div>
                                                 </div>
                                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                                     <div class="form-check">
-                                                        <input class="form-check-input consultation-filter" type="checkbox" name="consultation_types[]" value="video" id="consult_video" {{ in_array('video_call', $selectedConsultationTypes) ? 'checked' : '' }}>
+                                                        <input class="form-check-input consultation-filter" type="checkbox" name="consultation_types[]" value="video_call" id="consult_video" {{ in_array('video_call', $selectedConsultationTypes) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="consult_video">Video Call</label>
                                                     </div>
                                                 </div>
