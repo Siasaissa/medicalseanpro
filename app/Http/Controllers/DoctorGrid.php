@@ -111,7 +111,7 @@ public function grid(Request $request)
         
         $totalDoctors = $doctors->total();
 
-        return view('doctor.grid', compact(
+        return view('patient.doctor-grid', compact(
             'doctors', 
             'totalDoctors', 
             'specialities', 
