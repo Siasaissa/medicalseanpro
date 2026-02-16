@@ -143,7 +143,7 @@
                                                                 <p>#APT000{{ $booking->id }}</p>
                                                                 <h6>
                                                                     <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#appointmentDetailsModal{{ $booking->id }}">
-                                                                        {{ $doctor->name ?? 'Unknown Doctor' }}
+                                                                        Dr. {{ $doctor->name ?? 'Unknown Doctor' }}
                                                                     </a>
                                                                 </h6>
                                                             </div>
