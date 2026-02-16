@@ -336,7 +336,7 @@
                                             <a href="#" class="text-indigo fw-medium fs-14">{{ $doctor->profile->primary_speciality ?? $doctor->profile->speciality ?? 'General' }}</a>
                                             @php
 												// Create an instance of DoctorController to check availability
-												$doctorController = app('App\Http\Controllers\DoctorController');
+												$doctorController = app('App\Http\Controllers\DoctorGrid');
 												$isAvailable = $doctorController->checkDoctorAvailability($doctor->profile);
 											@endphp
 
