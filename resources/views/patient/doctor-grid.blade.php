@@ -213,7 +213,7 @@
                                                 </div>
                                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                                     <div class="form-check">
-                                                        <input class="form-check-input consultation-filter" type="checkbox" name="consultation_types[]" value="video" id="consult_video" {{ in_array('video', $selectedConsultationTypes) ? 'checked' : '' }}>
+                                                        <input class="form-check-input consultation-filter" type="checkbox" name="consultation_types[]" value="video" id="consult_video" {{ in_array('video_call', $selectedConsultationTypes) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="consult_video">Video Call</label>
                                                     </div>
                                                 </div>
@@ -247,7 +247,7 @@
                                         </div>
                                         <div id="collapse8" class="accordion-collapse show" aria-labelledby="heading8">
                                             <div class="accordion-body pt-3">
-                                                @php $selectedLanguages = request('languages', []) @endphp
+                                                @php $selectedLanguages = request('known_languages', []) @endphp
                                                 @foreach($languages as $language)
                                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                                         <div class="form-check">
