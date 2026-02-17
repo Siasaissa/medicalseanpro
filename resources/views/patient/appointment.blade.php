@@ -172,11 +172,7 @@
                                                                     <i class="isax isax-eye4"></i>
                                                                 </a>
                                                             </li>
-                                                            <li>
-                                                                <a href="{{ route('chat.index', ['booking' => $booking->id]) }}" data-bs-toggle="tooltip" title="Chat">
-                                                                    <i class="isax isax-messages-25"></i>
-                                                                </a>
-                                                            </li>
+                                                            
                                                         </ul>
                                                     </li>
 
