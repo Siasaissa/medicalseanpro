@@ -181,6 +181,13 @@
                                                     </li>
 
                                                     @if ($now->between($appointmentStart, $appointmentEnd))
+														@if ($status == 'pending')
+														<li class="appointment-detail-btn">
+                                                            <a href="appointment.verify" class="btn btn-md btn-primary-gradient">
+                                                                <i class="isax isax-calendar-tick5 me-1"></i> confirm payment
+                                                            </a>
+                                                        </li>
+														@endif
                                                         <li class="appointment-detail-btn">
                                                             <a href="
                                                                 @if ($booking->appointment_type == 'chat')

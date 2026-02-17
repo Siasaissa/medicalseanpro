@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use function Pest\Laravel\json;
 
 class BookingController extends Controller
 {
@@ -198,6 +199,20 @@ class BookingController extends Controller
                 'errors' => ['general' => ['An unexpected error occurred']]
             ], 500);
         }
+    }
+
+    public function verification($orderReference){
+
+        
+        $token = $this->getClickPesaToken();
+
+        $response = Http::withToken($token)
+                    ->timeout(30)
+                    ->post(
+                        'https://api.clickpesa.com/third-parties/payments/{orderReference}',
+                        $orderReference
+                    );
+        return redirect()->json($response);
     }
 
 
