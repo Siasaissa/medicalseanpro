@@ -217,7 +217,7 @@ class BookingController extends Controller
     // Method 2: Using double quotes for interpolation
     $response = Http::withToken($token)
                 ->timeout(30)
-                ->post(
+                ->get(
                     "https://api.clickpesa.com/third-parties/payments/{$orderReference}"
                 );
     
