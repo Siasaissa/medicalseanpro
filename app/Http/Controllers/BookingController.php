@@ -214,7 +214,12 @@ class BookingController extends Controller
                         'https://api.clickpesa.com/third-parties/payments/{orderReference}',
                         $orderReference
                     );
-        return redirect()->json($response);
+        return response()->json([
+        'status' => $response->status(),
+        'body'   => $response->body(),
+        'json'   => $response->json(),
+        'headers'=> $response->headers(),
+    ], 500);
     }
 
 
