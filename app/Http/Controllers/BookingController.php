@@ -201,9 +201,11 @@ class BookingController extends Controller
         }
     }
 
-    public function verification($orderReference){
+    public function verification($payment_reference){
 
-        
+
+        $orderReference = $payment_reference;
+
         $token = $this->getClickPesaToken();
 
         $response = Http::withToken($token)

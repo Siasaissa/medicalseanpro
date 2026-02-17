@@ -183,7 +183,7 @@
                                                     @if ($now->between($appointmentStart, $appointmentEnd))
 														@if ($booking->status == 'pending')
 														<li class="appointment-detail-btn">
-                                                            <a href="appointment.verify" class="btn btn-md btn-primary-gradient">
+                                                            <a href="{{ route('patient.appointment.verify' , $booking->payment_reference)}}" class="btn btn-md btn-primary-gradient">
                                                                 <i class="isax isax-calendar-tick5 me-1"></i> confirm payment
                                                             </a>
                                                         </li>
