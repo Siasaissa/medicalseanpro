@@ -459,7 +459,7 @@
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Phone:</span>
-                                                                            <span class="text">{{ $doctor->phone ?? 'N/A' }}</span>
+                                                                            <span class="text">{{ $doctor->profile->phone_numbers ?? 'N/A' }}</span>
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Specialization:</span>
