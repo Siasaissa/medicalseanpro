@@ -319,7 +319,7 @@
                                                                                     {{ route('patient.voice', ['booking' => $booking->id]) }}
                                                                                 @endif
                                                                             " class="btn btn-primary">
-                                                                                <i class="isax isax-calendar-tick5 me-1"></i> Attend
+                                                                                <i class="isax isax-calendar-tick5 me-1"></i> Attendo
                                                                             </a>
                                                                         @endif
                                                                         <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
