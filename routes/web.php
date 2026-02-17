@@ -90,7 +90,7 @@ Route::middleware(['auth', 'verified', 'role:patient'])->group(function () {
     Route::get('/patient/chat', [ChatController::class, 'index'])->middleware('auth')->name('chat.index');
     Route::post('/patient/chat/send', [ChatController::class, 'store'])->middleware('auth')->name('chat.store1');
 
-    Route::post('patient/appointment/{orderReference}', [BookingController::class, 'verification'])->middleware('auth')->name('patient.appointment.verify');
+    Route::get('patient/appointment/{orderReference}', [BookingController::class, 'verification'])->middleware('auth')->name('patient.appointment.verify');
 });
 
 Route::post('/call/signal/{booking}', [CallController::class, 'signal'])->middleware('auth')->name('call.signal');
