@@ -227,7 +227,6 @@ class BookingController extends Controller
                 'status' => $paymentData['status'] ?? null,
                 'transaction_id' => $paymentData['id'] ?? null,
                 'payment_gateway' => $paymentData['channel'] ?? null,
-                'phone' => $paymentData['customerPhoneNumber'] ?? null,
                 'payment_response' => $paymentData ?? null,
             ]);
         
