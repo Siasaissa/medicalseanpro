@@ -239,7 +239,7 @@ class BookingController extends Controller
             'success' => 'Payment verified successfully!',
             'payment_data' => $paymentData
         ]);
-        
+
 }
 
 
@@ -250,10 +250,10 @@ class BookingController extends Controller
                             ->orderBy('appointment_datetime', 'desc')
                             ->get();
 
-       $counts = Booking::where('doctor_id', Auth::id())
-    ->where('status', 'active')
-    ->whereRaw("DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?", [Carbon::now()])
-    ->count();
+            $counts = Booking::where('doctor_id', Auth::id())
+            ->where('status', 'active')
+            ->whereRaw("DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?", [Carbon::now()])
+            ->count();
 
             
         $completed = Booking::where('appointment_datetime', '<', Carbon::now())
@@ -267,7 +267,7 @@ class BookingController extends Controller
     {
         $bookings = Booking::where('user_id', Auth::id())->with('doctor')
                             ->orderBy('appointment_datetime', 'desc')
-                            ->where('status', ['pending','paid'])
+                            ->whereIn('status', ['pending','paid'])
                             ->get();
 
         $counts = Booking::where('user_id', Auth::id())->with('doctor')
