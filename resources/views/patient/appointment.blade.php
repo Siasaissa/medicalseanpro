@@ -188,6 +188,7 @@
                                                             </a>
                                                         </li>
 														@endif
+														@if ($booking->status == 'SUCCESS')
                                                         <li class="appointment-detail-btn">
                                                             <a href="
                                                                 @if ($booking->appointment_type == 'chat')
@@ -197,10 +198,11 @@
                                                                 @elseif($booking->appointment_type == 'voice')
                                                                     {{ route('patient.voice', ['booking' => $booking->id]) }}
                                                                 @endif
-                                                            " class="btn btn-md btn-primary-gradient">
-                                                                <i class="isax isax-calendar-tick5 me-1"></i> Attend Now
+																" class="btn btn-md btn-primary-gradient">
+																	<i class="isax isax-calendar-tick5 me-1"></i> Attend Now
                                                             </a>
                                                         </li>
+														@endif
                                                     @elseif ($now->lt($appointmentStart))
                                                         <li class="appointment-time-status">
                                                             <span class="badge bg-warning text-dark">
