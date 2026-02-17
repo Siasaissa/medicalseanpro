@@ -215,10 +215,7 @@ class BookingController extends Controller
                         $orderReference
                     );
         return response()->json([
-        'status' => $response->status(),
-        'body'   => $response->body(),
-        'json'   => $response->json(),
-        'headers'=> $response->headers(),
+        $response
     ], 500);
     }
 
