@@ -486,9 +486,7 @@
                                                                         <a href="{{ route('patient.doctor-grid') }}?doctor={{ $doctor->id }}" class="btn btn-primary">
                                                                             <i class="isax isax-calendar-tick5 me-1"></i> Book Again
                                                                         </a>
-                                                                        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
-                                                                            <i class="isax isax-printer me-1"></i> Print
-                                                                        </button>
+                                                                       
                                                                     </div>
                                                                 </div>
                                                             </div>
