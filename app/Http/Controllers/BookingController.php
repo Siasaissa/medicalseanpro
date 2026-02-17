@@ -226,7 +226,6 @@ class BookingController extends Controller
                 'transaction_id' => $data['transaction_id'] ?? $data['id'] ?? null,
                 'payment_gateway' => $data['channel'] ?? null,
                 'phone' => $data['customerPhoneNumber'] ?? null,
-                'verified_at' => now(),
             ]);
         
         return response()->json($data);
