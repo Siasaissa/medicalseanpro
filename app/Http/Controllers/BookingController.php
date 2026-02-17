@@ -229,7 +229,8 @@ class BookingController extends Controller
     // Handle error response
     return response()->json([
         'error' => 'Payment verification failed',
-        'details' => $response->json()
+        'details' => $response->json(),
+        'message' => $response->json()
     ], $response->status());
 }
 
