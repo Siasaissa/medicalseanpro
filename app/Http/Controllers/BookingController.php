@@ -211,8 +211,8 @@ class BookingController extends Controller
         $response = Http::withToken($token)
                     ->timeout(30)
                     ->post(
-                        'https://api.clickpesa.com/third-parties/payments/{orderReference}',
-                        $orderReference
+                        'https://api.clickpesa.com/third-parties/payments/'.$orderReference
+                        
                     );
         return response()->json([
         $response
