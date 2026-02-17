@@ -285,7 +285,7 @@
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Phone:</span>
-                                                                            <span class="text">{{ $doctor->phone ?? 'N/A' }}</span>
+                                                                            <span class="text">{{ $doctor->profile->phone_numbers ?? 'N/A' }}</span>
                                                                         </li>
                                                                         <li>
                                                                             <span class="title">Specialization:</span>
@@ -308,24 +308,7 @@
                                                             
                                                             <div class="row">
                                                                 <div class="col-md-12">
-                                                                    <div class="d-flex justify-content-end gap-2">
-                                                                        @if ($now->lt($appointmentEnd))
-                                                                            <a href="
-                                                                                @if ($booking->appointment_type == 'chat')
-                                                                                    {{ route('chat.index', ['booking' => $booking->id]) }}
-                                                                                @elseif($booking->appointment_type == 'video')
-                                                                                    {{ route('patient.video', ['booking' => $booking->id]) }}
-                                                                                @elseif($booking->appointment_type == 'voice')
-                                                                                    {{ route('patient.voice', ['booking' => $booking->id]) }}
-                                                                                @endif
-                                                                            " class="btn btn-primary">
-                                                                                <i class="isax isax-calendar-tick5 me-1"></i> Attendo
-                                                                            </a>
-                                                                        @endif
-                                                                        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
-                                                                            <i class="isax isax-printer me-1"></i> Print
-                                                                        </button>
-                                                                    </div>
+                                                                    
                                                                 </div>
                                                             </div>
                                                         </div>
