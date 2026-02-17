@@ -218,17 +218,19 @@ class BookingController extends Controller
     if ($response->successful()) {
         $data = $response->json();
         
+        $paymentData = is_array($data) && isset($data[0]) ? $data[0] : $data;
+
         // Update your table - adjust field names based on your database
         DB::table('bookings')
             ->where('payment_reference', $payment_reference)
             ->update([
-                'status' => $data['status'] ?? null,
-                'transaction_id' => $data['transaction_id'] ?? $data['id'] ?? null,
-                'payment_gateway' => $data['channel'] ?? null,
-                'phone' => $data['customerPhoneNumber'] ?? null,
+                'status' => $paymentData['status'] ?? null,
+                'transaction_id' => $paymentData['id'] ?? null,
+                'payment_gateway' => $paymentData['channel'] ?? null,
+                'phone' => $paymentData['customerPhoneNumber'] ?? null,
             ]);
         
-        return response()->json($data);
+        return response()->json($paymentData);
     }
     
 
