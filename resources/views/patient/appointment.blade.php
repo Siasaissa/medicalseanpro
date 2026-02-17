@@ -382,7 +382,7 @@
                                                         <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#completedAppointmentModal{{ $booking->id }}" class="btn btn-outline-primary btn-sm">
                                                             <i class="isax isax-eye4 me-1"></i> View Details
                                                         </a>
-                                                        <a href="{{ route('patient.doctor-grid') }}?doctor={{ $doctor->id }}" class="btn btn-primary-gradient btn-sm ms-2">
+                                                        <a href="{{ route('patient.booking') }}?doctor={{ $doctor->id }}" class="btn btn-primary-gradient btn-sm ms-2">
                                                             <i class="isax isax-calendar-tick5 me-1"></i> Book Again
                                                         </a>
                                                     </li>
@@ -483,7 +483,7 @@
                                                             <div class="row">
                                                                 <div class="col-md-12">
                                                                     <div class="d-flex justify-content-end gap-2">
-                                                                        <a href="{{ route('patient.doctor-grid') }}?doctor={{ $doctor->id }}" class="btn btn-primary">
+                                                                        <a href="{{ route('patient.booking') }}?doctor={{ $doctor->id }}" class="btn btn-primary">
                                                                             <i class="isax isax-calendar-tick5 me-1"></i> Book Again
                                                                         </a>
                                                                        
