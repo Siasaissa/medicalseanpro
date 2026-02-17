@@ -201,23 +201,37 @@ class BookingController extends Controller
         }
     }
 
-    public function verification($payment_reference){
-
-
-        $orderReference = $payment_reference;
-
-        $token = $this->getClickPesaToken();
-
-        $response = Http::withToken($token)
-                    ->timeout(30)
-                    ->post(
-                        'https://api.clickpesa.com/third-parties/payments/'.$orderReference
-                        
-                    );
-        return response()->json([
-        $response
-    ], 500);
+    public function verification($payment_reference)
+{
+    $orderReference = $payment_reference;
+    
+    $token = $this->getClickPesaToken();
+    
+    // Method 1: String concatenation
+    $response = Http::withToken($token)
+                ->timeout(30)
+                ->post(
+                    'https://api.clickpesa.com/third-parties/payments/' . $orderReference
+                );
+    
+    // Method 2: Using double quotes for interpolation
+    $response = Http::withToken($token)
+                ->timeout(30)
+                ->post(
+                    "https://api.clickpesa.com/third-parties/payments/{$orderReference}"
+                );
+    
+    // Check if the request was successful
+    if ($response->successful()) {
+        return response()->json($response->json());
     }
+    
+    // Handle error response
+    return response()->json([
+        'error' => 'Payment verification failed',
+        'details' => $response->json()
+    ], $response->status());
+}
 
 
     public function doctorBookings()
