@@ -216,9 +216,24 @@ class BookingController extends Controller
     
     // Check if the request was successful
     if ($response->successful()) {
-        return response()->json($response->json());
+        $data = $response->json();
+        
+        // Update your table - adjust field names based on your database
+        DB::table('bookings')
+            ->where('payment_reference', $payment_reference)
+            ->update([
+                'status' => $data['status'] ?? null,
+                'transaction_id' => $data['transaction_id'] ?? $data['id'] ?? null,
+                'payment_gateway' => $data['channel'] ?? null,
+                'phone' => $data['customerPhoneNumber'] ?? null,
+                'verified_at' => now(),
+            ]);
+        
+        return response()->json($data);
     }
     
+
+
     // Handle error response
     return response()->json([
         'error' => 'Payment verification failed',
