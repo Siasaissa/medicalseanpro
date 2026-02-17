@@ -207,13 +207,6 @@ class BookingController extends Controller
     
     $token = $this->getClickPesaToken();
     
-    // Method 1: String concatenation
-    $response = Http::withToken($token)
-                ->timeout(30)
-                ->post(
-                    'https://api.clickpesa.com/third-parties/payments/' . $orderReference
-                );
-    
     // Method 2: Using double quotes for interpolation
     $response = Http::withToken($token)
                 ->timeout(30)
