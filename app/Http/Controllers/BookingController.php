@@ -230,17 +230,16 @@ class BookingController extends Controller
                 'payment_response' => $paymentData ?? null,
             ]);
         
-        return response()->json($paymentData);
     }
     
 
 
     // Handle error response
-    return redirect('patient.appointment')->json([
-        'error' => 'Payment verification failed',
-        'details' => $response->json(),
-        'message' => $response->json()
-    ], $response->status());
+            return redirect()->route('patient.appointment')->with([
+            'success' => 'Payment verified successfully!',
+            'payment_data' => $paymentData
+        ]);
+        
 }
 
 
