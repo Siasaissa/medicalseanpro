@@ -507,7 +507,7 @@
         }
         .toast {
             min-width: 250px;
-            background: #28a745;
+            background: white;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
