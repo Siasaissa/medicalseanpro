@@ -1,13 +1,142 @@
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
-        <div id="newMessageToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
-            <div class="toast-header">
-                <img src="{{ asset('images/icon-message.png') }}" class="rounded me-2" width="20" height="20" alt="Message">
-                <strong class="me-auto" id="toastSender">New Message</strong>
-                <small>just now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" id="toastMessageContent">
-                You have a new message
-            </div>
+<!-- Toast Notification Component -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="globalToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast-header">
+            <img src="{{ asset('images/icon-message.png') }}" class="rounded me-2" width="20" height="20" alt="Notification">
+            <strong class="me-auto" id="toastTitle">Notification</strong>
+            <small class="text-muted" id="toastTime">just now</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            This is a notification message
         </div>
     </div>
+</div>
+
+<!-- Audio for notification (optional) -->
+<audio id="globalNotificationSound" preload="auto" style="display:none;">
+    <source src="{{ asset('sounds/notification.mp3') }}" type="audio/mpeg">
+</audio>
+
+<!-- Global Toast JavaScript Functions -->
+<script>
+    // Global toast functions that can be called from anywhere
+    window.showToast = function(message, title = 'Notification', type = 'info', duration = 5000) {
+        const toastEl = document.getElementById('globalToast');
+        if (!toastEl) return;
+        
+        // Set title and message
+        document.getElementById('toastTitle').textContent = title;
+        document.getElementById('toastMessage').textContent = message;
+        
+        // Set time
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        document.getElementById('toastTime').textContent = timeString;
+        
+        // Change toast color based on type
+        toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'text-white');
+        
+        switch(type) {
+            case 'success':
+                toastEl.classList.add('bg-success', 'text-white');
+                break;
+            case 'error':
+                toastEl.classList.add('bg-danger', 'text-white');
+                break;
+            case 'warning':
+                toastEl.classList.add('bg-warning');
+                break;
+            case 'info':
+                toastEl.classList.add('bg-info');
+                break;
+            default:
+                // Default styling
+                break;
+        }
+        
+        // Show toast
+        const toast = new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: duration
+        });
+        toast.show();
+    };
+    
+    // Play notification sound
+    window.playNotificationSound = function() {
+        const sound = document.getElementById('globalNotificationSound');
+        if (sound) {
+            sound.play().catch(e => console.log('Sound play failed:', e));
+        }
+    };
+    
+    // Show success toast
+    window.showSuccess = function(message, title = 'Success') {
+        showToast(message, title, 'success');
+        playNotificationSound();
+    };
+    
+    // Show error toast
+    window.showError = function(message, title = 'Error') {
+        showToast(message, title, 'error');
+        playNotificationSound();
+    };
+    
+    // Show warning toast
+    window.showWarning = function(message, title = 'Warning') {
+        showToast(message, title, 'warning');
+        playNotificationSound();
+    };
+    
+    // Show info toast
+    window.showInfo = function(message, title = 'Info') {
+        showToast(message, title, 'info');
+        playNotificationSound();
+    };
+</script>
+
+<style>
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    min-width: 300px;
+    max-width: 400px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideInRight 0.3s ease;
+}
+
+.toast.bg-success .toast-header,
+.toast.bg-danger .toast-header,
+.toast.bg-warning .toast-header,
+.toast.bg-info .toast-header {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.toast.bg-success .btn-close,
+.toast.bg-danger .btn-close,
+.toast.bg-warning .btn-close,
+.toast.bg-info .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>
