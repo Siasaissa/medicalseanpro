@@ -120,7 +120,10 @@
 												</ul>
 											</div>
 											@php
-												$currentDoctor = isset($messages) && $messages->isNotEmpty() ? $messages->first()->booking?->doctor : null;
+												$currentDoctor = isset($messages) && $messages->isNotEmpty()
+    ? $messages->first()->booking?->doctor
+    : (\App\Models\Booking::with('doctor')->find(request('booking'))?->doctor);
+
 												$currentDoctorImage = $currentDoctor?->profile_image ? asset('storage/' . $currentDoctor->profile_image) : asset('images/default.jpeg');
 											@endphp
 											<figure class="avatar avatar-online">
