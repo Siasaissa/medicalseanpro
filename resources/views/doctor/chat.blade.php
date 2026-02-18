@@ -61,7 +61,7 @@
                                                 @php
                                                     $booking = $chatData->booking;
                                                     $patient = $booking?->patient;
-                                                    $patientImage = $patient?->profile_image ? asset('storage/' . $patient->profile_image) : asset('images/default.jpeg');
+                                                    $patientImage = $patient?->profile->dp ? asset( $patient->profile->dp) : asset('images/default.jpeg');
                                                     $lastMessage = $chatData->last_message;
                                                     $unreadCount = $chatData->unread_count;
                                                     $isActive = request('booking') == $booking?->id;
@@ -131,13 +131,13 @@
                                                 if ($activeBookingId) {
                                                     $activeBooking = \App\Models\Booking::with('patient')->find($activeBookingId);
                                                     $activePatient = $activeBooking?->patient;
-                                                    $activePatientImage = $activePatient?->profile_image 
-                                                        ? asset('storage/' . $activePatient->profile_image) 
+                                                    $activePatientImage = $activePatient?->profile->dp 
+                                                        ? asset( $activePatient->profile->dp) 
                                                         : asset('images/default.jpeg');
                                                 } elseif(isset($messages) && $messages->isNotEmpty()) {
                                                     $activePatient = $messages->first()->booking?->patient;
-                                                    $activePatientImage = $activePatient?->profile_image 
-                                                        ? asset('storage/' . $activePatient->profile_image) 
+                                                    $activePatientImage = $activePatient?->profile->dp 
+                                                        ? asset( $activePatient->profile->dp) 
                                                         : asset('images/default.jpeg');
                                                 }
                                             @endphp
@@ -211,10 +211,10 @@
                                                     
                                                     // Get profile images
                                                     if($msg->sender_id == Auth::id()) {
-                                                        $senderImage = Auth::user()->profile_image ? asset('storage/' . Auth::user()->profile_image) : asset('images/default.jpeg');
+                                                        $senderImage = Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset('images/default.jpeg');
                                                         $senderName = Auth::user()->name;
                                                     } else {
-                                                        $senderImage = $msgPatient?->profile_image ? asset('storage/' . $msgPatient->profile_image) : asset('images/default.jpeg');
+                                                        $senderImage = $msgPatient?->profile->dp ? asset( $msgPatient->profile->dp) : asset('images/default.jpeg');
                                                         $senderName = $msgPatient?->name ?? 'Patient';
                                                     }
                                                 @endphp
@@ -701,7 +701,7 @@
             unreadPollInterval: 5000,
             authId: {{ Auth::id() }},
             authName: '{{ Auth::user()->name }}',
-            authImage: '{{ Auth::user()->profile_image ? asset("storage/" . Auth::user()->profile_image) : asset("images/default.jpeg") }}',
+            authImage: '{{ Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset("images/default.jpeg") }}',
             defaultImage: '{{ asset("images/default.jpeg") }}',
             soundEnabled: true,
             isDoctor: true
@@ -810,7 +810,7 @@
             const senderName = isCurrentUser ? CONFIG.authName : (message.sender?.name || 'Patient');
             const senderImage = isCurrentUser 
                 ? CONFIG.authImage
-                : (message.sender?.profile_image ? `/storage/${message.sender.profile_image}` : CONFIG.defaultImage);
+                : (message.sender?.profile->dp ? `${message.sender.profile->dp}` : CONFIG.defaultImage);
             
             if (isCurrentUser) {
                 messageDiv.innerHTML = `
