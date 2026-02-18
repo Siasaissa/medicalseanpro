@@ -183,6 +183,12 @@
                                                                 <i class="isax isax-calendar-tick5 me-1"></i> confirm payment
                                                             </a>
                                                         </li>
+														@if ($booking->status == 'PROCESSING')
+														<li class="appointment-detail-btn">
+                                                            <a href="{{ route('patient.appointment.verify' , $booking->payment_reference)}}" class="btn btn-md btn-primary-gradient">
+                                                                <i class="isax isax-calendar-tick5 me-1"></i> confirm payment
+                                                            </a>
+                                                        </li>
 														@endif
 														@if ($booking->status == 'SUCCESS')
                                                         <li class="appointment-detail-btn">
