@@ -365,6 +365,8 @@
     <!-- /Main Wrapper -->
 
     <!-- Toast notification for new messages -->
+	 @include('layouts.toast')
+	 
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
         <div id="newMessageToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
             <div class="toast-header">
