@@ -246,19 +246,16 @@ class BookingController extends Controller
     public function doctorBookings()
     {
         $bookings = Booking::where('doctor_id', Auth::id())->with('patient')
-                            ->where('status', 'active')
                             ->orderBy('appointment_datetime', 'desc')
                             ->get();
 
-            $counts = Booking::where('doctor_id', Auth::id())
-            ->where('status', 'active')
-            ->whereRaw("DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?", [Carbon::now()])
-            ->count();
+        $counts = Booking::where('doctor_id', Auth::id())
+                            ->whereRaw("DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?", [Carbon::now()])
+                            ->count();
 
             
         $completed = Booking::where('appointment_datetime', '<', Carbon::now())
                             ->where('doctor_id', Auth::id())->with('patient')
-                            ->where('status', 'active')
                             ->count();
         return view('doctor.appointment', compact('bookings','counts', 'completed'));
     }
