@@ -123,8 +123,8 @@
 												$currentDoctor = isset($messages) && $messages->isNotEmpty()
 												? $messages->first()->booking?->doctor
 												: (\App\Models\Booking::with('doctor')->find(request('booking'))?->doctor);
-
-												$currentDoctorImage = $currentDoctor?->dp ? asset('storage/' . $currentDoctor->dp ) : asset('images/default.jpeg');
+												
+												$currentDoctorImage = $currentDoctor?->profile->dp ? asset($currentDoctor->profile->dp) : asset('images/default.jpeg');
 											@endphp
 											<figure class="avatar avatar-online">
 												<img src="{{ $currentDoctorImage }}" alt="{{ $currentDoctor?->name ?? 'Doctor' }}">
