@@ -267,18 +267,15 @@ class BookingController extends Controller
     {
         $bookings = Booking::where('user_id', Auth::id())->with('doctor')
                             ->orderBy('appointment_datetime', 'desc')
-                            ->whereIn('status', ['pending','paid','FAILED'])
                             ->get();
 
         $counts = Booking::where('user_id', Auth::id())->with('doctor')
                             ->where('user_id', Auth::id())->with('doctor')
-                            ->whereIn('status', ['pending','paid','FAILED'])
                             ->where('appointment_datetime', '>', Carbon::now())
                             ->count();
-            
+
         $completed = Booking::where('appointment_datetime', '<', Carbon::now())
                             ->where('user_id', Auth::id())->with('doctor')
-                            ->whereIn('status', ['pending','paid','FAILED'])
                             ->count();
 
         return view('patient.appointment', compact('bookings', 'counts','completed'));
