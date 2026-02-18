@@ -84,4 +84,5 @@
 						</div>
 					</nav>
 				</div>
+				@include('layouts.toast')
 			</header>
