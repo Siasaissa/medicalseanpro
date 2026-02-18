@@ -818,8 +818,8 @@
             let senderImage = CONFIG.defaultImage;
             if (isCurrentUser) {
                 senderImage = CONFIG.authImage;
-            } else if (message.sender?.profile->dp) {
-                senderImage = `${message.sender.profile->dp}`;
+            } else if (message.sender?.profile_image) {
+                senderImage = `/storage/${message.sender.profile_image}`;
             } else if (message.sender?.profile?.dp) {
                 senderImage = message.sender.profile.dp;
             }
