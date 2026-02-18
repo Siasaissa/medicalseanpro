@@ -344,7 +344,7 @@
                                             onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
 
                                         <div class="form-buttons">
-                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()">
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn" >
                                                 <i class="isax isax-send-25"></i>
                                             </button>
                                         </div>
@@ -617,7 +617,7 @@
             authImage: '{{ Auth::user()->profile && Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset("images/default.jpeg") }}',
             defaultImage: '{{ asset("images/default.jpeg") }}',
             soundEnabled: true,
-            isDoctor: {{ Auth::user()->role === 'doctor' ? 'true' : 'false' }}
+            isDoctor: false
         };
 
         // State variables
@@ -626,6 +626,7 @@
         let unreadPollInterval = null;
         let typingTimer = null;
         let isTyping = false;
+        let isSending = false; // Flag to prevent multiple sends
         let notificationSound = document.getElementById('notificationSound');
 
         // ==================== UTILITY FUNCTIONS ====================
@@ -639,7 +640,7 @@
         }
 
         function getApiBaseUrl() {
-            return CONFIG.isDoctor ? '/doctor/chat' : '/patient/chat';
+            return '/patient/chat';
         }
 
         function formatTime(timestamp) {
@@ -670,6 +671,8 @@
 
         function showToast(message, senderName = 'New Message') {
             const toastEl = document.getElementById('newMessageToast');
+            if (!toastEl) return;
+            
             document.getElementById('toastSender').textContent = senderName;
             document.getElementById('toastMessageContent').textContent = message;
             
@@ -724,7 +727,7 @@
             const timeString = formatTime(message.created_at);
             const senderName = isCurrentUser ? CONFIG.authName : (message.sender?.name || 'Doctor');
             
-            // Fix the image path syntax
+            // Fix image path syntax
             let senderImage = CONFIG.defaultImage;
             if (isCurrentUser) {
                 senderImage = CONFIG.authImage;
@@ -804,12 +807,7 @@
             if (!bookingId) return;
 
             try {
-                // Use role-specific URL
-                const url = CONFIG.isDoctor 
-                    ? `/doctor/chat/mark-booking-read/${bookingId}`
-                    : `/patient/chat/mark-booking-read/${bookingId}`;
-                
-                const response = await fetch(url, {
+                const response = await fetch(`/patient/chat/mark-booking-read/${bookingId}`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -858,11 +856,7 @@
             if (!messageId) return false;
 
             try {
-                const url = CONFIG.isDoctor
-                    ? `/doctor/chat/mark-message-read/${messageId}`
-                    : `/patient/chat/mark-message-read/${messageId}`;
-
-                const response = await fetch(url, {
+                const response = await fetch(`/patient/chat/mark-message-read/${messageId}`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -1018,8 +1012,14 @@
                    document.getElementById('chatMessages').classList.contains('d-block');
         }
 
-        // ==================== SEND MESSAGE (FIXED VERSION) ====================
+        // ==================== SEND MESSAGE (FIXED - PREVENTS MULTIPLE SENDS) ====================
         async function sendMessage() {
+            // Prevent multiple simultaneous sends
+            if (isSending) {
+                console.log('Message already sending, please wait...');
+                return;
+            }
+
             const form = document.getElementById('chatForm');
             if (!form) {
                 console.error('Chat form not found');
@@ -1048,10 +1048,19 @@
                 return;
             }
 
+            // Set sending flag to true
+            isSending = true;
+            
+            // Disable the send button and input to prevent multiple clicks
+            const sendBtn = document.getElementById('sendMessageBtn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+            }
+            messageInput.disabled = true;
+
             const formData = new FormData(form);
             
-            // Log the data being sent (for debugging)
-            console.log('Sending message:', {
+            console.log('Sending message once:', {
                 url: form.action,
                 receiver_id: receiverId,
                 booking_id: bookingId,
@@ -1111,6 +1120,14 @@
             } catch (error) {
                 console.error('Error sending message:', error);
                 alert('Failed to send message. Please check your connection and try again.\nError: ' + error.message);
+            } finally {
+                // Reset sending flag and re-enable inputs
+                isSending = false;
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                }
+                messageInput.disabled = false;
+                messageInput.focus();
             }
         }
 
@@ -1200,7 +1217,6 @@
             if (bookingId && confirm('Are you sure you want to clear this chat?')) {
                 // Implement clear chat functionality
                 $('#clear-chat').modal('hide');
-                // You would typically make an API call here to clear the chat
             }
         }
 
@@ -1209,7 +1225,6 @@
             if (confirm(`Are you sure you want to block ${doctorName}?`)) {
                 // Implement block user functionality
                 $('#block-user').modal('hide');
-                // You would typically make an API call here to block the user
             }
         }
 
@@ -1258,35 +1273,48 @@
             messages.forEach(msg => observer.observe(msg));
         }
 
-        // ==================== FORM SUBMISSION HANDLER ====================
+        // ==================== FORM SUBMISSION HANDLER (SIMPLIFIED) ====================
         function setupFormHandler() {
             const form = document.getElementById('chatForm');
             if (form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    sendMessage();
-                });
+                // Remove any existing listeners to prevent duplicates
+                form.removeEventListener('submit', handleFormSubmit);
+                form.addEventListener('submit', handleFormSubmit);
             }
 
             // Enter key handler
             const messageInput = document.getElementById('messageInput');
             if (messageInput) {
-                messageInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
+                messageInput.removeEventListener('keydown', handleEnterKey);
+                messageInput.addEventListener('keydown', handleEnterKey);
             }
 
             // Send button click handler
             const sendBtn = document.getElementById('sendMessageBtn');
             if (sendBtn) {
-                sendBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    sendMessage();
-                });
+                // Remove the onclick attribute if it exists
+                sendBtn.removeAttribute('onclick');
+                sendBtn.removeEventListener('click', handleButtonClick);
+                sendBtn.addEventListener('click', handleButtonClick);
             }
+        }
+
+        // Separate handler functions to allow proper removal
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            sendMessage();
+        }
+
+        function handleEnterKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function handleButtonClick(e) {
+            e.preventDefault();
+            sendMessage();
         }
 
         // ==================== INITIALIZATION ====================

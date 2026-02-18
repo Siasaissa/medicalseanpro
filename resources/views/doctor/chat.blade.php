@@ -713,6 +713,7 @@
         let unreadPollInterval = null;
         let typingTimer = null;
         let isTyping = false;
+        let isSending = false; // Flag to prevent multiple sends
         let notificationSound = document.getElementById('notificationSound');
 
         // ==================== UTILITY FUNCTIONS ====================
@@ -755,7 +756,7 @@
             }
         }
 
-        function showToast(message, senderName = 'New Message', senderImage = null) {
+        function showToast(message, senderName = 'New Message') {
             const toastEl = document.getElementById('newMessageToast');
             if (!toastEl) return;
             
@@ -1098,8 +1099,14 @@
                    document.getElementById('chatMessages').classList.contains('d-block');
         }
 
-        // ==================== SEND MESSAGE (FIXED VERSION) ====================
+        // ==================== SEND MESSAGE (FIXED - PREVENTS MULTIPLE SENDS) ====================
         async function sendMessage() {
+            // Prevent multiple simultaneous sends
+            if (isSending) {
+                console.log('Message already sending, please wait...');
+                return;
+            }
+
             const form = document.getElementById('chatForm');
             if (!form) {
                 console.error('Chat form not found');
@@ -1128,10 +1135,19 @@
                 return;
             }
 
+            // Set sending flag to true
+            isSending = true;
+            
+            // Disable the send button and input to prevent multiple clicks
+            const sendBtn = document.getElementById('sendMessageBtn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+            }
+            messageInput.disabled = true;
+
             const formData = new FormData(form);
             
-            // Log the data being sent (for debugging)
-            console.log('Sending message:', {
+            console.log('Sending message once:', {
                 url: form.action,
                 receiver_id: receiverId,
                 booking_id: bookingId,
@@ -1191,6 +1207,14 @@
             } catch (error) {
                 console.error('Error sending message:', error);
                 alert('Failed to send message. Please check your connection and try again.\nError: ' + error.message);
+            } finally {
+                // Reset sending flag and re-enable inputs
+                isSending = false;
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                }
+                messageInput.disabled = false;
+                messageInput.focus();
             }
         }
 
@@ -1280,7 +1304,6 @@
             if (bookingId && confirm('Are you sure you want to clear this chat?')) {
                 // Implement clear chat functionality
                 $('#clear-chat').modal('hide');
-                // You would typically make an API call here to clear the chat
             }
         }
 
@@ -1289,7 +1312,6 @@
             if (confirm(`Are you sure you want to block ${patientName}?`)) {
                 // Implement block user functionality
                 $('#block-user').modal('hide');
-                // You would typically make an API call here to block the user
             }
         }
 
@@ -1338,35 +1360,48 @@
             messages.forEach(msg => observer.observe(msg));
         }
 
-        // ==================== FORM SUBMISSION HANDLER ====================
+        // ==================== FORM SUBMISSION HANDLER (SIMPLIFIED) ====================
         function setupFormHandler() {
             const form = document.getElementById('chatForm');
             if (form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    sendMessage();
-                });
+                // Remove any existing listeners to prevent duplicates
+                form.removeEventListener('submit', handleFormSubmit);
+                form.addEventListener('submit', handleFormSubmit);
             }
 
             // Enter key handler
             const messageInput = document.getElementById('messageInput');
             if (messageInput) {
-                messageInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
+                messageInput.removeEventListener('keydown', handleEnterKey);
+                messageInput.addEventListener('keydown', handleEnterKey);
             }
 
             // Send button click handler
             const sendBtn = document.getElementById('sendMessageBtn');
             if (sendBtn) {
-                sendBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    sendMessage();
-                });
+                // Remove the onclick attribute if it exists
+                sendBtn.removeAttribute('onclick');
+                sendBtn.removeEventListener('click', handleButtonClick);
+                sendBtn.addEventListener('click', handleButtonClick);
             }
+        }
+
+        // Separate handler functions to allow proper removal
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            sendMessage();
+        }
+
+        function handleEnterKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function handleButtonClick(e) {
+            e.preventDefault();
+            sendMessage();
         }
 
         // ==================== INITIALIZATION ====================
@@ -1456,63 +1491,6 @@
             if (pollInterval) clearInterval(pollInterval);
             if (unreadPollInterval) clearInterval(unreadPollInterval);
         });
-    </script>
-
-    <!-- Laravel Echo (optional) -->
-    <script type="module">
-        try {
-            import Echo from 'laravel-echo';
-            window.Pusher = require('pusher-js');
-
-            window.Echo = new Echo({
-                broadcaster: 'pusher',
-                key: import.meta.env.VITE_PUSHER_APP_KEY || 'local',
-                wsHost: import.meta.env.VITE_PUSHER_HOST || '127.0.0.1',
-                wsPort: import.meta.env.VITE_PUSHER_PORT || 6001,
-                forceTLS: false,
-                disableStats: true,
-            });
-
-            const bookingId = document.querySelector('input[name="booking_id"]')?.value;
-
-            if (bookingId) {
-                window.Echo.private(`chat.${bookingId}`)
-                    .listen('.MessageSent', (e) => {
-                        console.log('Real-time message received:', e);
-                        
-                        // Check if message is for current booking
-                        if (e.message.booking_id == bookingId) {
-                            const isCurrentUser = e.message.sender_id == CONFIG.authId;
-                            
-                            // Check if message already exists in DOM
-                            if (!document.querySelector(`[data-message-id="${e.message.id}"]`)) {
-                                // Add message to container
-                                addMessageToContainer(e.message, isCurrentUser, true);
-                                
-                                // Play notification and show toast for incoming messages
-                                if (!isCurrentUser) {
-                                    playNotificationSound();
-                                    showToast(e.message.message, e.message.sender?.name || 'Patient');
-                                    
-                                    // Mark as read if chat is visible
-                                    if (isChatVisible()) {
-                                        markMessagesAsRead(bookingId);
-                                    }
-                                }
-                            }
-                        }
-                    })
-                    .listen('.messages.read', (e) => {
-                        console.log('Messages read event:', e);
-                        if (e.reader_id !== CONFIG.authId) {
-                            // Update UI to show messages were read
-                            updateMessageReadStatus(e.booking_id);
-                        }
-                    });
-            }
-        } catch (error) {
-            console.log('Echo not available, using polling only:', error);
-        }
     </script>
 </body>
 
