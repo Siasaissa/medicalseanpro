@@ -189,6 +189,12 @@
                                                                 <i class="isax isax-calendar-tick5 me-1"></i> confirm payment
                                                             </a>
                                                         </li>
+														@elseif ($booking->status == 'FAILED' )
+														<li class="appointment-detail-btn">
+                                                            <a href="#" class="btn btn-md btn-danger-gradient">
+                                                                <i class="isax isax-calendar-tick5 me-1"></i> Your Payment Failed
+                                                            </a>
+                                                        </li>
 														@endif
 														@if ($booking->status == 'SUCCESS')
                                                         <li class="appointment-detail-btn">
