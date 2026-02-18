@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 //admin routes 
 Route::middleware(['auth','verified', 'role:admin'])->group(function (){
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
@@ -41,6 +42,7 @@ Route::middleware(['auth','verified', 'role:admin'])->group(function (){
     Route::get('/admin/patientList', [AdminController::class, 'patientList'])->name('admin.patientList');
     Route::get('/admin/Transaction', [AdminController::class, 'Transaction'])->name('admin.Transaction');
 });
+
 // doctor routes
 Route::middleware(['auth', 'verified', 'role:doctor'])->group(function () {
     Route::get('/doctor-dashboard', [BookingController::class, 'DoctorDashboard'])->name('doctor-dashboard');
@@ -50,12 +52,20 @@ Route::middleware(['auth', 'verified', 'role:doctor'])->group(function () {
     Route::get('/doctor/profilesettings',[ProfileController::class, 'ProSetting'])->name('doctor.profilesettings');
     Route::put('/doctor/profilesettings', [ProfileController::class, 'updateProfile1'])->name('doctor.profile.update');
     Route::get('/doctor/changePassword', [ProfileController::class, 'password'])->name('doctor.changePassword');
-        Route::put('/doctor/update-password', [ProfileController::class, 'updatePassword'])
-        ->name('doctor.updatePassword');
+    Route::put('/doctor/update-password', [ProfileController::class, 'updatePassword'])->name('doctor.updatePassword');
 
     Route::get('/doctor/appointment', [BookingController::class, 'doctorBookings'])->middleware('auth')->name('doctor.appointment');
+    
+    // Doctor chat routes (existing)
     Route::get('/doctor/chat', [ChatController::class, 'indexDoctor'])->middleware('auth')->name('doctor.chat');
     Route::post('/doctor/chat/send', [ChatController::class, 'store'])->middleware('auth')->name('chat.store');
+    
+    // Doctor chat API routes for polling (NEW)
+    Route::get('/doctor/chat/messages/new', [ChatController::class, 'getNewMessages'])->middleware('auth')->name('doctor.chat.messages.new');
+    Route::post('/doctor/chat/mark-read', [ChatController::class, 'markAsRead'])->middleware('auth')->name('doctor.chat.mark.read');
+    Route::post('/doctor/chat/mark-message-read/{messageId}', [ChatController::class, 'markMessageAsRead'])->middleware('auth')->name('doctor.chat.mark.message.read');
+    Route::get('/doctor/chat/unread-counts', [ChatController::class, 'getUnreadCounts'])->middleware('auth')->name('doctor.chat.unread.counts');
+    Route::get('/doctor/chat/messages/{bookingId}/status', [ChatController::class, 'getMessagesWithStatus'])->middleware('auth')->name('doctor.chat.messages.status');
 
     // Doctor call routes
     Route::get('/doctor/video/{booking}', [CallController::class, 'videoDoctor'])->name('doctor.video');
@@ -83,21 +93,37 @@ Route::middleware(['auth', 'verified', 'role:patient'])->group(function () {
 
     Route::get('/patient/appointment', [BookingController::class, 'patientBookings'])->name('patient.appointment');
 
-    // ✅ Patient call routes
+    // Patient call routes
     Route::get('/patient/video/{booking}', [CallController::class, 'video'])->name('patient.video');
     Route::get('/patient/voice/{booking}', [CallController::class, 'voice'])->name('patient.voice');
 
+    // Patient chat routes (existing)
     Route::get('/patient/chat', [ChatController::class, 'index'])->middleware('auth')->name('chat.index');
     Route::post('/patient/chat/send', [ChatController::class, 'store'])->middleware('auth')->name('chat.store1');
+    
+    // Patient chat API routes for polling (NEW)
+    Route::get('/patient/chat/messages/new', [ChatController::class, 'getNewMessages'])->middleware('auth')->name('patient.chat.messages.new');
+    Route::post('/patient/chat/mark-read', [ChatController::class, 'markAsRead'])->middleware('auth')->name('patient.chat.mark.read');
+    Route::post('/patient/chat/mark-message-read/{messageId}', [ChatController::class, 'markMessageAsRead'])->middleware('auth')->name('patient.chat.mark.message.read');
+    Route::get('/patient/chat/unread-counts', [ChatController::class, 'getUnreadCounts'])->middleware('auth')->name('patient.chat.unread.counts');
+    Route::get('/patient/chat/messages/{bookingId}/status', [ChatController::class, 'getMessagesWithStatus'])->middleware('auth')->name('patient.chat.messages.status');
 
     Route::get('patient/appointment/{orderReference}', [BookingController::class, 'verification'])->middleware('auth')->name('patient.appointment.verify');
+});
+
+// Shared chat API routes (accessible by both patient and doctor) - OPTIONAL ALTERNATIVE
+// Instead of having separate doctor/patient prefixes, you could use these shared endpoints
+Route::middleware(['auth'])->group(function () {
+    Route::get('/chat/messages/new', [ChatController::class, 'getNewMessages'])->name('chat.messages.new');
+    Route::post('/chat/mark-read', [ChatController::class, 'markAsRead'])->name('chat.mark.read');
+    Route::post('/chat/mark-message-read/{messageId}', [ChatController::class, 'markMessageAsRead'])->name('chat.mark.message.read');
+    Route::get('/chat/unread-counts', [ChatController::class, 'getUnreadCounts'])->name('chat.unread.counts');
+    Route::get('/chat/messages/{bookingId}/status', [ChatController::class, 'getMessagesWithStatus'])->name('chat.messages.status');
 });
 
 Route::post('/call/signal/{booking}', [CallController::class, 'signal'])->middleware('auth')->name('call.signal');
 
 // ✅ CORRECTED: Changed route path to /api/zego-token and using ZegoToken service
-// Add this to your web.php (replace the existing /api/zego-token route)
-
 Route::middleware('auth')->get('/api/zego-token', function (Request $request) {
     $appId = (int) env('ZEGO_APP_ID');
     $serverSecret = env('ZEGO_SERVER_SECRET');
@@ -183,7 +209,5 @@ Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () 
     Route::put('/experiences/update', [ProfileController::class, 'updateExperiences'])->name('doctor.experiences.update');
     Route::put('/qualifications/update', [ProfileController::class, 'updateQualifications'])->name('doctor.qualifications.update');
 });
-
-
 
 require __DIR__.'/auth.php';
