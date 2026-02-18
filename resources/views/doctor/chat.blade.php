@@ -27,7 +27,8 @@
                                     <!-- Left Chat Title -->
                                     <div class="left-chat-title all-chats">
                                         <div class="setting-title-head">
-                                            <h4> All Chats</h4>
+                                            <h4>All Chats</h4>
+                                            <span class="total-unread-badge" id="totalUnreadBadge" style="display: none;">0</span>
                                         </div>
                                         <div class="add-section">
                                             <!-- Chat Search -->
@@ -36,8 +37,8 @@
                                                 <div class="user-chat-search">
                                                     <span class="form-control-feedback"><i
                                                             class="fa-solid fa-magnifying-glass"></i></span>
-                                                    <input type="text" id="chatSearchInput" name="chat-search" placeholder="Search"
-                                                        class="form-control">
+                                                    <input type="text" name="chat-search" placeholder="Search"
+                                                        class="form-control" id="chatSearch">
                                                 </div>
                                             </form>
                                             <!-- /Chat Search -->
@@ -56,35 +57,35 @@
                                         <!-- /Left Chat Title -->
 
                                         <ul class="user-list" id="chatUserList">
-                                            @foreach ($patients as $bId => $chatMessages)
+                                            @forelse ($patients as $bId => $chatData)
                                                 @php
-                                                    $booking = $chatMessages->first()->booking;
+                                                    $booking = $chatData->booking;
                                                     $patient = $booking?->patient;
                                                     $patientImage = $patient?->profile_image ? asset('storage/' . $patient->profile_image) : asset('images/default.jpeg');
-                                                    $lastMessage = $chatMessages->last();
-                                                    $unreadCount = $chatMessages->where('sender_id', $patient?->id)->where('receiver_id', Auth::id())->where('is_read', 0)->count();
-                                                    $isActive = request()->get('booking') == $chatMessages->first()->booking_id;
+                                                    $lastMessage = $chatData->last_message;
+                                                    $unreadCount = $chatData->unread_count;
+                                                    $isActive = request('booking') == $booking?->id;
                                                 @endphp
-                                                @if($patient)
+                                                @if($patient && $lastMessage)
                                                     <li class="user-list-item chat-user-item {{ $isActive ? 'active' : '' }}" 
-                                                        data-booking-id="{{ $chatMessages->first()->booking_id }}"
+                                                        data-booking-id="{{ $booking->id }}"
                                                         data-patient-id="{{ $patient->id }}"
                                                         data-patient-name="{{ $patient->name }}"
                                                         data-patient-image="{{ $patientImage }}"
                                                         data-unread="{{ $unreadCount }}">
-                                                        <a href="javascript:void(0);"
-                                                           onclick="handleChatClick({{ $chatMessages->first()->booking_id }})">
-                                                            <div class="avatar avatar-online">
+                                                        <a href="{{ route('doctor.chat', ['booking' => $booking->id]) }}"
+                                                           onclick="handleChatClick(event, {{ $booking->id }})">
+                                                            <div class="avatar {{ $patient->is_online ? 'avatar-online' : 'avatar-offline' }}">
                                                                 <img src="{{ $patientImage }}" alt="{{ $patient->name }}">
                                                             </div>
                                                             <div class="users-list-body">
                                                                 <div>
                                                                     <h5>{{ $patient->name }}</h5>
-                                                                    <p class="last-message-text">{{ Str::limit($lastMessage->message ?? 'No messages yet', 30) }}</p>
+                                                                    <p class="last-message">{{ Str::limit($lastMessage->message ?? 'No messages yet', 30) }}</p>
                                                                 </div>
                                                                 <div class="last-chat-time">
                                                                     <small class="text-muted last-message-time">
-                                                                        {{ $lastMessage->created_at?->format('h:i A') ?? '' }}
+                                                                        {{ $lastMessage->created_at?->diffForHumans() ?? '' }}
                                                                     </small>
                                                                     @if($unreadCount > 0)
                                                                         <div class="new-message-count unread-badge">
@@ -96,12 +97,12 @@
                                                         </a>
                                                     </li>
                                                 @endif
-                                            @endforeach
+                                            @empty
+                                                <li class="text-center text-muted p-3">No chats yet</li>
+                                            @endforelse
                                         </ul>
                                     </div>
-
                                 </div>
-
                             </div>
                             <!-- / Chats sidebar -->
                         </div>
@@ -123,16 +124,36 @@
                                                 </ul>
                                             </div>
                                             @php
-                                                $currentPatient = isset($messages) && $messages->isNotEmpty() ? $messages->first()->booking?->patient : null;
-                                                $currentPatientImage = $currentPatient?->profile_image ? asset('storage/' . $currentPatient->profile_image) : asset('images/default.jpeg');
+                                                $activeBookingId = request('booking');
+                                                $activePatient = null;
+                                                $activePatientImage = asset('images/default.jpeg');
+                                                
+                                                if ($activeBookingId) {
+                                                    $activeBooking = \App\Models\Booking::with('patient')->find($activeBookingId);
+                                                    $activePatient = $activeBooking?->patient;
+                                                    $activePatientImage = $activePatient?->profile_image 
+                                                        ? asset('storage/' . $activePatient->profile_image) 
+                                                        : asset('images/default.jpeg');
+                                                } elseif(isset($messages) && $messages->isNotEmpty()) {
+                                                    $activePatient = $messages->first()->booking?->patient;
+                                                    $activePatientImage = $activePatient?->profile_image 
+                                                        ? asset('storage/' . $activePatient->profile_image) 
+                                                        : asset('images/default.jpeg');
+                                                }
                                             @endphp
-                                            <figure class="avatar avatar-online">
-                                                <img id="currentChatAvatar" src="{{ $currentPatientImage }}" alt="{{ $currentPatient?->name ?? 'Patient' }}">
+                                            <figure class="avatar {{ $activePatient?->is_online ? 'avatar-online' : 'avatar-offline' }}">
+                                                <img src="{{ $activePatientImage }}" alt="{{ $activePatient?->name ?? 'Patient' }}" id="currentChatAvatar">
                                             </figure>
                                             <div class="mt-1">
-                                                <h5 id="currentChatName">{{ $currentPatient?->name ?? 'Select a chat' }}</h5>
+                                                <h5 id="currentChatName">{{ $activePatient?->name ?? 'Select a chat' }}</h5>
                                                 <small class="last-seen" id="currentChatStatus">
-                                                    {{ $currentPatient ? 'Online' : '' }}
+                                                    @if($activePatient)
+                                                        <span class="online-status {{ $activePatient->is_online ? 'text-success' : 'text-secondary' }}">
+                                                            {{ $activePatient->is_online ? '● Online' : '○ Offline' }}
+                                                        </span>
+                                                    @else
+                                                        &nbsp;
+                                                    @endif
                                                 </small>
                                             </div>
                                         </div>
@@ -142,7 +163,7 @@
                                                     <a href="javascript:void(0)"
                                                         class="btn btn-outline-light chat-search-btn"
                                                         data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                                        title="Search">
+                                                        title="Search in chat">
                                                         <i class="fa-solid fa-magnifying-glass"></i>
                                                     </a>
                                                 </li>
@@ -152,32 +173,23 @@
                                                         <i class="fa-solid fa-ellipsis-vertical"></i>
                                                     </a>
                                                     <div class="dropdown-menu dropdown-menu-end">
-                                                        <a href="#" class="dropdown-item ">Close Chat </a>
+                                                        <a href="#" class="dropdown-item" onclick="markAllAsRead()">Mark all as read</a>
                                                         <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#mute-notification">Mute Notification</a>
+                                                            data-bs-target="#clear-chat">Clear Chat</a>
                                                         <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#disappearing-messages">Disappearing
-                                                            Message</a>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#clear-chat">Clear Message</a>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#change-chat">Delete Chat</a>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#report-user">Report</a>
-                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#block-user">Block</a>
+                                                            data-bs-target="#block-user">Block User</a>
                                                     </div>
                                                 </li>
                                             </ul>
                                         </div>
                                         <!-- Chat Search -->
                                         <div class="chat-search">
-                                            <form>
+                                            <form onsubmit="return false;">
                                                 <span class="form-control-feedback"><i
                                                         class="fa-solid fa-magnifying-glass"></i></span>
-                                                <input type="text" name="chat-search" placeholder="Search Chats"
-                                                    class="form-control">
-                                                <div class="close-btn-chat"><i class="fa fa-close"></i></div>
+                                                <input type="text" placeholder="Search in conversation..."
+                                                    class="form-control" id="messageSearch">
+                                                <div class="close-btn-chat" onclick="closeMessageSearch()"><i class="fa fa-close"></i></div>
                                             </form>
                                         </div>
                                         <!-- /Chat Search -->
@@ -227,7 +239,7 @@
 
                                                 @if($msg->sender_id == Auth::id())
                                                     {{-- Doctor message (right side) --}}
-                                                    <div class="chats chats-right" data-message-id="{{ $msg->id }}">
+                                                    <div class="chats chats-right" data-message-id="{{ $msg->id }}" data-read="{{ $msg->is_read ? '1' : '0' }}" data-read-at="{{ $msg->read_at }}">
                                                         <div class="chat-content">
                                                             <div class="chat-profile-name text-end justify-content-end">
                                                                 <h6>{{ $senderName }}
@@ -237,6 +249,17 @@
                                                             <div class="message-content">
                                                                 {{ $msg->message }}
                                                             </div>
+                                                            <div class="message-status">
+                                                                @if($msg->is_read)
+                                                                    <span class="read-receipt read" title="Read {{ $msg->read_at ? $msg->read_at->diffForHumans() : '' }}">
+                                                                        <i class="fa fa-check-double"></i> Read
+                                                                    </span>
+                                                                @else
+                                                                    <span class="read-receipt delivered" title="Delivered">
+                                                                        <i class="fa fa-check"></i> Delivered
+                                                                    </span>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                         <div class="chat-avatar">
                                                             <img src="{{ $senderImage }}" class="dreams_chat" alt="{{ $senderName }}">
@@ -244,7 +267,7 @@
                                                     </div>
                                                 @else
                                                     {{-- Patient message (left side) --}}
-                                                    <div class="chats" data-message-id="{{ $msg->id }}">
+                                                    <div class="chats" data-message-id="{{ $msg->id }}" data-is-read="{{ $msg->is_read ? '1' : '0' }}">
                                                         <div class="chat-avatar">
                                                             <img src="{{ $senderImage }}" class="dreams_chat" alt="{{ $senderName }}">
                                                         </div>
@@ -268,86 +291,86 @@
                                         @endif
 
                                     </div>
+                                    
+                                    <!-- Typing indicator -->
+                                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
 
                                 </div>
 
                             </div>
                             <div class="chat-footer">
-                                <form action="{{ route('chat.store') }}" method="POST" id="chatForm">
-                                    @csrf
+                                @php
+                                    // Get current active booking and patient
+                                    $activeBookingId = request('booking');
+                                    $activePatientId = null;
+                                    
+                                    if ($activeBookingId) {
+                                        $activeBooking = \App\Models\Booking::with('patient')->find($activeBookingId);
+                                        $activePatientId = $activeBooking?->patient?->id;
+                                    } elseif(isset($messages) && $messages->isNotEmpty()) {
+                                        $activeBookingId = $messages->first()->booking_id;
+                                        $activePatientId = $messages->first()->booking?->patient?->id;
+                                    }
+                                @endphp
 
-                                    <!-- Hidden fields -->
-                                    @php
-                                        $currentBooking = isset($messages) && $messages->isNotEmpty() ? $messages->first()->booking : null;
-                                        $currentPatientId = $currentBooking?->patient?->id ?? '';
-                                        $currentBookingId = $currentBooking?->id ?? '';
-                                    @endphp
-                                    <input type="hidden" name="receiver_id" id="receiverId" value="{{ $currentPatientId }}">
-                                    <input type="hidden" name="booking_id" id="bookingId" value="{{ $currentBookingId }}">
+                                @if($activeBookingId && $activePatientId)
+                                    <form action="{{ route('chat.store') }}" method="POST" id="chatForm">
+                                        @csrf
+                                        <input type="hidden" name="receiver_id" id="receiverId" value="{{ $activePatientId }}">
+                                        <input type="hidden" name="booking_id" id="bookingId" value="{{ $activeBookingId }}">
 
-                                    <div class="smile-foot">
-                                        <div class="chat-action-btns">
-                                            <div class="chat-action-col">
-                                                <a class="action-circle" href="#" data-bs-toggle="dropdown">
-                                                    <i class="fa-solid fa-ellipsis-vertical"></i>
-                                                </a>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                    <a href="#" class="dropdown-item "><span><i
-                                                                class="fa-solid fa-file-lines"></i></span>Document</a>
-                                                    <a href="#" class="dropdown-item"><span><i
-                                                                class="fa-solid fa-camera"></i></span>Camera</a>
-                                                    <a href="#" class="dropdown-item"><span><i
-                                                                class="fa-solid fa-image"></i></span>Gallery</a>
-                                                    <a href="#" class="dropdown-item"><span><i
-                                                                class="fa-solid fa-volume-high"></i></span>Audio</a>
-                                                    <a href="#" class="dropdown-item"><span><i
-                                                                class="fa-solid fa-location-dot"></i></span>Location</a>
-                                                    <a href="#" class="dropdown-item"><span><i
-                                                                class="fa-solid fa-user"></i></span>Contact</a>
+                                        <div class="smile-foot">
+                                            <div class="chat-action-btns">
+                                                <div class="chat-action-col">
+                                                    <a class="action-circle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="fa-solid fa-paperclip"></i>
+                                                    </a>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a href="#" class="dropdown-item"><span><i class="fa-solid fa-image"></i></span>Image</a>
+                                                        <a href="#" class="dropdown-item"><span><i class="fa-solid fa-file"></i></span>Document</a>
+                                                        <a href="#" class="dropdown-item"><span><i class="fa-solid fa-camera"></i></span>Camera</a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div class="smile-foot emoj-action-foot">
-                                        <a href="#" class="action-circle emoji-toggle"><i class="fa-regular fa-face-smile"></i></a>
-                                        <div class="emoj-group-list-foot down-emoji-circle">
-                                            <ul>
-                                                <li><a href="javascript:void(0);" data-emoji="😊"><img
-                                                            src="{{asset('images/emoj-icon-01.svg')}}" alt="Icon"></a>
-                                                </li>
-                                                <li><a href="javascript:void(0);" data-emoji="😂"><img
-                                                            src="{{asset('images/emoj-icon-02.svg')}}" alt="Icon"></a>
-                                                </li>
-                                                <li><a href="javascript:void(0);" data-emoji="❤️"><img
-                                                            src="{{asset('images/emoj-icon-03.svg')}}" alt="Icon"></a>
-                                                </li>
-                                                <li><a href="javascript:void(0);" data-emoji="👍"><img
-                                                            src="{{asset('images/emoj-icon-04.svg')}}" alt="Icon"></a>
-                                                </li>
-                                                <li><a href="javascript:void(0);" data-emoji="🎉"><img
-                                                            src="{{asset('images/emoj-icon-05.svg')}}" alt="Icon"></a>
-                                                </li>
-                                                <li class="add-emoj"><a href="javascript:void(0);"><i
-                                                            class="fa-solid fa-plus"></i></a></li>
-                                            </ul>
+                                        <div class="smile-foot emoj-action-foot">
+                                            <a href="#" class="action-circle emoji-picker-btn"><i class="fa-regular fa-face-smile"></i></a>
+                                            <div class="emoj-group-list-foot down-emoji-circle" id="emojiPicker" style="display: none;">
+                                                <ul>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('😊')">😊</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('😂')">😂</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('❤️')">❤️</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('👍')">👍</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('🎉')">🎉</a></li>
+                                                </ul>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="smile-foot">
-                                        <a href="#" class="action-circle"><i class="isax isax-microphone-2"></i></a>
-                                    </div>
+                                        <div class="smile-foot">
+                                            <a href="#" class="action-circle"><i class="isax isax-microphone-2"></i></a>
+                                        </div>
 
-                                    <!-- Message input -->
-                                    <input type="text" name="message" class="form-control chat_form" id="messageInput"
-                                        placeholder="Type your message here..." autocomplete="off" required>
+                                        <!-- Message input -->
+                                        <input type="text" name="message" class="form-control chat_form" id="messageInput"
+                                            placeholder="Type your message here..." required autocomplete="off"
+                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
 
-                                    <div class="form-buttons">
-                                        <button class="btn send-btn" type="submit" id="sendMessageBtn">
-                                            <i class="isax isax-send-25"></i>
-                                        </button>
+                                        <div class="form-buttons">
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()">
+                                                <i class="isax isax-send-25"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                @else
+                                    <div class="text-center p-3 text-muted no-chat-selected">
+                                        <i class="fa fa-comment-slash"></i> Select a chat to start messaging
                                     </div>
-                                </form>
+                                @endif
 
                             </div>
                         </div>
@@ -360,6 +383,21 @@
 
     </div>
     <!-- /Main Wrapper -->
+
+    <!-- Toast notification for new messages -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+        <div id="newMessageToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast-header">
+                <img src="{{ asset('images/icon-message.png') }}" class="rounded me-2" width="20" height="20" alt="Message">
+                <strong class="me-auto" id="toastSender">New Message</strong>
+                <small>just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessageContent">
+                You have a new message
+            </div>
+        </div>
+    </div>
 
     <!-- Notification Sound -->
     <audio id="notificationSound" preload="auto" style="display: none;">
@@ -422,7 +460,161 @@
         </div>
     </div>
 
+    <!-- Clear Chat Modal -->
+    <div class="modal fade" id="clear-chat" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clear Chat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to clear this conversation? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="clearCurrentChat()">Clear Chat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Block User Modal -->
+    <div class="modal fade" id="block-user" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Block User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to block this user? You will no longer receive messages from them.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="blockUser()">Block User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            min-width: 250px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .online-status.text-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .online-status.text-secondary {
+            color: #6c757d;
+        }
+        .chat-user-item.active {
+            background-color: #e3f2fd;
+            border-left: 3px solid #0d6efd;
+        }
+        .chat-user-item {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .chat-user-item:hover {
+            background-color: #f8f9fa;
+        }
+        .new-message-count {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            display: inline-block;
+            min-width: 20px;
+            text-align: center;
+        }
+        #messageInput:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+        .message-status {
+            font-size: 11px;
+            margin-top: 2px;
+            text-align: right;
+            color: #6c757d;
+        }
+        .message-status .read-receipt.read {
+            color: #0d6efd;
+        }
+        .message-status .read-receipt.delivered {
+            color: #6c757d;
+        }
+        .read-receipt i {
+            font-size: 12px;
+        }
+        .avatar-online {
+            position: relative;
+        }
+        .avatar-online::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background-color: #28a745;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .avatar-offline::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background-color: #6c757d;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .typing-indicator {
+            display: flex;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            margin: 10px;
+            width: fit-content;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            margin: 0 2px;
+            background-color: #9E9EA1;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .total-unread-badge {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
         /* Notification animation */
         @keyframes notificationPulse {
             0% { transform: scale(1); }
@@ -434,16 +626,7 @@
             animation: notificationPulse 1s ease 3;
         }
         
-        .unread-badge {
-            background-color: #dc3545 !important;
-        }
-        
-        .user-list-item.active {
-            background-color: rgba(13, 110, 253, 0.1);
-            border-left: 3px solid #0d6efd;
-        }
-        
-        /* Toast notification */
+        /* Message toast */
         .message-toast {
             position: fixed;
             bottom: 20px;
@@ -501,180 +684,133 @@
         }
     </style>
 
-    <!-- Mobile Chat Toggle Script -->
+    <!-- Scripts -->
+    <script src="{{asset('js/jquery-3.7.1.min.js')}}"></script>
+    <script src="{{asset('js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{asset('js/ResizeSensor.js')}}"></script>
+    <script src="{{asset('js/theia-sticky-sidebar.js')}}"></script>
+    <script src="{{asset('js/select2.min.js')}}"></script>
+    <script src="{{asset('js/moment.min.js')}}"></script>
+    <script src="{{asset('js/daterangepicker.js')}}"></script>
+    <script src="{{asset('js/script.js')}}"></script>
+
     <script>
-        // ============================================
-        // DOCTOR CHAT SYSTEM WITH REAL-TIME NOTIFICATIONS
-        // ============================================
-        
-        let currentBookingId = '{{ request()->get('booking') }}';
-        let refreshInterval = null;
-        let lastMessageCount = 0;
-        let notificationSound = null;
-        
-        // Initialize notification sound
-        document.addEventListener('DOMContentLoaded', function() {
-            notificationSound = document.getElementById('notificationSound');
-        });
-        
-        // Play notification sound
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            pollInterval: 2000,
+            unreadPollInterval: 5000,
+            authId: {{ Auth::id() }},
+            authName: '{{ Auth::user()->name }}',
+            authImage: '{{ Auth::user()->profile_image ? asset("storage/" . Auth::user()->profile_image) : asset("images/default.jpeg") }}',
+            defaultImage: '{{ asset("images/default.jpeg") }}',
+            soundEnabled: true,
+            isDoctor: true
+        };
+
+        // State variables
+        let lastMessageId = {{ $messages->last()->id ?? 0 }};
+        let pollInterval = null;
+        let unreadPollInterval = null;
+        let typingTimer = null;
+        let isTyping = false;
+        let notificationSound = document.getElementById('notificationSound');
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function getCurrentBookingId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('booking');
+        }
+
+        function getCurrentReceiverId() {
+            return document.getElementById('receiverId')?.value || null;
+        }
+
+        function getApiBaseUrl() {
+            return '/doctor/chat';
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function formatRelativeTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            if (diffDays === 1) return 'yesterday';
+            return date.toLocaleDateString();
+        }
+
         function playNotificationSound() {
-            try {
-                if (notificationSound) {
-                    notificationSound.play().catch(e => console.log('Sound play failed:', e));
-                }
-            } catch (e) {
-                console.log('Sound error:', e);
+            if (CONFIG.soundEnabled && notificationSound) {
+                notificationSound.play().catch(e => console.log('Sound play failed:', e));
             }
         }
-        
-        // Show toast notification
-        function showToastNotification(patientName, message, patientImage) {
-            // Remove existing toast
-            const existingToast = document.querySelector('.message-toast');
-            if (existingToast) existingToast.remove();
+
+        function showToast(message, senderName = 'New Message', senderImage = null) {
+            const toastEl = document.getElementById('newMessageToast');
+            document.getElementById('toastSender').textContent = senderName;
+            document.getElementById('toastMessageContent').textContent = message;
             
-            // Create toast
-            const toast = document.createElement('div');
-            toast.className = 'message-toast';
-            toast.innerHTML = `
-                <img src="${patientImage}" alt="${patientName}">
-                <div class="message-toast-content">
-                    <div class="message-toast-title">${patientName}</div>
-                    <div class="message-toast-text">${message}</div>
-                </div>
-                <span class="message-toast-close" onclick="this.parentElement.remove()">&times;</span>
-            `;
-            
-            document.body.appendChild(toast);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (toast.parentElement) toast.remove();
-            }, 5000);
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
         }
-        
-        // Update sidebar unread count and last message
-        function updateSidebarChat(bookingId, patientName, message, time, patientImage) {
-            const chatItem = document.querySelector(`.chat-user-item[data-booking-id="${bookingId}"]`);
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==================== MOBILE HANDLING ====================
+        function handleChatClick(event, bookingId) {
+            event.preventDefault();
             
-            if (chatItem) {
-                // Update last message
-                const lastMessageEl = chatItem.querySelector('.last-message-text');
-                if (lastMessageEl) {
-                    lastMessageEl.textContent = message.length > 30 ? message.substring(0, 27) + '...' : message;
-                }
-                
-                // Update time
-                const timeEl = chatItem.querySelector('.last-message-time');
-                if (timeEl) {
-                    const now = new Date();
-                    const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                    timeEl.textContent = timeString;
-                }
-                
-                // Update unread badge if not currently viewing this chat
-                if (currentBookingId != bookingId) {
-                    const badgeContainer = chatItem.querySelector('.last-chat-time');
-                    let badge = chatItem.querySelector('.unread-badge');
-                    
-                    if (badge) {
-                        let count = parseInt(badge.textContent) || 0;
-                        badge.textContent = count + 1;
-                    } else {
-                        const newBadge = document.createElement('div');
-                        newBadge.className = 'new-message-count unread-badge';
-                        newBadge.textContent = '1';
-                        badgeContainer.appendChild(newBadge);
-                    }
-                    
-                    // Highlight the chat item
-                    chatItem.classList.add('new-message-highlight');
-                    setTimeout(() => {
-                        chatItem.classList.remove('new-message-highlight');
-                    }, 3000);
-                    
-                    // Show notification
-                    showToastNotification(patientName, message, patientImage);
-                    playNotificationSound();
-                    
-                    // Update page title with notification
-                    updatePageTitle(true);
-                }
-                
-                // Update data attribute
-                chatItem.dataset.unread = parseInt(chatItem.dataset.unread || 0) + 1;
+            if (window.innerWidth < 992) {
+                setTimeout(function() {
+                    document.getElementById('chatSidebar').classList.add('d-none');
+                    document.getElementById('chatMessages').classList.remove('d-none');
+                    document.getElementById('chatMessages').classList.add('d-block');
+                }, 50);
             }
-        }
-        
-        // Update page title with notification indicator
-        function updatePageTitle(hasNotification) {
-            if (hasNotification) {
-                document.title = '🔴 New Message - Doctor Chat';
-            } else {
-                document.title = 'Doctor Chat';
-            }
-        }
-        
-        // Reset page title
-        function resetPageTitle() {
-            document.title = 'Doctor Chat';
-        }
-        
-        // Fetch new messages for all chats
-        function fetchAllUnreadMessages() {
-            fetch('/doctor/chat/unread-messages', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.messages && data.messages.length > 0) {
-                    data.messages.forEach(msg => {
-                        const bookingId = msg.booking_id;
-                        const patientName = msg.sender?.name || 'Patient';
-                        const patientImage = msg.sender?.profile_image 
-                            ? '/storage/' + msg.sender.profile_image 
-                            : '{{ asset("images/default.jpeg") }}';
-                        const message = msg.message;
-                        
-                        updateSidebarChat(bookingId, patientName, message, msg.created_at, patientImage);
-                        
-                        // If this is the currently open chat, add message to container
-                        if (currentBookingId == bookingId) {
-                            addMessageToContainer(msg);
-                            
-                            // Mark as read immediately
-                            markMessagesAsRead(bookingId);
-                        }
-                    });
-                }
-            })
-            .catch(error => console.error('Error fetching unread messages:', error));
-        }
-        
-        // Add message to chat container
-        function addMessageToContainer(msg) {
-            const messagesContainer = document.querySelector('.messages');
-            if (!messagesContainer) return;
             
-            // Remove "No messages" placeholder if exists
-            const noMessages = messagesContainer.querySelector('.no-messages');
-            if (noMessages) noMessages.remove();
+            // Navigate to the chat
+            window.location.href = `{{ route('doctor.chat') }}?booking=${bookingId}`;
+        }
+
+        function showSidebarOnMobile() {
+            document.getElementById('chatMessages').classList.add('d-none');
+            document.getElementById('chatMessages').classList.remove('d-block');
+            document.getElementById('chatSidebar').classList.remove('d-none');
             
-            const isCurrentUser = msg.sender_id == {{ Auth::id() }};
+            // Remove booking from URL
+            const url = new URL(window.location);
+            url.searchParams.delete('booking');
+            window.history.pushState({}, '', url);
+        }
+
+        // ==================== MESSAGE RENDERING ====================
+        function createMessageElement(message, isCurrentUser) {
             const messageDiv = document.createElement('div');
             messageDiv.className = isCurrentUser ? 'chats chats-right' : 'chats';
+            messageDiv.setAttribute('data-message-id', message.id);
+            if (!isCurrentUser) {
+                messageDiv.setAttribute('data-is-read', message.is_read ? '1' : '0');
+            }
             
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-            
-            const senderName = isCurrentUser ? '{{ Auth::user()->name }}' : msg.sender.name;
+            const timeString = formatTime(message.created_at);
+            const senderName = isCurrentUser ? CONFIG.authName : (message.sender?.name || 'Patient');
             const senderImage = isCurrentUser 
-                ? '{{ Auth::user()->profile_image ? asset("storage/" . Auth::user()->profile_image) : asset("images/default.jpeg") }}'
-                : (msg.sender.profile_image ? `/storage/${msg.sender.profile_image}` : '{{ asset("images/default.jpeg") }}');
+                ? CONFIG.authImage
+                : (message.sender?.profile_image ? `/storage/${message.sender.profile_image}` : CONFIG.defaultImage);
             
             if (isCurrentUser) {
                 messageDiv.innerHTML = `
@@ -683,7 +819,13 @@
                             <h6>${senderName} <span>${timeString}</span></h6>
                         </div>
                         <div class="message-content">
-                            ${msg.message}
+                            ${escapeHtml(message.message)}
+                        </div>
+                        <div class="message-status">
+                            <span class="read-receipt ${message.is_read ? 'read' : 'delivered'}" title="${message.is_read ? 'Read' : 'Delivered'}">
+                                <i class="fa ${message.is_read ? 'fa-check-double' : 'fa-check'}"></i> 
+                                ${message.is_read ? 'Read' : 'Delivered'}
+                            </span>
                         </div>
                     </div>
                     <div class="chat-avatar">
@@ -700,183 +842,484 @@
                             <h6>${senderName} <span>${timeString}</span></h6>
                         </div>
                         <div class="message-content">
-                            ${msg.message}
+                            ${escapeHtml(message.message)}
                         </div>
                     </div>
                 `;
             }
             
-            messagesContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            const chatBody = document.querySelector('.chat-body');
+            return messageDiv;
+        }
+
+        function addMessageToContainer(message, isCurrentUser, scroll = true) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) return;
+
+            // Remove "no messages" placeholder
+            const noMessages = messagesContainer.querySelector('.no-messages');
+            if (noMessages) noMessages.remove();
+
+            // Check for duplicates
+            if (messagesContainer.querySelector(`[data-message-id="${message.id}"]`)) {
+                return;
+            }
+
+            const messageElement = createMessageElement(message, isCurrentUser);
+            messagesContainer.appendChild(messageElement);
+
+            if (scroll) scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const chatBody = document.getElementById('chatMessagesBody');
             if (chatBody) {
                 chatBody.scrollTop = chatBody.scrollHeight;
             }
         }
-        
-        // Mark messages as read
-        function markMessagesAsRead(bookingId) {
-            const token = document.querySelector('input[name="_token"]')?.value || '';
-            
-            fetch(`/doctor/chat/mark-read/${bookingId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': token,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+
+        // ==================== READ RECEIPTS ====================
+        async function markMessagesAsRead(bookingId) {
+            if (!bookingId) return;
+
+            try {
+                const response = await fetch(`/doctor/chat/mark-booking-read/${bookingId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to mark messages as read');
+
+                const data = await response.json();
+                
+                if (data.marked_read > 0) {
+                    removeUnreadBadge(bookingId);
+                    updateMessageReadStatus(bookingId);
+                    fetchUnreadCounts();
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Remove unread badge from sidebar
-                const chatItem = document.querySelector(`.chat-user-item[data-booking-id="${bookingId}"]`);
-                if (chatItem) {
-                    const badge = chatItem.querySelector('.unread-badge');
-                    if (badge) badge.remove();
-                    chatItem.dataset.unread = '0';
+            } catch (error) {
+                console.error('Error marking messages as read:', error);
+            }
+        }
+
+        function removeUnreadBadge(bookingId) {
+            const chatItem = document.querySelector(`.chat-user-item[data-booking-id="${bookingId}"]`);
+            if (chatItem) {
+                const badge = chatItem.querySelector('.unread-badge');
+                if (badge) badge.remove();
+                chatItem.dataset.unread = '0';
+            }
+        }
+
+        function updateMessageReadStatus(bookingId) {
+            // Update all my messages in current chat to show as read
+            const myMessages = document.querySelectorAll('.chats-right[data-message-id]');
+            myMessages.forEach(msg => {
+                const statusSpan = msg.querySelector('.message-status .read-receipt');
+                if (statusSpan) {
+                    statusSpan.className = 'read-receipt read';
+                    statusSpan.innerHTML = '<i class="fa fa-check-double"></i> Read';
+                    statusSpan.title = 'Read';
+                }
+            });
+        }
+
+        async function markMessageAsRead(messageId) {
+            if (!messageId) return false;
+
+            try {
+                const response = await fetch(`/doctor/chat/mark-message-read/${messageId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to mark message as read');
+
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error('Error marking message as read:', error);
+                return false;
+            }
+        }
+
+        // ==================== UNREAD COUNTS ====================
+        async function fetchUnreadCounts() {
+            try {
+                const response = await fetch(`${getApiBaseUrl()}/unread-counts`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch unread counts');
+
+                const data = await response.json();
+                
+                updateSidebarUnreadBadges(data.unread_counts);
+                updateTotalUnreadBadge(data.total_unread);
+                updatePageTitle(data.total_unread);
+                
+            } catch (error) {
+                console.error('Error fetching unread counts:', error);
+            }
+        }
+
+        function updateSidebarUnreadBadges(unreadCounts) {
+            const chatItems = document.querySelectorAll('.chat-user-item');
+            
+            chatItems.forEach(item => {
+                const bookingId = item.dataset.bookingId;
+                const unreadCount = unreadCounts[bookingId] || 0;
+                
+                item.dataset.unread = unreadCount;
+                
+                const lastChatTime = item.querySelector('.last-chat-time');
+                let badge = item.querySelector('.unread-badge');
+                
+                if (unreadCount > 0) {
+                    if (badge) {
+                        badge.textContent = unreadCount;
+                    } else {
+                        badge = document.createElement('div');
+                        badge.className = 'new-message-count unread-badge';
+                        badge.textContent = unreadCount;
+                        lastChatTime?.appendChild(badge);
+                    }
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
+        }
+
+        function updateTotalUnreadBadge(total) {
+            const badge = document.getElementById('totalUnreadBadge');
+            if (badge) {
+                if (total > 0) {
+                    badge.textContent = total;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        function updatePageTitle(totalUnread) {
+            const baseTitle = 'Doctor Chat - {{ config("app.name") }}';
+            document.title = totalUnread > 0 ? `(${totalUnread}) ${baseTitle}` : baseTitle;
+        }
+
+        // ==================== POLLING FOR NEW MESSAGES ====================
+        async function fetchNewMessages() {
+            const bookingId = getCurrentBookingId();
+            if (!bookingId) return;
+
+            try {
+                const response = await fetch(`${getApiBaseUrl()}/messages/new?booking_id=${bookingId}&last_message_id=${lastMessageId}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                
+                if (data.messages && data.messages.length > 0) {
+                    let hasNewMessages = false;
+                    
+                    data.messages.forEach(message => {
+                        const isCurrentUser = message.sender_id == CONFIG.authId;
+                        
+                        if (message.booking_id == bookingId) {
+                            addMessageToContainer(message, isCurrentUser, true);
+                            hasNewMessages = true;
+                            
+                            if (!isCurrentUser) {
+                                showToast(message.message, message.sender?.name || 'Patient');
+                                playNotificationSound();
+                                
+                                // If chat is visible, mark as read
+                                if (isChatVisible()) {
+                                    markMessagesAsRead(bookingId);
+                                }
+                            }
+                        }
+                        
+                        if (message.id > lastMessageId) {
+                            lastMessageId = message.id;
+                        }
+                    });
+                    
+                    if (hasNewMessages) {
+                        updateSidebarLastMessage(bookingId, data.messages[data.messages.length - 1]);
+                        fetchUnreadCounts();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+        }
+
+        function updateSidebarLastMessage(bookingId, lastMessage) {
+            const chatItem = document.querySelector(`.chat-user-item[data-booking-id="${bookingId}"]`);
+            if (chatItem) {
+                const lastMsgEl = chatItem.querySelector('.last-message');
+                const timeEl = chatItem.querySelector('.last-message-time');
+                
+                if (lastMsgEl) {
+                    lastMsgEl.textContent = lastMessage.message.substring(0, 30) + (lastMessage.message.length > 30 ? '...' : '');
+                }
+                if (timeEl) {
+                    timeEl.textContent = formatRelativeTime(lastMessage.created_at);
+                }
+            }
+        }
+
+        function isChatVisible() {
+            return document.visibilityState === 'visible' && 
+                   document.getElementById('chatMessages').classList.contains('d-block');
+        }
+
+        // ==================== SEND MESSAGE ====================
+        async function sendMessage() {
+            const form = document.getElementById('chatForm');
+            if (!form) return;
+
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                
+                addMessageToContainer(data.message, true, true);
+                messageInput.value = '';
+                
+                if (data.message.id > lastMessageId) {
+                    lastMessageId = data.message.id;
                 }
                 
-                // Reset page title if this was the only unread
-                resetPageTitle();
-            })
-            .catch(error => console.error('Error marking messages as read:', error));
-        }
-        
-        // Get current booking ID from URL
-        function getCurrentBookingId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('booking');
+                updateSidebarLastMessage(data.message.booking_id, data.message);
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
         }
 
-        // Function to handle chat click
-        function handleChatClick(bookingId) {
-            // Change URL without page reload
-            const url = new URL(window.location);
-            url.searchParams.set('booking', bookingId);
-            window.history.pushState({}, '', url);
+        // ==================== TYPING INDICATOR ====================
+        function checkTyping() {
+            if (!isTyping) {
+                isTyping = true;
+                // Broadcast typing status (can be implemented with WebSocket)
+            }
             
-            // Reload the page to show the chat
-            window.location.href = window.location.href;
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                isTyping = false;
+                // Broadcast stopped typing
+            }, 1000);
         }
 
-        // Function to show sidebar on mobile
-        function showSidebarOnMobile() {
-            // Remove booking ID from URL
-            const url = new URL(window.location);
-            url.searchParams.delete('booking');
-            window.history.pushState({}, '', url);
+        // ==================== EMOJI PICKER ====================
+        document.querySelector('.emoji-picker-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const picker = document.getElementById('emojiPicker');
+            picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+        });
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('messageInput');
+            input.value += emoji;
+            input.focus();
+            document.getElementById('emojiPicker').style.display = 'none';
+        }
+
+        // ==================== MESSAGE SEARCH ====================
+        document.getElementById('messageSearch')?.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const messages = document.querySelectorAll('.chats .message-content');
             
-            // Reload the page to show sidebar
-            window.location.href = window.location.href;
+            messages.forEach(msg => {
+                const text = msg.textContent.toLowerCase();
+                const chatElement = msg.closest('.chats');
+                
+                if (text.includes(searchTerm) && searchTerm.length > 0) {
+                    chatElement.style.backgroundColor = '#fff3cd';
+                    chatElement.style.transition = 'background-color 0.3s';
+                } else {
+                    chatElement.style.backgroundColor = '';
+                }
+            });
+        });
+
+        function closeMessageSearch() {
+            document.getElementById('messageSearch').value = '';
+            document.querySelectorAll('.chats').forEach(el => el.style.backgroundColor = '');
         }
 
-        // On page load
+        // ==================== CHAT ACTIONS ====================
+        function markAllAsRead() {
+            const bookingId = getCurrentBookingId();
+            if (bookingId) {
+                markMessagesAsRead(bookingId);
+                
+                // Also update the UI for all messages in current chat
+                const unreadMessages = document.querySelectorAll('.chats:not(.chats-right)[data-is-read="0"]');
+                unreadMessages.forEach(msg => {
+                    msg.dataset.isRead = '1';
+                });
+            }
+        }
+
+        function clearCurrentChat() {
+            const bookingId = getCurrentBookingId();
+            if (bookingId && confirm('Are you sure you want to clear this chat?')) {
+                // Implement clear chat functionality
+                $('#clear-chat').modal('hide');
+            }
+        }
+
+        function blockUser() {
+            const patientName = document.getElementById('currentChatName').textContent;
+            if (confirm(`Are you sure you want to block ${patientName}?`)) {
+                // Implement block user functionality
+                $('#block-user').modal('hide');
+            }
+        }
+
+        // ==================== CHAT SEARCH ====================
+        function setupChatSearch() {
+            const searchInput = document.getElementById('chatSearch');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const chatItems = document.querySelectorAll('.chat-user-item');
+                
+                chatItems.forEach(item => {
+                    const patientName = item.querySelector('h5')?.textContent.toLowerCase() || '';
+                    const lastMessage = item.querySelector('.last-message')?.textContent.toLowerCase() || '';
+                    
+                    item.style.display = (patientName.includes(searchTerm) || lastMessage.includes(searchTerm)) ? '' : 'none';
+                });
+            });
+        }
+
+        // ==================== INTERSECTION OBSERVER FOR AUTO-READ ====================
+        function setupReadReceiptObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const messageElement = entry.target;
+                        const messageId = messageElement.dataset.messageId;
+                        const isFromOther = !messageElement.classList.contains('chats-right');
+                        
+                        if (isFromOther && messageId && messageElement.dataset.isRead === '0') {
+                            markMessageAsRead(messageId).then(success => {
+                                if (success) {
+                                    messageElement.dataset.isRead = '1';
+                                }
+                            });
+                            
+                            observer.unobserve(messageElement);
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            // Observe all messages from other users that are not read
+            const messages = document.querySelectorAll('.chats:not(.chats-right)[data-is-read="0"]');
+            messages.forEach(msg => observer.observe(msg));
+        }
+
+        // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            const currentBookingIdFromUrl = getCurrentBookingId();
-            currentBookingId = currentBookingIdFromUrl;
+            // Set last message ID
+            const lastMessage = document.querySelector('.messages .chats:last-child');
+            if (lastMessage) {
+                lastMessageId = parseInt(lastMessage.dataset.messageId) || 0;
+            }
+
+            // Mobile view handling
+            const currentBookingId = getCurrentBookingId();
             
             if (window.innerWidth < 992) {
-                if (currentBookingIdFromUrl) {
+                if (currentBookingId) {
                     document.getElementById('chatSidebar').classList.add('d-none');
                     document.getElementById('chatMessages').classList.remove('d-none');
                     document.getElementById('chatMessages').classList.add('d-block');
                     
-                    const activeChat = document.querySelector(`[data-booking-id="${currentBookingIdFromUrl}"]`);
-                    if (activeChat) {
-                        activeChat.classList.add('active');
-                    }
-                    
-                    // Mark messages as read when opening chat
-                    markMessagesAsRead(currentBookingIdFromUrl);
+                    const activeChat = document.querySelector(`[data-booking-id="${currentBookingId}"]`);
+                    if (activeChat) activeChat.classList.add('active');
                 } else {
                     document.getElementById('chatSidebar').classList.remove('d-none');
                     document.getElementById('chatMessages').classList.add('d-none');
                 }
-            } else {
-                document.getElementById('chatSidebar').classList.remove('d-none');
-                document.getElementById('chatMessages').classList.remove('d-none');
-                document.getElementById('chatMessages').classList.add('d-block');
-                
-                if (currentBookingIdFromUrl) {
-                    markMessagesAsRead(currentBookingIdFromUrl);
-                }
             }
 
-            // Scroll to bottom of messages
-            const chatBody = document.querySelector('.chat-body');
-            if (chatBody) {
-                chatBody.scrollTop = chatBody.scrollHeight;
+            // Scroll to bottom
+            scrollToBottom();
+
+            // Setup chat search
+            setupChatSearch();
+
+            // Setup read receipt observer
+            setupReadReceiptObserver();
+
+            // Start polling
+            if (currentBookingId) {
+                pollInterval = setInterval(fetchNewMessages, CONFIG.pollInterval);
             }
             
-            // Initialize chat search
-            const searchInput = document.getElementById('chatSearchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keyup', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const chatItems = document.querySelectorAll('.user-list-item');
-                    
-                    chatItems.forEach(item => {
-                        const patientName = item.querySelector('h5')?.textContent.toLowerCase() || '';
-                        if (patientName.includes(searchTerm)) {
-                            item.style.display = '';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                });
-            }
-            
-            // Emoji picker
-            document.querySelectorAll('[data-emoji]').forEach(emoji => {
-                emoji.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const emojiChar = this.getAttribute('data-emoji');
-                    const input = document.getElementById('messageInput');
-                    if (input) {
-                        input.value += emojiChar;
-                        input.focus();
-                    }
-                });
-            });
-            
-            // ============================================
-            // START REAL-TIME MESSAGE FETCHING
-            // ============================================
+            unreadPollInterval = setInterval(fetchUnreadCounts, CONFIG.unreadPollInterval);
             
             // Initial fetch
-            fetchAllUnreadMessages();
-            
-            // Set up interval to fetch messages every 3 seconds
-            refreshInterval = setInterval(fetchAllUnreadMessages, 3000);
-            
-            // Stop fetching when page is hidden
+            fetchUnreadCounts();
+
+            // Mark messages as read if chat is open
+            if (currentBookingId && isChatVisible()) {
+                markMessagesAsRead(currentBookingId);
+            }
+
+            // Visibility change handler
             document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    if (refreshInterval) {
-                        clearInterval(refreshInterval);
-                        refreshInterval = null;
-                    }
-                } else {
-                    if (!refreshInterval) {
-                        refreshInterval = setInterval(fetchAllUnreadMessages, 3000);
-                    }
+                if (!document.hidden && currentBookingId) {
+                    markMessagesAsRead(currentBookingId);
                 }
             });
-            
-            // Reset page title
-            resetPageTitle();
         });
 
-        // Handle window resize
+        // ==================== RESIZE HANDLING ====================
         window.addEventListener('resize', function() {
+            const currentBookingId = getCurrentBookingId();
+            
             if (window.innerWidth >= 992) {
                 document.getElementById('chatSidebar').classList.remove('d-none');
                 document.getElementById('chatMessages').classList.remove('d-none');
                 document.getElementById('chatMessages').classList.add('d-block');
             } else {
-                const currentBookingIdFromUrl = getCurrentBookingId();
-                if (currentBookingIdFromUrl) {
+                if (currentBookingId) {
                     document.getElementById('chatSidebar').classList.add('d-none');
                     document.getElementById('chatMessages').classList.remove('d-none');
                 } else {
@@ -885,147 +1328,61 @@
                 }
             }
         });
-        
-        // Clean up on page unload
+
+        // ==================== CLEANUP ====================
         window.addEventListener('beforeunload', function() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
+            if (pollInterval) clearInterval(pollInterval);
+            if (unreadPollInterval) clearInterval(unreadPollInterval);
         });
     </script>
 
+    <!-- Laravel Echo (optional) -->
     <script type="module">
-        import Echo from 'laravel-echo';
-        window.Pusher = require('pusher-js');
+        try {
+            import Echo from 'laravel-echo';
+            window.Pusher = require('pusher-js');
 
-        // Echo instance for Pusher
-        window.Echo = new Echo({
-            broadcaster: 'pusher',
-            key: import.meta.env.VITE_PUSHER_APP_KEY || 'local',
-            wsHost: import.meta.env.VITE_PUSHER_HOST || '127.0.0.1',
-            wsPort: import.meta.env.VITE_PUSHER_PORT || 6001,
-            forceTLS: false,
-            disableStats: true,
-        });
-
-        const bookingId = document.querySelector('input[name="booking_id"]')?.value;
-
-        if (bookingId) {
-            // Listen for messages via Pusher
-            window.Echo.channel(`chat.${bookingId}`)
-                .listen('.MessageSent', (e) => {
-                    const messagesContainer = document.querySelector('.messages');
-                    if (messagesContainer && e.message.booking_id == bookingId) {
-                        // Add message to container
-                        const isCurrentUser = e.message.sender_id === {{ Auth::id() }};
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = isCurrentUser ? 'chats chats-right' : 'chats';
-                        
-                        const now = new Date();
-                        const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                        
-                        const senderName = isCurrentUser ? '{{ Auth::user()->name }}' : e.message.sender.name;
-                        const senderImage = isCurrentUser 
-                            ? '{{ Auth::user()->profile_image ? asset("storage/" . Auth::user()->profile_image) : asset("images/default.jpeg") }}'
-                            : (e.message.sender.profile_image ? `/storage/${e.message.sender.profile_image}` : '{{ asset("images/default.jpeg") }}');
-                        
-                        if (isCurrentUser) {
-                            messageDiv.innerHTML = `
-                                <div class="chat-content">
-                                    <div class="chat-profile-name text-end justify-content-end">
-                                        <h6>${senderName} <span>${timeString}</span></h6>
-                                    </div>
-                                    <div class="message-content">
-                                        ${e.message.message}
-                                    </div>
-                                </div>
-                                <div class="chat-avatar">
-                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
-                                </div>
-                            `;
-                        } else {
-                            messageDiv.innerHTML = `
-                                <div class="chat-avatar">
-                                    <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
-                                </div>
-                                <div class="chat-content">
-                                    <div class="chat-profile-name">
-                                        <h6>${senderName} <span>${timeString}</span></h6>
-                                    </div>
-                                    <div class="message-content">
-                                        ${e.message.message}
-                                    </div>
-                                </div>
-                            `;
-                            
-                            // Play notification sound for incoming messages
-                            if (window.playNotificationSound) {
-                                window.playNotificationSound();
-                            }
-                            
-                            // Show toast notification
-                            if (window.showToastNotification) {
-                                window.showToastNotification(senderName, e.message.message, senderImage);
-                            }
-                        }
-                        
-                        messagesContainer.appendChild(messageDiv);
-                        
-                        // Scroll to bottom
-                        const chatBody = document.querySelector('.chat-body');
-                        if (chatBody) {
-                            chatBody.scrollTop = chatBody.scrollHeight;
-                        }
-                        
-                        // Mark as read
-                        if (!isCurrentUser && window.markMessagesAsRead) {
-                            window.markMessagesAsRead(bookingId);
-                        }
-                    }
-                });
-        }
-
-        // Handle form submission
-        const chatForm = document.getElementById('chatForm');
-        if (chatForm) {
-            chatForm.addEventListener('submit', function(e) {
-                // Form will submit normally, which reloads the page
-                // This is fine for now
-                setTimeout(function() {
-                    document.getElementById('messageInput').value = '';
-                }, 100);
+            window.Echo = new Echo({
+                broadcaster: 'pusher',
+                key: import.meta.env.VITE_PUSHER_APP_KEY || 'local',
+                wsHost: import.meta.env.VITE_PUSHER_HOST || '127.0.0.1',
+                wsPort: import.meta.env.VITE_PUSHER_PORT || 6001,
+                forceTLS: false,
+                disableStats: true,
             });
+
+            const bookingId = document.querySelector('input[name="booking_id"]')?.value;
+
+            if (bookingId) {
+                window.Echo.private(`chat.${bookingId}`)
+                    .listen('.MessageSent', (e) => {
+                        console.log('Real-time message:', e);
+                        
+                        // Add message to container if not already added
+                        if (e.message.booking_id == bookingId) {
+                            const isCurrentUser = e.message.sender_id == CONFIG.authId;
+                            
+                            // Check if message already exists
+                            if (!document.querySelector(`[data-message-id="${e.message.id}"]`)) {
+                                addMessageToContainer(e.message, isCurrentUser, true);
+                                
+                                if (!isCurrentUser) {
+                                    playNotificationSound();
+                                    showToast(e.message.message, e.message.sender?.name || 'Patient');
+                                }
+                            }
+                        }
+                    })
+                    .listen('.messages.read', (e) => {
+                        if (e.reader_id !== CONFIG.authId) {
+                            updateMessageReadStatus(e.booking_id);
+                        }
+                    });
+            }
+        } catch (error) {
+            console.log('Echo not available:', error);
         }
     </script>
-
-    <!-- Add this route to web.php -->
-    <!--
-    Route::get('/doctor/chat/unread-messages', function() {
-        $messages = App\Models\Chat::where('receiver_id', Auth::id())
-            ->where('is_read', 0)
-            ->with('sender')
-            ->orderBy('created_at', 'desc')
-            ->get();
-        return response()->json(['messages' => $messages]);
-    })->middleware('auth');
-    
-    Route::post('/doctor/chat/mark-read/{bookingId}', function($bookingId) {
-        App\Models\Chat::where('booking_id', $bookingId)
-            ->where('receiver_id', Auth::id())
-            ->where('is_read', 0)
-            ->update(['is_read' => 1]);
-        return response()->json(['success' => true]);
-    })->middleware('auth');
-    -->
-
-    <script src="{{asset('js/jquery-3.7.1.min.js')}}"></script>
-    <script src="{{asset('js/bootstrap.bundle.min.js')}}"></script>
-    <script src="{{asset('js/ResizeSensor.js')}}"></script>
-    <script src="{{asset('js/theia-sticky-sidebar.js')}}"></script>
-    <script src="{{asset('js/select2.min.js')}}"></script>
-    <script src="{{asset('js/moment.min.js')}}"></script>
-    <script src="{{asset('js/daterangepicker.js')}}"></script>
-    <script src="{{asset('js/script.js')}}"></script>
 
 </body>
 
