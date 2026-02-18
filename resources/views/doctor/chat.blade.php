@@ -361,7 +361,7 @@
                                             onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
 
                                         <div class="form-buttons">
-                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()">
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn">
                                                 <i class="isax isax-send-25"></i>
                                             </button>
                                         </div>
