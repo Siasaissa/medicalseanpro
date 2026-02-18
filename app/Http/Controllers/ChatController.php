@@ -146,17 +146,13 @@ class ChatController extends Controller
             'receiver_id' => $request->receiver_id,
             'message' => $request->message,
             'booking_id' => $request->booking_id,
-            'is_read' => false, // New message starts as unread
+            'is_read' => false,
             'read_at' => null
         ]);
 
         // Load relationships for the response
         $message->load(['sender', 'receiver', 'booking']);
 
-        // If you want to keep broadcasting, keep this line
-        // broadcast(new MessageSent($message))->toOthers();
-
-        // For AJAX requests, return JSON
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -165,7 +161,6 @@ class ChatController extends Controller
             ]);
         }
 
-        // For regular form submissions
         return back()->with('success', 'Message sent successfully');
     }
 
@@ -179,16 +174,12 @@ class ChatController extends Controller
 
         $bookingId = $request->booking_id;
         $lastMessageId = $request->last_message_id ?? 0;
-        $userId = Auth::id();
 
-        // Get messages newer than last_message_id
         $messages = Message::where('booking_id', $bookingId)
             ->where('id', '>', $lastMessageId)
             ->with(['sender', 'receiver'])
             ->orderBy('created_at', 'asc')
             ->get();
-
-        // Don't mark as read here - that happens when user views them
 
         return response()->json([
             'success' => true,
@@ -222,12 +213,31 @@ class ChatController extends Controller
         ]);
     }
 
+    // NEW: API endpoint to mark all messages in a booking as read
+    public function markBookingAsRead(Request $request, $bookingId)
+    {
+        $userId = Auth::id();
+
+        $updated = Message::where('booking_id', $bookingId)
+            ->where('receiver_id', $userId)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now()
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'marked_read' => $updated,
+            'booking_id' => $bookingId
+        ]);
+    }
+
     // API endpoint to mark single message as read
     public function markMessageAsRead(Request $request, $messageId)
     {
         $message = Message::findOrFail($messageId);
         
-        // Only the receiver can mark as read
         if ($message->receiver_id == Auth::id() && !$message->is_read) {
             $message->update([
                 'is_read' => true,
@@ -251,7 +261,6 @@ class ChatController extends Controller
     {
         $userId = Auth::id();
 
-        // Get all booking IDs where user has messages
         $bookingIds = Message::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
             ->distinct()
@@ -261,6 +270,8 @@ class ChatController extends Controller
         $totalUnread = 0;
 
         foreach ($bookingIds as $bookingId) {
+            if (!$bookingId) continue;
+            
             $count = Message::where('booking_id', $bookingId)
                 ->where('receiver_id', $userId)
                 ->where('is_read', false)
@@ -290,7 +301,7 @@ class ChatController extends Controller
             ->count();
     }
 
-    // Optional: Get messages with read status for a booking
+    // Get messages with read status for a booking
     public function getMessagesWithStatus($bookingId)
     {
         $messages = Message::where('booking_id', $bookingId)

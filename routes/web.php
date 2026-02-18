@@ -56,16 +56,19 @@ Route::middleware(['auth', 'verified', 'role:doctor'])->group(function () {
 
     Route::get('/doctor/appointment', [BookingController::class, 'doctorBookings'])->middleware('auth')->name('doctor.appointment');
     
-    // Doctor chat routes (existing)
+    // Doctor chat routes
     Route::get('/doctor/chat', [ChatController::class, 'indexDoctor'])->middleware('auth')->name('doctor.chat');
     Route::post('/doctor/chat/send', [ChatController::class, 'store'])->middleware('auth')->name('chat.store');
     
-    // Doctor chat API routes for polling (NEW)
+    // Doctor chat API routes for polling
     Route::get('/doctor/chat/messages/new', [ChatController::class, 'getNewMessages'])->middleware('auth')->name('doctor.chat.messages.new');
     Route::post('/doctor/chat/mark-read', [ChatController::class, 'markAsRead'])->middleware('auth')->name('doctor.chat.mark.read');
     Route::post('/doctor/chat/mark-message-read/{messageId}', [ChatController::class, 'markMessageAsRead'])->middleware('auth')->name('doctor.chat.mark.message.read');
     Route::get('/doctor/chat/unread-counts', [ChatController::class, 'getUnreadCounts'])->middleware('auth')->name('doctor.chat.unread.counts');
     Route::get('/doctor/chat/messages/{bookingId}/status', [ChatController::class, 'getMessagesWithStatus'])->middleware('auth')->name('doctor.chat.messages.status');
+    
+    // Add this route for marking all messages in a booking as read
+    Route::post('/doctor/chat/mark-booking-read/{bookingId}', [ChatController::class, 'markBookingAsRead'])->middleware('auth')->name('doctor.chat.mark.booking.read');
 
     // Doctor call routes
     Route::get('/doctor/video/{booking}', [CallController::class, 'videoDoctor'])->name('doctor.video');
@@ -97,28 +100,31 @@ Route::middleware(['auth', 'verified', 'role:patient'])->group(function () {
     Route::get('/patient/video/{booking}', [CallController::class, 'video'])->name('patient.video');
     Route::get('/patient/voice/{booking}', [CallController::class, 'voice'])->name('patient.voice');
 
-    // Patient chat routes (existing)
+    // Patient chat routes
     Route::get('/patient/chat', [ChatController::class, 'index'])->middleware('auth')->name('chat.index');
     Route::post('/patient/chat/send', [ChatController::class, 'store'])->middleware('auth')->name('chat.store1');
     
-    // Patient chat API routes for polling (NEW)
+    // Patient chat API routes for polling
     Route::get('/patient/chat/messages/new', [ChatController::class, 'getNewMessages'])->middleware('auth')->name('patient.chat.messages.new');
     Route::post('/patient/chat/mark-read', [ChatController::class, 'markAsRead'])->middleware('auth')->name('patient.chat.mark.read');
     Route::post('/patient/chat/mark-message-read/{messageId}', [ChatController::class, 'markMessageAsRead'])->middleware('auth')->name('patient.chat.mark.message.read');
     Route::get('/patient/chat/unread-counts', [ChatController::class, 'getUnreadCounts'])->middleware('auth')->name('patient.chat.unread.counts');
     Route::get('/patient/chat/messages/{bookingId}/status', [ChatController::class, 'getMessagesWithStatus'])->middleware('auth')->name('patient.chat.messages.status');
+    
+    // Add this route for marking all messages in a booking as read
+    Route::post('/patient/chat/mark-booking-read/{bookingId}', [ChatController::class, 'markBookingAsRead'])->middleware('auth')->name('patient.chat.mark.booking.read');
 
     Route::get('patient/appointment/{orderReference}', [BookingController::class, 'verification'])->middleware('auth')->name('patient.appointment.verify');
 });
 
-// Shared chat API routes (accessible by both patient and doctor) - OPTIONAL ALTERNATIVE
-// Instead of having separate doctor/patient prefixes, you could use these shared endpoints
+// Shared chat API routes (accessible by both patient and doctor)
 Route::middleware(['auth'])->group(function () {
     Route::get('/chat/messages/new', [ChatController::class, 'getNewMessages'])->name('chat.messages.new');
     Route::post('/chat/mark-read', [ChatController::class, 'markAsRead'])->name('chat.mark.read');
     Route::post('/chat/mark-message-read/{messageId}', [ChatController::class, 'markMessageAsRead'])->name('chat.mark.message.read');
     Route::get('/chat/unread-counts', [ChatController::class, 'getUnreadCounts'])->name('chat.unread.counts');
     Route::get('/chat/messages/{bookingId}/status', [ChatController::class, 'getMessagesWithStatus'])->name('chat.messages.status');
+    Route::post('/chat/mark-booking-read/{bookingId}', [ChatController::class, 'markBookingAsRead'])->name('chat.mark.booking.read');
 });
 
 Route::post('/call/signal/{booking}', [CallController::class, 'signal'])->middleware('auth')->name('call.signal');

@@ -785,7 +785,12 @@
             if (!bookingId) return;
 
             try {
-                const response = await fetch(`{{ route('chat.mark.read', ['bookingId' => '']) }}/${bookingId}`, {
+                // Use role-specific URL
+                const url = CONFIG.isDoctor 
+                    ? `/doctor/chat/mark-booking-read/${bookingId}`
+                    : `/patient/chat/mark-booking-read/${bookingId}`;
+                
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -799,13 +804,8 @@
                 const data = await response.json();
                 
                 if (data.marked_read > 0) {
-                    // Update UI - remove unread badge
                     removeUnreadBadge(bookingId);
-                    
-                    // Update message status indicators
                     updateMessageReadStatus(bookingId);
-                    
-                    // Fetch updated unread counts
                     fetchUnreadCounts();
                 }
             } catch (error) {
@@ -833,6 +833,33 @@
                     statusSpan.title = 'Read';
                 }
             });
+        }
+
+        async function markMessageAsRead(messageId) {
+            if (!messageId) return false;
+
+            try {
+                const url = CONFIG.isDoctor
+                    ? `/doctor/chat/mark-message-read/${messageId}`
+                    : `/patient/chat/mark-message-read/${messageId}`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to mark message as read');
+
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error('Error marking message as read:', error);
+                return false;
+            }
         }
 
         // ==================== UNREAD COUNTS ====================
@@ -1068,6 +1095,12 @@
             const bookingId = getCurrentBookingId();
             if (bookingId) {
                 markMessagesAsRead(bookingId);
+                
+                // Also update the UI for all messages in current chat
+                const unreadMessages = document.querySelectorAll('.chats:not(.chats-right)[data-is-read="0"]');
+                unreadMessages.forEach(msg => {
+                    msg.dataset.isRead = '1';
+                });
             }
         }
 
@@ -1115,14 +1148,10 @@
                         const isFromOther = !messageElement.classList.contains('chats-right');
                         
                         if (isFromOther && messageId && messageElement.dataset.isRead === '0') {
-                            fetch(`{{ route('chat.mark.message.read', ['messageId' => '']) }}/${messageId}`, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Content-Type': 'application/json'
+                            markMessageAsRead(messageId).then(success => {
+                                if (success) {
+                                    messageElement.dataset.isRead = '1';
                                 }
-                            }).then(() => {
-                                messageElement.dataset.isRead = '1';
                             });
                             
                             observer.unobserve(messageElement);
@@ -1131,9 +1160,9 @@
                 });
             }, { threshold: 0.5 });
 
-            document.querySelectorAll('.chats:not(.chats-right)').forEach(msg => {
-                observer.observe(msg);
-            });
+            // Observe all messages from other users that are not read
+            const messages = document.querySelectorAll('.chats:not(.chats-right)[data-is-read="0"]');
+            messages.forEach(msg => observer.observe(msg));
         }
 
         // ==================== INITIALIZATION ====================
@@ -1218,40 +1247,6 @@
             if (unreadPollInterval) clearInterval(unreadPollInterval);
         });
     </script>
-
-    <!-- Laravel Echo (optional) -->
-    <script type="module">
-        try {
-            import Echo from 'laravel-echo';
-            window.Pusher = require('pusher-js');
-
-            window.Echo = new Echo({
-                broadcaster: 'pusher',
-                key: import.meta.env.VITE_PUSHER_APP_KEY || 'local',
-                wsHost: import.meta.env.VITE_PUSHER_HOST || '127.0.0.1',
-                wsPort: import.meta.env.VITE_PUSHER_PORT || 6001,
-                forceTLS: false,
-                disableStats: true,
-            });
-
-            const bookingId = document.querySelector('input[name="booking_id"]')?.value;
-
-            if (bookingId) {
-                window.Echo.private(`chat.${bookingId}`)
-                    .listen('.MessageSent', (e) => {
-                        console.log('Real-time message:', e);
-                    })
-                    .listen('.messages.read', (e) => {
-                        if (e.reader_id !== CONFIG.authId) {
-                            updateMessageReadStatus(e.booking_id);
-                        }
-                    });
-            }
-        } catch (error) {
-            console.log('Echo not available:', error);
-        }
-    </script>
-
     <script src="{{asset('js/rocket-loader.min.js')}}" data-cf-settings="87d100b3f0de52923242b24d-|49" defer></script>
 </body>
 </html>
