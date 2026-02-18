@@ -701,7 +701,7 @@
             unreadPollInterval: 5000,
             authId: {{ Auth::id() }},
             authName: '{{ Auth::user()->name }}',
-            authImage: '{{ Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset("images/default.jpeg") }}',
+            authImage: '{{ Auth::user()->profile && Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset("images/default.jpeg") }}',
             defaultImage: '{{ asset("images/default.jpeg") }}',
             soundEnabled: true,
             isDoctor: true
@@ -757,6 +757,8 @@
 
         function showToast(message, senderName = 'New Message', senderImage = null) {
             const toastEl = document.getElementById('newMessageToast');
+            if (!toastEl) return;
+            
             document.getElementById('toastSender').textContent = senderName;
             document.getElementById('toastMessageContent').textContent = message;
             
@@ -772,7 +774,9 @@
 
         // ==================== MOBILE HANDLING ====================
         function handleChatClick(event, bookingId) {
-            event.preventDefault();
+            if (event) {
+                event.preventDefault();
+            }
             
             if (window.innerWidth < 992) {
                 setTimeout(function() {
@@ -808,9 +812,16 @@
             
             const timeString = formatTime(message.created_at);
             const senderName = isCurrentUser ? CONFIG.authName : (message.sender?.name || 'Patient');
-            const senderImage = isCurrentUser 
-                ? CONFIG.authImage
-                : (message.sender?.profile->dp ? `${message.sender.profile->dp}` : CONFIG.defaultImage);
+            
+            // Fix image path syntax
+            let senderImage = CONFIG.defaultImage;
+            if (isCurrentUser) {
+                senderImage = CONFIG.authImage;
+            } else if (message.sender?.profile_image) {
+                senderImage = `/storage/${message.sender.profile_image}`;
+            } else if (message.sender?.profile?.dp) {
+                senderImage = message.sender.profile.dp;
+            }
             
             if (isCurrentUser) {
                 messageDiv.innerHTML = `
@@ -1087,43 +1098,99 @@
                    document.getElementById('chatMessages').classList.contains('d-block');
         }
 
-        // ==================== SEND MESSAGE ====================
+        // ==================== SEND MESSAGE (FIXED VERSION) ====================
         async function sendMessage() {
             const form = document.getElementById('chatForm');
-            if (!form) return;
+            if (!form) {
+                console.error('Chat form not found');
+                return;
+            }
 
             const messageInput = document.getElementById('messageInput');
+            if (!messageInput) {
+                console.error('Message input not found');
+                return;
+            }
+
             const message = messageInput.value.trim();
             
-            if (!message) return;
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            // Check if receiver_id and booking_id are set
+            const receiverId = document.getElementById('receiverId')?.value;
+            const bookingId = document.getElementById('bookingId')?.value;
+            
+            if (!receiverId || !bookingId) {
+                alert('Chat session not properly initialized. Please select a chat again.');
+                return;
+            }
 
             const formData = new FormData(form);
+            
+            // Log the data being sent (for debugging)
+            console.log('Sending message:', {
+                url: form.action,
+                receiver_id: receiverId,
+                booking_id: bookingId,
+                message: message
+            });
 
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     }
                 });
 
-                if (!response.ok) throw new Error('Network response was not ok');
-
-                const data = await response.json();
+                // Try to parse the response
+                let data;
+                const contentType = response.headers.get('content-type');
                 
-                addMessageToContainer(data.message, true, true);
-                messageInput.value = '';
-                
-                if (data.message.id > lastMessageId) {
-                    lastMessageId = data.message.id;
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response');
                 }
+
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                }
+
+                console.log('Message sent successfully:', data);
                 
-                updateSidebarLastMessage(data.message.booking_id, data.message);
+                if (data.success) {
+                    // Add message to chat
+                    addMessageToContainer(data.message, true, true);
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    
+                    // Update last message ID
+                    if (data.message.id > lastMessageId) {
+                        lastMessageId = data.message.id;
+                    }
+                    
+                    // Update sidebar with last message
+                    updateSidebarLastMessage(data.message.booking_id, data.message);
+                    
+                    // Fetch updated unread counts
+                    fetchUnreadCounts();
+                } else {
+                    alert('Failed to send message: ' + (data.message || 'Unknown error'));
+                }
                 
             } catch (error) {
                 console.error('Error sending message:', error);
-                alert('Failed to send message. Please try again.');
+                alert('Failed to send message. Please check your connection and try again.\nError: ' + error.message);
             }
         }
 
@@ -1145,14 +1212,27 @@
         document.querySelector('.emoji-picker-btn')?.addEventListener('click', function(e) {
             e.preventDefault();
             const picker = document.getElementById('emojiPicker');
-            picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+            if (picker) {
+                picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        // Close emoji picker when clicking outside
+        document.addEventListener('click', function(e) {
+            const picker = document.getElementById('emojiPicker');
+            const btn = document.querySelector('.emoji-picker-btn');
+            if (picker && btn && !btn.contains(e.target) && !picker.contains(e.target)) {
+                picker.style.display = 'none';
+            }
         });
 
         function insertEmoji(emoji) {
             const input = document.getElementById('messageInput');
-            input.value += emoji;
-            input.focus();
-            document.getElementById('emojiPicker').style.display = 'none';
+            if (input) {
+                input.value += emoji;
+                input.focus();
+                document.getElementById('emojiPicker').style.display = 'none';
+            }
         }
 
         // ==================== MESSAGE SEARCH ====================
@@ -1174,7 +1254,10 @@
         });
 
         function closeMessageSearch() {
-            document.getElementById('messageSearch').value = '';
+            const searchInput = document.getElementById('messageSearch');
+            if (searchInput) {
+                searchInput.value = '';
+            }
             document.querySelectorAll('.chats').forEach(el => el.style.backgroundColor = '');
         }
 
@@ -1197,14 +1280,16 @@
             if (bookingId && confirm('Are you sure you want to clear this chat?')) {
                 // Implement clear chat functionality
                 $('#clear-chat').modal('hide');
+                // You would typically make an API call here to clear the chat
             }
         }
 
         function blockUser() {
-            const patientName = document.getElementById('currentChatName').textContent;
+            const patientName = document.getElementById('currentChatName')?.textContent || 'this user';
             if (confirm(`Are you sure you want to block ${patientName}?`)) {
                 // Implement block user functionality
                 $('#block-user').modal('hide');
+                // You would typically make an API call here to block the user
             }
         }
 
@@ -1253,12 +1338,44 @@
             messages.forEach(msg => observer.observe(msg));
         }
 
+        // ==================== FORM SUBMISSION HANDLER ====================
+        function setupFormHandler() {
+            const form = document.getElementById('chatForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    sendMessage();
+                });
+            }
+
+            // Enter key handler
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+
+            // Send button click handler
+            const sendBtn = document.getElementById('sendMessageBtn');
+            if (sendBtn) {
+                sendBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    sendMessage();
+                });
+            }
+        }
+
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
             // Set last message ID
             const lastMessage = document.querySelector('.messages .chats:last-child');
             if (lastMessage) {
                 lastMessageId = parseInt(lastMessage.dataset.messageId) || 0;
+                console.log('Last message ID:', lastMessageId);
             }
 
             // Mobile view handling
@@ -1287,6 +1404,9 @@
             // Setup read receipt observer
             setupReadReceiptObserver();
 
+            // Setup form handler
+            setupFormHandler();
+
             // Start polling
             if (currentBookingId) {
                 pollInterval = setInterval(fetchNewMessages, CONFIG.pollInterval);
@@ -1308,6 +1428,8 @@
                     markMessagesAsRead(currentBookingId);
                 }
             });
+
+            console.log('Chat initialized with booking ID:', currentBookingId);
         });
 
         // ==================== RESIZE HANDLING ====================
@@ -1356,34 +1478,42 @@
             if (bookingId) {
                 window.Echo.private(`chat.${bookingId}`)
                     .listen('.MessageSent', (e) => {
-                        console.log('Real-time message:', e);
+                        console.log('Real-time message received:', e);
                         
-                        // Add message to container if not already added
+                        // Check if message is for current booking
                         if (e.message.booking_id == bookingId) {
                             const isCurrentUser = e.message.sender_id == CONFIG.authId;
                             
-                            // Check if message already exists
+                            // Check if message already exists in DOM
                             if (!document.querySelector(`[data-message-id="${e.message.id}"]`)) {
+                                // Add message to container
                                 addMessageToContainer(e.message, isCurrentUser, true);
                                 
+                                // Play notification and show toast for incoming messages
                                 if (!isCurrentUser) {
                                     playNotificationSound();
                                     showToast(e.message.message, e.message.sender?.name || 'Patient');
+                                    
+                                    // Mark as read if chat is visible
+                                    if (isChatVisible()) {
+                                        markMessagesAsRead(bookingId);
+                                    }
                                 }
                             }
                         }
                     })
                     .listen('.messages.read', (e) => {
+                        console.log('Messages read event:', e);
                         if (e.reader_id !== CONFIG.authId) {
+                            // Update UI to show messages were read
                             updateMessageReadStatus(e.booking_id);
                         }
                     });
             }
         } catch (error) {
-            console.log('Echo not available:', error);
+            console.log('Echo not available, using polling only:', error);
         }
     </script>
-
 </body>
 
 </html>
