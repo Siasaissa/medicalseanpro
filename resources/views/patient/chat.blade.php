@@ -344,7 +344,7 @@
                                             onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
 
                                         <div class="form-buttons">
-                                            <button class="btn send-btn" type="button" id="sendMessageBtn" >
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()">
                                                 <i class="isax isax-send-25"></i>
                                             </button>
                                         </div>
@@ -807,7 +807,11 @@
             if (!bookingId) return;
 
             try {
-                const response = await fetch(`/patient/chat/mark-booking-read/${bookingId}`, {
+                const url = CONFIG.isDoctor 
+                    ? `/doctor/chat/mark-booking-read/${bookingId}`
+                    : `/patient/chat/mark-booking-read/${bookingId}`;
+                
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -856,7 +860,11 @@
             if (!messageId) return false;
 
             try {
-                const response = await fetch(`/patient/chat/mark-message-read/${messageId}`, {
+                const url = CONFIG.isDoctor
+                    ? `/doctor/chat/mark-message-read/${messageId}`
+                    : `/patient/chat/mark-message-read/${messageId}`;
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -1058,7 +1066,12 @@
             }
             messageInput.disabled = true;
 
-            const formData = new FormData(form);
+            // Create FormData and manually append fields to ensure they're sent
+            const formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('receiver_id', receiverId);
+            formData.append('booking_id', bookingId);
+            formData.append('message', message);
             
             console.log('Sending message once:', {
                 url: form.action,
@@ -1073,8 +1086,8 @@
                     body: formData,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'Accept': 'application/json'
+                        // Don't set Content-Type header - let browser set it with boundary for FormData
                     }
                 });
 
@@ -1146,13 +1159,16 @@
         }
 
         // ==================== EMOJI PICKER ====================
-        document.querySelector('.emoji-picker-btn')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            const picker = document.getElementById('emojiPicker');
-            if (picker) {
-                picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
-            }
-        });
+        const emojiPickerBtn = document.querySelector('.emoji-picker-btn');
+        if (emojiPickerBtn) {
+            emojiPickerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const picker = document.getElementById('emojiPicker');
+                if (picker) {
+                    picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+        }
 
         // Close emoji picker when clicking outside
         document.addEventListener('click', function(e) {
@@ -1173,22 +1189,25 @@
         }
 
         // ==================== MESSAGE SEARCH ====================
-        document.getElementById('messageSearch')?.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const messages = document.querySelectorAll('.chats .message-content');
-            
-            messages.forEach(msg => {
-                const text = msg.textContent.toLowerCase();
-                const chatElement = msg.closest('.chats');
+        const messageSearch = document.getElementById('messageSearch');
+        if (messageSearch) {
+            messageSearch.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const messages = document.querySelectorAll('.chats .message-content');
                 
-                if (text.includes(searchTerm) && searchTerm.length > 0) {
-                    chatElement.style.backgroundColor = '#fff3cd';
-                    chatElement.style.transition = 'background-color 0.3s';
-                } else {
-                    chatElement.style.backgroundColor = '';
-                }
+                messages.forEach(msg => {
+                    const text = msg.textContent.toLowerCase();
+                    const chatElement = msg.closest('.chats');
+                    
+                    if (text.includes(searchTerm) && searchTerm.length > 0) {
+                        chatElement.style.backgroundColor = '#fff3cd';
+                        chatElement.style.transition = 'background-color 0.3s';
+                    } else {
+                        chatElement.style.backgroundColor = '';
+                    }
+                });
             });
-        });
+        }
 
         function closeMessageSearch() {
             const searchInput = document.getElementById('messageSearch');
