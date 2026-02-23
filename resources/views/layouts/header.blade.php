@@ -37,12 +37,14 @@
 										<a href="#">Blog Grid</i></a>
 									</li>
 									<li class="menu">
+										<a href="#">
 										<form method="POST" action="{{ route('logout') }}">
 											@csrf
 											<button type="submit" style="background:none;border:none;padding:0;color:inherit;cursor:pointer;">
 												Logout
 											</button>
 										</form>
+										</a>
 									</li>
 
 									<li class="menu">
@@ -65,9 +67,9 @@
 								</li>
 								<li>
 									<a href="{{ route('logout') }}" 
-                                    class="btn btn-md btn-primary-gradient d-inline-flex align-items-center rounded-pill"
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <i class="isax isax-lock-1 me-1"></i> Logout
+										class="btn btn-md btn-primary-gradient d-inline-flex align-items-center rounded-pill"
+										onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+										<i class="isax isax-lock-1 me-1"></i> Logout
                                     </a>
 
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
