@@ -67,10 +67,10 @@
 											</div>
 											<div class="social-login-btn">
 												<a href="javascript:void(0);" class="btn w-100">
-													<img src="images/google-icon.svg" alt="google-icon">Sign in With Google
+													<img src="{{ asset('images/google-icon.svg')}}" alt="google-icon">Sign in With Google
 												</a>
 												<a href="javascript:void(0);" class="btn w-100">
-													<img src="images/facebook-icon.svg" alt="fb-icon">Sign in With Facebook
+													<img src="{{ asset('images/facebook-icon.svg')}}" alt="fb-icon">Sign in With Facebook
 												</a>
 											</div>
 											<div class="account-signup">
