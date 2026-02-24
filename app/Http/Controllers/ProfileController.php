@@ -113,7 +113,7 @@ public function updateProfile1(Request $request)
 
         $file = $request->file('dp');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('uploads/profile'), $filename);
+        $file->move(public_path('public/uploads/profile'), $filename);
         $doctor->dp = 'public/uploads/profile/' . $filename;
     }
 
