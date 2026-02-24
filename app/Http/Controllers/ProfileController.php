@@ -53,7 +53,7 @@ public function store(Request $request)
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
         // Define the upload path
-        $uploadPath = public_path('uploads/profile');
+        $uploadPath = public_path('public/uploads/profile/');
         
         // DEBUG: Check if directory exists and its permissions
         $debugInfo = [
@@ -92,7 +92,7 @@ public function store(Request $request)
                     }
                 }
                 
-                $profile->dp = 'uploads/profile/' . $filename;
+                $profile->dp = 'public/uploads/profile/' . $filename;
             } else {
                 $debugInfo['file_saved'] = false;
             }
