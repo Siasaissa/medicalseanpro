@@ -33,7 +33,7 @@ public function store(Request $request)
 
     $profile = Profile::firstOrNew(['user_id' => Auth::id()]);
 
-    // Update text fields (same as before)
+    // Update text fields
     if ($request->filled('sex')) {
         $profile->sex = $request->sex;
     }
@@ -47,17 +47,61 @@ public function store(Request $request)
         $profile->address = $request->address;
     }
 
-    // Handle image upload - MODIFIED TO USE STORAGE LINK
+    // Handle image upload with DEBUGGING
     if ($request->hasFile('dp')) {
         $file = $request->file('dp');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
-        // Save to storage/app/public/uploads/profile/
-        $path = $file->storeAs('public/uploads/profile', $filename);
+        // Define the upload path
+        $uploadPath = public_path('uploads/profile');
         
-        // This will store 'uploads/profile/filename.jpg' in database
-        // Which will be accessible via storage/uploads/profile/filename.jpg
-        $profile->dp = 'public/uploads/profile' . $filename;
+        // DEBUG: Check if directory exists and its permissions
+        $debugInfo = [
+            'upload_path' => $uploadPath,
+            'directory_exists' => file_exists($uploadPath),
+            'is_writable' => is_writable($uploadPath),
+            'original_name' => $file->getClientOriginalName(),
+            'temp_path' => $file->getRealPath(),
+            'file_size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+        ];
+        
+        // Create directory if it doesn't exist
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
+            $debugInfo['directory_created'] = true;
+        }
+        
+        // Try to move the file
+        try {
+            $file->move($uploadPath, $filename);
+            
+            // Check if file was actually moved
+            $savedFilePath = $uploadPath . '/' . $filename;
+            if (file_exists($savedFilePath)) {
+                $debugInfo['file_saved'] = true;
+                $debugInfo['saved_path'] = $savedFilePath;
+                $debugInfo['file_permissions'] = substr(sprintf('%o', fileperms($savedFilePath)), -4);
+                
+                // Delete old image if it exists
+                if ($profile->dp) {
+                    $oldImagePath = public_path($profile->dp);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                        $debugInfo['old_deleted'] = true;
+                    }
+                }
+                
+                $profile->dp = 'uploads/profile/' . $filename;
+            } else {
+                $debugInfo['file_saved'] = false;
+            }
+        } catch (\Exception $e) {
+            $debugInfo['error'] = $e->getMessage();
+        }
+        
+        // Dump debug info and stop execution
+        dd($debugInfo);
     }
 
     $profile->user_id = Auth::id();
@@ -65,7 +109,6 @@ public function store(Request $request)
 
     return back()->with('success', 'Profile updated successfully.');
 }
-
   
 
 public function ProSetting(){
