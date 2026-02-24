@@ -23,6 +23,8 @@ class ProfileController extends Controller
 
 public function store(Request $request)
 {
+    dd($request->all());
+    
     $request->validate([
         'sex' => 'nullable|string',
         'dob' => 'nullable|string',
@@ -66,8 +68,8 @@ public function store(Request $request)
 
   public function updateProfile(Request $request)
 {
-    dd($request->all());
     
+
     $user = auth()->user();
     $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
 
