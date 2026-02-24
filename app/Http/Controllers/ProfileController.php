@@ -66,6 +66,8 @@ public function store(Request $request)
 
   public function updateProfile(Request $request)
 {
+    dd($request->all());
+    
     $user = auth()->user();
     $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
 
