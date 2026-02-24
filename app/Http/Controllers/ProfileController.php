@@ -57,7 +57,7 @@ public function store(Request $request)
         
         // This will store 'uploads/profile/filename.jpg' in database
         // Which will be accessible via storage/uploads/profile/filename.jpg
-        $profile->dp = 'uploads/profile/' . $filename;
+        $profile->dp = 'public/uploads/profile' . $filename;
     }
 
     $profile->user_id = Auth::id();
@@ -113,8 +113,8 @@ public function updateProfile1(Request $request)
 
         $file = $request->file('dp');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('public/uploads/profile'), $filename);
-        $doctor->dp = 'public/uploads/profile/' . $filename;
+        $file->move(public_path('uploads/profile'), $filename);
+        $doctor->dp = 'uploads/profile/' . $filename;
     }
 
     // Only update fields that exist in the request
