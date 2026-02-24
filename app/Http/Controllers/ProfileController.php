@@ -23,8 +23,7 @@ class ProfileController extends Controller
 
 public function store(Request $request)
 {
-    dd($request->all());
-    
+    // Validate the request
     $request->validate([
         'sex' => 'nullable|string',
         'dob' => 'nullable|string',
@@ -33,37 +32,67 @@ public function store(Request $request)
         'dp' => 'nullable|image|mimes:jpg,png,svg|max:4096',
     ]);
 
-    $profile = Profile::firstOrNew(['user_id' => Auth::id()]);
+    try {
+        $profile = Profile::firstOrNew(['user_id' => Auth::id()]);
 
-    // Only update fields that exist in the request
-    if ($request->filled('sex')) {
-        $profile->sex = $request->sex;
+        // Update text fields
+        if ($request->filled('sex')) {
+            $profile->sex = $request->sex;
+        }
+
+        if ($request->filled('dob')) {
+            $profile->dob = $request->dob;
+        }
+
+        if ($request->filled('blood_group')) {
+            $profile->blood_group = $request->blood_group;
+        }
+
+        if ($request->filled('address')) {
+            $profile->address = $request->address;
+        }
+
+        // Handle image upload
+        if ($request->hasFile('dp') && $request->file('dp')->isValid()) {
+            $file = $request->file('dp');
+            
+            // Ensure the upload directory exists
+            $uploadPath = public_path('uploads/profile');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0777, true);
+            }
+            
+            // Generate unique filename
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            // Move the file
+            $file->move($uploadPath, $filename);
+            
+            // Delete old image if it exists
+            if ($profile->dp && file_exists(public_path($profile->dp))) {
+                unlink(public_path($profile->dp));
+            }
+            
+            // Save the path
+            $profile->dp = 'uploads/profile/' . $filename;
+            
+            // Debug: Check if file was actually moved
+            if (!file_exists(public_path($profile->dp))) {
+                throw new \Exception('File was not moved successfully');
+            }
+        }
+
+        $profile->user_id = Auth::id();
+        $profile->save();
+
+        return back()->with('success', 'Profile updated successfully.');
+        
+    } catch (\Exception $e) {
+        // Log the error for debugging
+        \Log::error('Profile update failed: ' . $e->getMessage());
+        
+        return back()->with('error', 'Failed to update profile: ' . $e->getMessage());
     }
-
-    if ($request->filled('dob')) {
-        $profile->dob = $request->dob;
-    }
-
-    if ($request->filled('blood_group')) {
-        $profile->blood_group = $request->blood_group;
-    }
-
-    if ($request->filled('address')) {
-        $profile->address = $request->address;
-    }
-
-    // Handle image upload separately
-    if ($request->hasFile('dp')) {
-        $file = $request->file('dp');
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('uploads/profile'), $filename);
-        $profile->dp = 'uploads/profile/' . $filename;
-    }
-
-    $profile->user_id = Auth::id();
-    $profile->save();
-
-    return back()->with('success', 'Profile updated successfully.');
 }
 
   public function updateProfile(Request $request)
