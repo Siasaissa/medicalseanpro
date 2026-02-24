@@ -66,49 +66,7 @@ public function store(Request $request)
     return back()->with('success', 'Profile updated successfully.');
 }
 
-  public function updateProfile(Request $request)
-{
-    
-
-    $user = auth()->user();
-    $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
-
-    $baseRules = [
-        'sex' => 'nullable|string',
-        'dob' => 'nullable|date',
-        'blood_group' => 'nullable|string',
-        'address' => 'nullable|string',
-        'dp' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-    ];
-
-    $doctorRules = [
-        'speciality' => 'nullable|string|max:255',
-        'service' => 'nullable|string|max:255',
-        'about_service' => 'nullable|string|max:1000',
-    ];
-
-    $rules = $user->role === 'doctor'
-        ? array_merge($baseRules, $doctorRules)
-        : $baseRules;
-
-    $validated = $request->validate($rules);
-
-    // Handle Image Upload
-    if ($request->hasFile('dp')) {
-
-        $file = $request->file('dp');
-        $filename = time().'_'.$file->getClientOriginalName();
-
-        $file->move(public_path('uploads/profile'), $filename);
-
-        $validated['dp'] = 'uploads/profile/'.$filename;
-    }
-
-    $profile->fill($validated)->save();
-
-    return redirect()->back()->with('success', 'Profile updated successfully.');
-}
-
+  
 
 public function ProSetting(){
     $doctor = Profile::where('user_id', Auth::id())->first();
