@@ -19,9 +19,7 @@ public function grid(Request $request)
         //dd(Profile::select('start_time','end_time')->get());
 
         $query = User::whereHas('profile', function($q) {
-            $q->whereNotNull('id') // Ensure user has a profile
-                ->where('start_time', '<=', Carbon::now()->format('H:i:s'))
-                ->where('end_time', '=>', Carbon::now()->format('H:i:s'));
+            $q->whereNotNull('id');
         })  ->where('role', 'doctor');
 
             
