@@ -140,7 +140,7 @@
                                                 }
                                             @endphp
                                             <figure class="avatar {{ $activeDoctor?->is_online ? 'avatar-online' : 'avatar-offline' }}">
-                                                <img src="{{ $activeDoctorImage }}" alt="{{ $activeDoctor?->name ?? 'Doctor' }}" id="currentDoctorImage">
+                                                <img src="{{ $activeDoctorImage }}" alt="{{ $activeDoctor?->name ?? 'Doctor' }}" id="currentDoctorImage" style="border-radius: 50%;">
                                             </figure>
                                             <div class="mt-1">
                                                 <h5 id="currentDoctorName">{{ $activeDoctor?->name ?? 'Select a chat' }}</h5>
