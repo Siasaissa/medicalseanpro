@@ -292,16 +292,18 @@
                             <div class="chat-footer">
                                 @php
 
+                                    
+
                                     use Carbon\Carbon;
 
                                     $now = Carbon::now();
 
-                                    $activeType = \App\Models\Booking::where('appointment_datetime', '<=', $now)
-                                        ->whereRaw(
-                                            "DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?",
-                                            [$now]
-                                        )
-                                        ->exists();
+                                    $activeType = \App\Models\Booking::get()->contains(function ($booking) use ($now) {
+                                        $appointmentStart = Carbon::parse($booking->appointment_datetime);
+                                        $appointmentEnd = $appointmentStart->copy()->addMinutes($booking->service_time);
+
+                                        return $now->between($appointmentStart, $appointmentEnd);
+                                    });
 
                                     // Get current active booking and doctor
                                     $activeBookingId = request('booking');
