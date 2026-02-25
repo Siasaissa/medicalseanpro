@@ -78,7 +78,7 @@
 													<div class="imgs-load d-flex align-items-center">
 														<div class="change-photo">
 															Upload New 
-															<input type="file" name="dp" class="upload" accept="image/*">
+															<input type="file" name="dp" class="upload" accept=".jpg,.jpeg,.png">
 														</div>
 														<a href="#" class="upload-remove">Remove</a>
 													</div>
