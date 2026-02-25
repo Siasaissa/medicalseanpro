@@ -59,8 +59,8 @@
 													<td>{{ $appo->doctor->profile->speciality }}</td>
 													<td>
 														<h2 class="table-avatar">
-															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->user->profile->dp) ?? ''}}" alt="User Image"></a>
-															<a href="profile.html">{{ $appo->patient->name }} </a>
+															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->patient->profile->dp) ?? ''}}" alt="User Image"></a>
+															<a href="profile.html">{{ $appo->patient->name }} {{ dd($appo->user_id, $appo->patient) }}</a>
 														</h2>
 													</td>
 													<td> <span class="text-primary d-block">{{ $appo->appointment_datetime }}</span></td>
