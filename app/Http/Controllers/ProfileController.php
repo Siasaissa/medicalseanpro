@@ -100,7 +100,7 @@ public function store(Request $request)
             $debugInfo['error'] = $e->getMessage();
         }
         
-        
+        dd($debugInfo);
     }
 
     $profile->user_id = Auth::id();
