@@ -355,16 +355,15 @@
 
                                          @if ($activeType)
 
-                                         <input type="text" name="message" class="form-control chat_form" id="messageInput"
-                                            placeholder="Type your message here..." required autocomplete="off"
-                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
-
-                                         @else
-
-                                         <input type="text" name="message" class="form-control chat_form" id="messageInput"
+                                            <input type="text" name="message" class="form-control chat_form" id="messageInput"
                                             placeholder="Type your message here..." required autocomplete="off"
                                             onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }" readonly>
 
+                                         @else
+                                            <input type="text" name="message" class="form-control chat_form" id="messageInput"
+                                            placeholder="Type your message here..." required autocomplete="off"
+                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
+ 
                                          @endif
                                         
                                         <div class="form-buttons">
