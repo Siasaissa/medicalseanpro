@@ -291,9 +291,7 @@
 
                             <div class="chat-footer">
                                 @php
-
-                                    
-
+                                
                                     use Carbon\Carbon;
 
                                     $now = Carbon::now();
@@ -359,7 +357,7 @@
                                         <!-- Message input -->
                                         
 
-                                         @if ($activeType)
+                                         @if ($activeType->)
 
                                             <input type="text" name="message" class="form-control chat_form" id="messageInput"
                                             placeholder="Type your message here..." required autocomplete="off"
