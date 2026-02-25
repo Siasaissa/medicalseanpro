@@ -52,14 +52,14 @@
 												<tr>
 													<td>
 														<h2 class="table-avatar">
-															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->doctor->profile->dp)}}" alt="User Image"></a>
+															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->doctor->profile->dp) ?? ''}}" alt="User Image"></a>
 															<a href="profile.html">Dr.{{ $appo->doctor->name }}</a>
 														</h2>
 													</td>
 													<td>{{ $appo->doctor->profile->speciality }}</td>
 													<td>
 														<h2 class="table-avatar">
-															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->patient->profile->dp)}}" alt="User Image"></a>
+															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->patient->profile->dp) ?? ''}}" alt="User Image"></a>
 															<a href="profile.html">{{ $appo->patient->name }} </a>
 														</h2>
 													</td>
