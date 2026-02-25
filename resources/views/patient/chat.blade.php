@@ -147,7 +147,7 @@
                                                 <small class="last-seen" id="doctorStatus">
                                                     @if($activeDoctor)
                                                         <span class="online-status {{ $activeDoctor->is_online ? 'text-success' : 'text-secondary' }}">
-                                                            {{ $activeDoctor->is_online ? '● Online' : '○ Offline' }}
+                                                            {{ $activeDoctor->is_online ? '● Online' : '○ Offline dope' }}
                                                         </span>
                                                     @else
                                                         &nbsp;
