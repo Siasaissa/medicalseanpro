@@ -23,6 +23,7 @@ class ProfileController extends Controller
 
 public function store(Request $request)
 {
+    
     $request->validate([
         'sex' => 'nullable|string',
         'dob' => 'nullable|string',
