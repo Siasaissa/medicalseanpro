@@ -74,7 +74,7 @@
                                                         <a href="{{ route('chat.index', ['booking' => $booking->id]) }}"
                                                            onclick="handleChatClick(event, {{ $booking->id }})">
                                                             <div class="avatar {{ $doctor->is_online ? 'avatar-online' : 'avatar-offline' }}">
-                                                                <img src="{{ $doctorImage }}" alt="{{ $doctor->name }}">
+                                                                <img src="{{ $doctorImage }}" alt="{{ $doctor->name }}" style="border-radius: 50%;">
                                                             </div>
                                                             <div class="users-list-body">
                                                                 <div>
