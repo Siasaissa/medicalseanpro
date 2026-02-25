@@ -18,8 +18,8 @@ public function grid(Request $request)
     {
         $query = User::whereHas('profile', function($q) {
             $q->whereNotNull('id') // Ensure user has a profile
-                ->where('start_time', '<=', Carbon::now())
-                ->where('end_time', '=>', Carbon::now());
+                ->where('start_time', '<=', Carbon::now()->format('H:i:s'))
+                ->where('end_time', '=>', Carbon::now()->format('H:i:s'));
         })  ->where('role', 'doctor');
 
             
