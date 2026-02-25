@@ -17,9 +17,11 @@ class DoctorGrid extends Controller
 public function grid(Request $request)
     {
         $query = User::whereHas('profile', function($q) {
-            $q->whereNotNull('id'); // Ensure user has a profile
-        })  ->where('role', 'doctor')
-            ->where('start_time', '>', Carbon::now());
+            $q->whereNotNull('id') // Ensure user has a profile
+                ->where('start_time', '>', Carbon::now());
+        })  ->where('role', 'doctor');
+
+            
             
 
         // Apply filters
