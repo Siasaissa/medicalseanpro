@@ -294,8 +294,8 @@
 
                                     use Carbon\Carbon;
 
-                                    $activeType = \App\Models\Booking::where('start_date', '<=', Carbon::now())
-                                        ->where('end_date', '>=', Carbon::now())
+                                    $activeType = \App\Models\Booking::where('start_date', '<=', Carbon::now()->format('H:i:s'))
+                                        ->where('end_date', '>=', Carbon::now()->format('H:i:s'))
                                         ->get();
                                     // Get current active booking and doctor
                                     $activeBookingId = request('booking');
