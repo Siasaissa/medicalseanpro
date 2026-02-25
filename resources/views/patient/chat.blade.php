@@ -258,7 +258,7 @@
                                                     {{-- Other person's message (left side) --}}
                                                     <div class="chats" data-message-id="{{ $msg->id }}" data-is-read="{{ $msg->is_read ? '1' : '0' }}">
                                                         <div class="chat-avatar">
-                                                            <img src="{{ $senderImage }}" class="dreams_chat" alt="{{ $senderName }}">
+                                                            <img src="{{ $senderImage }}" class="dreams_chat" alt="{{ $senderName }}" style="border-radius: 50%;">
                                                         </div>
                                                         <div class="chat-content">
                                                             <div class="chat-profile-name">
@@ -779,13 +779,13 @@
                         </div>
                     </div>
                     <div class="chat-avatar">
-                        <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                        <img src="${senderImage}" class="dreams_chat" alt="${senderName}" style="border-radius: 50%;">
                     </div>
                 `;
             } else {
                 messageDiv.innerHTML = `
                     <div class="chat-avatar">
-                        <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                        <img src="${senderImage}" class="dreams_chat" alt="${senderName}" style="border-radius: 50%;">
                     </div>
                     <div class="chat-content">
                         <div class="chat-profile-name">
