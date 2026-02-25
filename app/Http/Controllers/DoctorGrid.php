@@ -16,8 +16,8 @@ class DoctorGrid extends Controller
 {
 public function grid(Request $request)
     {
-        dd(now(), now()->format('H:i:s'));
-        
+        dd(Profile::select('start_time','end_time')->get());
+
         $query = User::whereHas('profile', function($q) {
             $q->whereNotNull('id') // Ensure user has a profile
                 ->where('start_time', '<=', Carbon::now()->format('H:i:s'))
