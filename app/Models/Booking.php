@@ -32,11 +32,11 @@ protected $fillable = [
     // Relations
     public function patient()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function doctor()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'doctor_id');
     }
 }
