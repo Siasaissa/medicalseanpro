@@ -301,7 +301,7 @@
                                             "DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?",
                                             [$now]
                                         )
-                                        ->get();
+                                        ->exists();
 
                                     // Get current active booking and doctor
                                     $activeBookingId = request('booking');
