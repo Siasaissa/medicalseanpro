@@ -142,7 +142,7 @@
                                             <figure class="avatar {{ $activeDoctor?->is_online ? 'avatar-online' : 'avatar-offline' }}">
                                                 <img src="{{ $activeDoctorImage }}" alt="{{ $activeDoctor?->name ?? 'Doctor' }}" id="currentDoctorImage" style="border-radius: 50%;">
                                             </figure>
-                                            <div class="mt-1" style="z-index: 100">
+                                            <div class="mt-1" style="z-index: 999">
                                                 <h5 id="currentDoctorName">{{ $activeDoctor?->name ?? 'Select a chat' }}</h5>
                                                 <small class="last-seen" id="doctorStatus">
                                                     @if($activeDoctor)
