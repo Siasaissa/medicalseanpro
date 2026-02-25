@@ -300,7 +300,11 @@
 
                                     $activeType = \App\Models\Booking::get()->contains(function ($booking) use ($now) {
                                         $appointmentStart = Carbon::parse($booking->appointment_datetime);
-                                        $appointmentEnd = $appointmentStart->copy()->addMinutes($booking->service_time);
+
+                                        // Cast service_time to integer
+                                        $serviceTime = (int) $booking->service_time;
+
+                                        $appointmentEnd = $appointmentStart->copy()->addMinutes($serviceTime);
 
                                         return $now->between($appointmentStart, $appointmentEnd);
                                     });
