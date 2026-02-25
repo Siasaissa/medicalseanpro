@@ -104,7 +104,7 @@ public function store(Request $request)
         
     }
 
-    dd($debugInfo);
+    //dd($debugInfo);
     
     $profile->user_id = Auth::id();
     $profile->save();
