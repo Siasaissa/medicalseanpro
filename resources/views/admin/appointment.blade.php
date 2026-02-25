@@ -59,7 +59,7 @@
 													<td>{{ $appo->doctor->profile->speciality }}</td>
 													<td>
 														<h2 class="table-avatar">
-															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->patient->profile->dp) ?? ''}}" alt="User Image"></a>
+															<a href="profile.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{asset($appo->patient->profile->dp) ?? 'public/uploads/profile/1772010750_699ebcfe37a85.png'}}" alt="User Image"></a>
 															<a href="profile.html">{{ $appo->patient->name }}</a>
 														</h2>
 													</td>
