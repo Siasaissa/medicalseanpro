@@ -353,7 +353,7 @@
                                         <!-- Message input -->
                                         
 
-                                         @if ($activeType)
+                                         @if ($activeType->isNotEmpty())
 
                                             <input type="text" name="message" class="form-control chat_form" id="messageInput"
                                             placeholder="Type your message here..." required autocomplete="off"
