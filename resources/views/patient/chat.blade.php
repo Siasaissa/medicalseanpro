@@ -291,6 +291,12 @@
 
                             <div class="chat-footer">
                                 @php
+
+                                    use Carbon\Carbon;
+
+                                    $activeType = \App\Models\Booking::where('start_date', '<=', Carbon::now())
+                                        ->where('end_date', '>=', Carbon::now())
+                                        ->get();
                                     // Get current active booking and doctor
                                     $activeBookingId = request('booking');
                                     $activeDoctorId = null;
@@ -339,21 +345,16 @@
                                         </div>
 
                                         <!-- Message input -->
-                                         @php
-                                            use Carbon\Carbon;
+                                        
 
-                                            $activeType = \App\Models\Booking::where('start_date', '<=', Carbon::now())
-                                                ->where('end_date', '>=', Carbon::now())
-                                                ->get();
-                                            @endphp
-                                            
                                          @if ($activeType)
 
                                          <input type="text" name="message" class="form-control chat_form" id="messageInput"
                                             placeholder="Type your message here..." required autocomplete="off"
                                             onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
 
-                                         @else()
+                                         @else
+
                                          <input type="none" name="message" class="form-control chat_form" id="messageInput"
                                             placeholder="Type your message here..." required autocomplete="off"
                                             onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
