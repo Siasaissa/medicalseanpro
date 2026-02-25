@@ -340,11 +340,13 @@
 
                                         <!-- Message input -->
                                          @php
+                                            use Carbon\Carbon;
 
-                                         $activeType = \App\Models\Booking::where('start_date', '<=', Carbon::now() && 'end_date', '>=', Carbon::now())
-
-                                         @endphp
-
+                                            $activeType = \App\Models\Booking::where('start_date', '<=', Carbon::now())
+                                                ->where('end_date', '>=', Carbon::now())
+                                                ->get();
+                                            @endphp
+                                            
                                          @if ($activeType)
 
                                          <input type="text" name="message" class="form-control chat_form" id="messageInput"
