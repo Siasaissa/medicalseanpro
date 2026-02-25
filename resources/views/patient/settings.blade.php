@@ -50,13 +50,13 @@
 							<nav class="settings-tab mb-1">
 								<ul class="nav nav-tabs-bottom" role="tablist">
 									 <li class="nav-item" role="presentation">
-										<a class="nav-link active" href="profile-settings.html">Profile</a>
+										<a class="nav-link active" href="#">Profile</a>
 									 </li>
 									 <li class="nav-item" role="presentation">
-										<a class="nav-link" href="change-password.html">Change Password</a>
+										<a class="nav-link" href="#">Change Password</a>
 									 </li>
 									 <li class="nav-item" role="presentation">
-										 <a class="nav-link" href="delete-account.html">Delete Account</a>
+										 <a class="nav-link" href="#">Delete Account</a>
 									 </li>
 								</ul>
 							</nav>

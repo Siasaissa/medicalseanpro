@@ -159,7 +159,7 @@ public function updateProfile1(Request $request)
         $file = $request->file('dp');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         $file->move(public_path('uploads/profile'), $filename);
-        $doctor->dp = 'uploads/profile/' . $filename;
+        $doctor->dp = 'public/uploads/profile/' . $filename;
     }
 
     // Only update fields that exist in the request
