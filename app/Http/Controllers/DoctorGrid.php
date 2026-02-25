@@ -18,8 +18,9 @@ public function grid(Request $request)
     {
         $query = User::whereHas('profile', function($q) {
             $q->whereNotNull('id'); // Ensure user has a profile
-        })  ->where('role', 'doctor') // Assuming you have a role column
-            ->where('start_time', '>' Carbon::now());
+        })  ->where('role', 'doctor')
+            ->where('start_time', '>', Carbon::now());
+            
 
         // Apply filters
         if ($request->filled('search')) {
