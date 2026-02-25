@@ -18,8 +18,8 @@ public function grid(Request $request)
     {
         $query = User::whereHas('profile', function($q) {
             $q->whereNotNull('id') // Ensure user has a profile
-                ->where('start_time', '>', Carbon::now())
-                ->where('end_time', '<', Carbon::now());
+                ->where('start_time', '<=', Carbon::now())
+                ->where('end_time', '=>', Carbon::now());
         })  ->where('role', 'doctor');
 
             
@@ -57,8 +57,6 @@ public function grid(Request $request)
                 });
             });
         }
-
-        $doctors = $query->with('profile')->paginate(12)->withQueryString();
         
         // Gender filter
         if ($request->filled('gender')) {
