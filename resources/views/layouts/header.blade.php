@@ -88,24 +88,24 @@
 				</div>
 				@include('layouts.toast')
 				@if(session('success'))
-<div class="toast align-items-center text-white bg-success border-0 show">
-    <div class="d-flex">
-        <div class="toast-body">
-            {{ session('success') }}
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-</div>
-@endif
+				<div class="toast align-items-center text-white bg-success border-0 show">
+					<div class="d-flex">
+						<div class="toast-body">
+							{{ session('success') }}
+						</div>
+						<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+					</div>
+				</div>
+				@endif
 
-@if(session('error'))
-<div class="toast align-items-center text-white bg-danger border-0 show">
-    <div class="d-flex">
-        <div class="toast-body">
-            {{ session('error') }}
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-</div>
-@endif
+				@if(session('error'))
+				<div class="toast align-items-center text-white bg-danger border-0 show">
+					<div class="d-flex">
+						<div class="toast-body">
+							{{ session('error') }}
+						</div>
+						<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+					</div>
+				</div>
+				@endif
 			</header>

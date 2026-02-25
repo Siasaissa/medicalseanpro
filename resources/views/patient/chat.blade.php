@@ -339,12 +339,27 @@
                                         </div>
 
                                         <!-- Message input -->
-                                        <input type="text" name="message" class="form-control chat_form" id="messageInput"
+                                         @php
+
+                                         $activeType = \App\Models\Booking::where('start_date', '<=', Carbon::now() && 'end_date', '>=', Carbon::now())
+
+                                         @endphp
+
+                                         @if ($activeType)
+
+                                         <input type="text" name="message" class="form-control chat_form" id="messageInput"
                                             placeholder="Type your message here..." required autocomplete="off"
                                             onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
 
+                                         @else()
+                                         <input type="none" name="message" class="form-control chat_form" id="messageInput"
+                                            placeholder="Type your message here..." required autocomplete="off"
+                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
+
+                                         @endif
+                                        
                                         <div class="form-buttons">
-                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()">
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()" >
                                                 <i class="isax isax-send-25"></i>
                                             </button>
                                         </div>
