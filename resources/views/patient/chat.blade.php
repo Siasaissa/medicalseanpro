@@ -296,13 +296,13 @@
 
                                     $now = Carbon::now();
 
-                                    $appointments = \App\Models\Booking::where('appointment_datetime', '<=', $now)
+                                    $activeType = \App\Models\Booking::where('appointment_datetime', '<=', $now)
                                         ->whereRaw(
                                             "DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?",
                                             [$now]
                                         )
                                         ->get();
-                                        
+
                                     // Get current active booking and doctor
                                     $activeBookingId = request('booking');
                                     $activeDoctorId = null;
