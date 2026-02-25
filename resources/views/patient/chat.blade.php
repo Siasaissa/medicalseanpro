@@ -251,7 +251,7 @@
                                                             </div>
                                                         </div>
                                                         <div class="chat-avatar">
-                                                            <img src="{{ $senderImage }}" class="dreams_chat" alt="{{ $senderName }}">
+                                                            <img src="{{ $senderImage }}" class="dreams_chat" alt="{{ $senderName }}" style="border-radius: 50%;">
                                                         </div>
                                                     </div>
                                                 @else
