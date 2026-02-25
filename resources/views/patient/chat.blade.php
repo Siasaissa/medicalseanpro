@@ -294,10 +294,15 @@
 
                                     use Carbon\Carbon;
 
-                                    $activeType = \App\Models\Booking::whereRaw(
-                                                        "DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?",
-                                                        Carbon::now()
-                                                    )->get();
+                                    $now = Carbon::now();
+
+                                    $appointments = \App\Models\Booking::where('appointment_datetime', '<=', $now)
+                                        ->whereRaw(
+                                            "DATE_ADD(appointment_datetime, INTERVAL service_time MINUTE) > ?",
+                                            [$now]
+                                        )
+                                        ->get();
+                                        
                                     // Get current active booking and doctor
                                     $activeBookingId = request('booking');
                                     $activeDoctorId = null;
