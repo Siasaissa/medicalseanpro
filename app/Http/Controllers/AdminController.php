@@ -20,7 +20,7 @@ class AdminController extends Controller
         return view('admin.dashboard',compact('doctor','patient','booking','revenue'));
     }
     public function appointment(){
-        $appointment = Booking::all();
+       $appointments = Booking::with(['doctor.profile', 'patient.profile'])->get();
 
         return view('admin.appointment',compact('appointment'));
     }
