@@ -86,7 +86,7 @@
 									</div>
 									<div class="col-md-12 col-lg-6 login-right">
 										<div class="login-header">
-											<h3>Login <span>MedicalSean</span></h3>
+											<h3>Login <span>MedicalSean check03</span></h3>
 										</div>
 										<form method="POST" action="{{ route('login') }}">
                                             @csrf
