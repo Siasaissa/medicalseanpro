@@ -16,10 +16,13 @@ use App\Http\Controllers\AdminController;
 use Carbon\Carbon;
 use App\Http\Controllers\Auth\GoogleController;
 
-Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
-Route::get('auth/google/callback/doctor', [GoogleController::class, 'handleGoogleCallbackdoctor'])->name('google.callback.doctor');
+// Patient Google Login
+Route::get('auth/google/patient', [GoogleController::class, 'redirectToGooglePatient'])->name('google.login.patient');
+Route::get('auth/google/callback/patient', [GoogleController::class, 'handleGoogleCallbackPatient'])->name('google.callback.patient');
 
+// Doctor Google Login
+Route::get('auth/google/doctor', [GoogleController::class, 'redirectToGoogleDoctor'])->name('google.login.doctor');
+Route::get('auth/google/callback/doctor', [GoogleController::class, 'handleGoogleCallbackDoctor'])->name('google.callback.doctor');
 
 Route::get('/', function () {
     return view('welcome');
