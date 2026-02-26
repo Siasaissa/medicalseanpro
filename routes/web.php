@@ -18,11 +18,12 @@ use App\Http\Controllers\Auth\GoogleController;
 
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
+Route::get('auth/google/callback/doctor', [GoogleController::class, 'handleGoogleCallbackdoctor'])->name('google.callback.doctor');
 
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 //doctor-register
 Route::get('/auth/doctor-register', function(){
