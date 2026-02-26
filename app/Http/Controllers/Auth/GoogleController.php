@@ -15,15 +15,12 @@ class GoogleController extends Controller
      */
 public function redirectToGooglePatient()
 {
-    $redirectUri = env('GOOGLE_REDIRECT_URI');
-    dd([
-        'env_redirect' => $redirectUri,
-        'config_redirect' => config('services.google.redirect'),
-        'full_url' => url('/auth/google/callback/patient')
-    ]);
+    // Force the redirect URI to use www
+    $redirectUri = 'https://www.medicalsean.org/auth/google/callback/patient';
     
-    session(['google_login_role' => 'patient']);
-    return Socialite::driver('google')->redirect();
+    return Socialite::driver('google')
+        ->redirectUrl($redirectUri)
+        ->redirect();
 }
 
     /**
