@@ -10,77 +10,63 @@ use Illuminate\Support\Str;
 
 class GoogleController extends Controller
 {
-    /**
-     * Redirect patient to Google
-     */
     public function redirectToGooglePatient()
     {
         session(['google_role' => 'patient']);
-
-        
-
-        return Socialite::driver('google')->redirect();
+        $redirectUrl = config('services.google.redirect') . '/patient';
+        return Socialite::driver('google')
+            ->redirectUrl($redirectUrl)
+            ->redirect();
     }
 
-    /**
-     * Redirect doctor to Google
-     */
     public function redirectToGoogleDoctor()
     {
         session(['google_role' => 'doctor']);
-        return Socialite::driver('google')->redirect();
+        $redirectUrl = config('services.google.redirect') . '/doctor';
+        return Socialite::driver('google')
+            ->redirectUrl($redirectUrl)
+            ->redirect();
     }
 
-    /**
-     * Handle callback for patient
-     */
     public function handleGoogleCallbackPatient()
     {
-        return $this->handleGoogleCallback('patient');
+        return $this->handleCallback('patient');
     }
 
-    /**
-     * Handle callback for doctor
-     */
     public function handleGoogleCallbackDoctor()
     {
-        return $this->handleGoogleCallback('doctor');
+        return $this->handleCallback('doctor');
     }
 
-    /**
-     * Simple shared callback handler
-     */
-    private function handleGoogleCallback($role)
+    private function handleCallback($role)
     {
         try {
-            // Get Google user
-            $googleUser = Socialite::driver('google')->user();
+            $redirectUrl = config('services.google.redirect') . '/' . $role;
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl($redirectUrl)
+                ->user();
             
-            // Find or create user
-            $user = User::firstOrCreate(
-                ['email' => $googleUser->email],
-                [
+            $user = User::where('email', $googleUser->email)->first();
+            
+            if (!$user) {
+                $user = User::create([
                     'name' => $googleUser->name,
+                    'email' => $googleUser->email,
                     'password' => bcrypt(Str::random(16)),
                     'email_verified_at' => now(),
                     'role' => $role,
-                ]
-            );
-            
-            // Check if role matches (for existing users)
-            if ($user->role !== $role) {
-                return redirect('/login')->with('error', "This email is already registered as a {$user->role}.");
+                ]);
+            } elseif ($user->role !== $role) {
+                return redirect('/login')->with('error', "This email is registered as a {$user->role}.");
             }
             
-            // Login
             Auth::login($user);
             
-            // Redirect based on role
-            $dashboard = ($role === 'doctor') ? '/doctor/dashboard' : '/patient/dashboard';
+            $dashboard = $role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard';
             return redirect()->intended($dashboard);
             
         } catch (\Exception $e) {
-            return redirect('/login')->with('error', 'Login failed. Please try again.');
+            return redirect('/login')->with('error', 'Login failed: ' . $e->getMessage());
         }
     }
 }
