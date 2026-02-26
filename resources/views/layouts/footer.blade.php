@@ -4,54 +4,41 @@
 						<div class="row">
 							<div class="col-lg-8">
 								<div class="row">
-									<div class="col-lg-3 col-md-3">
+									<div class="col-lg-4 col-md-4">
 										<div class="footer-widget footer-menu">
 											<h6 class="footer-title">Company</h6>
 											<ul>
-												<li><a href="about-us.html">About</a></li>
-												<li><a href="search.html">Features</a></li>
-												<li><a href="javascript:void(0);">Works</a></li>
-												<li><a href="javascript:void(0);">Careers</a></li>
-												<li><a href="javascript:void(0);">Locations</a></li>
+												<li><a href="javascript:void(0);">Digital Medical Equipment</a></li>
+												<li><a href="javascript:void(0);">Video,Voice,Chat</a></li>
+												<li><a href="javascript:void(0);">Dar es Salaam Tanzania</a></li>
 											</ul>
 										</div>
 									</div>
-									<div class="col-lg-3 col-md-3">
+									<div class="col-lg-4 col-md-4">
 										<div class="footer-widget footer-menu">
 											<h6 class="footer-title">Treatments</h6>
 											<ul>
-												<li><a href="search.html">Dental</a></li>
-												<li><a href="search.html">Cardiac</a></li>
-												<li><a href="search.html">Spinal Cord</a></li>
-												<li><a href="search.html">Hair Growth</a></li>
-												<li><a href="search.html">Anemia & Disorder</a></li>
+												<li><a href="javascript:void(0);">Dental</a></li>
+												<li><a href="javascript:void(0);">Cardiac</a></li>
+												<li><a href="javascript:void(0);">Spinal Cord</a></li>
+												<li><a href="javascript:void(0);">Hair Growth</a></li>
+												<li><a href="javascript:void(0);">Anemia & Disorder</a></li>
 											</ul>
 										</div>
 									</div>
-									<div class="col-lg-3 col-md-3">
+									<div class="col-lg-4 col-md-4">
 										<div class="footer-widget footer-menu">
 											<h6 class="footer-title">Specialities</h6>
 											<ul>
-												<li><a href="search.html">Transplant</a></li>
-												<li><a href="search.html">Cardiologist</a></li>
-												<li><a href="search.html">Oncology</a></li>
-												<li><a href="search.html">Pediatrics</a></li>
-												<li><a href="search.html">Gynacology</a></li>
+												<li><a href="javascript:void(0);">Transplant</a></li>
+												<li><a href="javascript:void(0);">Cardiologist</a></li>
+												<li><a href="javascript:void(0);">Oncology</a></li>
+												<li><a href="javascript:void(0);">Pediatrics</a></li>
+												<li><a href="javascript:void(0);">Gynacology</a></li>
 											</ul>
 										</div>
 									</div>
-									<div class="col-lg-3 col-md-3">
-										<div class="footer-widget footer-menu">
-											<h6 class="footer-title">Utilites</h6>
-											<ul>
-												<li><a href="pricing.html">Pricing</a></li>
-												<li><a href="contact-us.html">Contact</a></li>
-												<li><a href="contact-us.html">Request A Quote</a></li>
-												<li><a href="javascript:void(0);">Premium Membership</a></li>
-												<li><a href="javascript:void(0);">Integrations</a></li>
-											</ul>
-										</div>
-									</div>
+									
 								</div>
 							</div>
 							<div class="col-lg-4 col-md-7">
@@ -59,7 +46,7 @@
 									<h6 class="footer-title">Newsletter</h6>
 									<p class="mb-2">Subscribe & Stay Updated from the Doccure</p>
 									<div class="subscribe-input">
-										<form action="#">
+										<form action="javascript:void(0);">
 											<input type="email" class="form-control" placeholder="Enter Email Address">
 											<button type="submit" class="btn btn-md btn-primary-gradient d-inline-flex align-items-center"><i class="isax isax-send-25 me-1"></i>Send</button>
 										</form>
@@ -101,13 +88,13 @@
 						<!-- Copyright -->
 						<div class="copyright">
 							<div class="copyright-text">
-								<p class="mb-0">Copyright © 2025 Doccure. All Rights Reserved</p>
+								<p class="mb-0">Copyright © 2026 Doccure. All Rights Reserved</p>
 							</div>
 							<!-- Copyright Menu -->
 							<div class="copyright-menu">
 								<ul class="policy-menu">
 									<li><a href="javascript:void(0);">Legal Notice</a></li>
-									<li><a href="privacy-policy.html">Privacy Policy</a></li>
+									<li><a href="javascript:void(0);">Privacy Policy</a></li>
 									<li><a href="javascript:void(0);">Refund Policy</a></li>
 								</ul>
 							</div>
