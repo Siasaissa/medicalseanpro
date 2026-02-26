@@ -67,7 +67,7 @@
 											</div>
 											<div class="social-login-btn">
 												<a href="javascript:void(0);" class="btn w-100">
-													<img src="{{ route('google.login.doctor') }}" alt="google-icon">Sign in With Google
+													<img src="{{ route('google.doctor') }}" alt="google-icon">Sign in With Google
 												</a>
 												<a href="javascript:void(0);" class="btn w-100">
 													<img src="{{ asset('images/facebook-icon.svg')}}" alt="fb-icon">Sign in With Facebook
