@@ -30,12 +30,13 @@ class GoogleController extends Controller
             $user = User::where('email', $googleUser->email)->first();
             
             if (!$user) {
-                // Create new user
+                // Create new user WITH THE ROLE FIELD
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
                     'password' => bcrypt(Str::random(16)), // Random password
                     'email_verified_at' => now(), // Google emails are already verified
+                    'role' => 'patient', // ADD THIS LINE - match your registration controller
                 ]);
             }
             
@@ -46,6 +47,9 @@ class GoogleController extends Controller
             return redirect()->intended('/dashboard');
             
         } catch (\Exception $e) {
+            // Log the error to see what's happening
+            \Log::error('Google login failed: ' . $e->getMessage());
+            
             // Handle error
             return redirect('/login')->with('error', 'Google login failed: ' . $e->getMessage());
         }
