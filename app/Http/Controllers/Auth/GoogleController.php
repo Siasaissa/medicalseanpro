@@ -13,12 +13,18 @@ class GoogleController extends Controller
     /**
      * Redirect patient to Google
      */
-    public function redirectToGooglePatient()
-    {
-        // Store the role in session before redirecting
-        session(['google_login_role' => 'patient']);
-        return Socialite::driver('google')->redirect();
-    }
+public function redirectToGooglePatient()
+{
+    $redirectUri = env('GOOGLE_REDIRECT_URI');
+    dd([
+        'env_redirect' => $redirectUri,
+        'config_redirect' => config('services.google.redirect'),
+        'full_url' => url('/auth/google/callback/patient')
+    ]);
+    
+    session(['google_login_role' => 'patient']);
+    return Socialite::driver('google')->redirect();
+}
 
     /**
      * Redirect doctor to Google
