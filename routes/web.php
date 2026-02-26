@@ -14,6 +14,10 @@ use App\Services\ZegoToken;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\AdminController;
 use Carbon\Carbon;
+use App\Http\Controllers\Auth\GoogleController;
+
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
 
 
 Route::get('/', function () {
