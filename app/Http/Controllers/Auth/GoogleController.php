@@ -38,6 +38,8 @@ public function redirectToGooglePatient()
      */
 public function handleGoogleCallbackPatient()
 {
+    dd('Callback reached!', request()->all());
+    
     try {
         \Log::channel('stack')->info('========== GOOGLE LOGIN ATTEMPT START ==========');
         \Log::info('Attempting to get Google user');
