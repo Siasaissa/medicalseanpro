@@ -17,12 +17,7 @@ class GoogleController extends Controller
     {
         session(['google_role' => 'patient']);
 
-            $redirectUri = config('services.google.redirect') . '/patient';
-    dd([
-        'config_redirect' => config('services.google.redirect'),
-        'full_uri' => $redirectUri,
-        'env_redirect' => env('GOOGLE_REDIRECT_URI'),
-    ]);
+        
 
         return Socialite::driver('google')->redirect();
     }
