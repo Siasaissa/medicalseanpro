@@ -39,57 +39,80 @@ public function redirectToGooglePatient()
 public function handleGoogleCallbackPatient()
 {
     try {
-        \Log::info('=== GOOGLE CALLBACK PATIENT STARTED ===');
+        \Log::channel('stack')->info('========== GOOGLE LOGIN ATTEMPT START ==========');
+        \Log::info('Attempting to get Google user');
         
         $googleUser = Socialite::driver('google')->user();
         
-        \Log::info('Google user data received:', [
+        \Log::info('Google user retrieved successfully', [
             'email' => $googleUser->email,
             'name' => $googleUser->name,
             'id' => $googleUser->id
         ]);
         
         // Check if user already exists
+        \Log::info('Checking if user exists in database');
         $user = User::where('email', $googleUser->email)->first();
         
         if ($user) {
-            \Log::info('Existing user found:', ['id' => $user->id, 'role' => $user->role]);
+            \Log::info('Existing user found', [
+                'user_id' => $user->id,
+                'user_role' => $user->role,
+                'user_email' => $user->email
+            ]);
         } else {
             \Log::info('No existing user found, creating new one');
             
-            $user = User::create([
-                'name' => $googleUser->name,
-                'email' => $googleUser->email,
-                'password' => bcrypt(Str::random(16)),
-                'email_verified_at' => now(),
-                'role' => 'patient',
-            ]);
-            
-            \Log::info('New user created:', ['id' => $user->id, 'role' => $user->role]);
+            try {
+                $userData = [
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'password' => bcrypt(Str::random(16)),
+                    'email_verified_at' => now(),
+                    'role' => 'patient',
+                ];
+                
+                \Log::info('Attempting to create user with data:', $userData);
+                
+                $user = User::create($userData);
+                
+                \Log::info('User created successfully', [
+                    'user_id' => $user->id,
+                    'user_role' => $user->role
+                ]);
+            } catch (\Exception $createError) {
+                \Log::error('Failed to create user: ' . $createError->getMessage());
+                \Log::error('SQL Error: ' . ($createError->getPrevious() ? $createError->getPrevious()->getMessage() : 'No previous error'));
+                throw $createError;
+            }
         }
         
         // Check if user role matches
         if ($user->role !== 'patient') {
-            \Log::warning('Role mismatch:', ['expected' => 'patient', 'actual' => $user->role]);
-            return redirect('/login')->with('error', "This email is registered as a {$user->role}. Please login with the correct account type.");
+            \Log::warning('Role mismatch', ['expected' => 'patient', 'actual' => $user->role]);
+            return redirect('/login')->with('error', "This email is registered as a {$user->role}.");
         }
         
         // Log the user in
+        \Log::info('Attempting to login user', ['user_id' => $user->id]);
         Auth::login($user);
-        \Log::info('User logged in successfully:', ['id' => $user->id]);
         
         // Regenerate session
         session()->regenerate();
+        \Log::info('Session regenerated');
         
+        \Log::info('========== GOOGLE LOGIN SUCCESS ==========');
         return redirect()->intended('/dashboard');
         
     } catch (\Exception $e) {
-        \Log::error('Google callback patient error: ' . $e->getMessage());
+        \Log::error('========== GOOGLE LOGIN ERROR ==========');
+        \Log::error('Error message: ' . $e->getMessage());
+        \Log::error('Error file: ' . $e->getFile() . ':' . $e->getLine());
         \Log::error('Error trace: ' . $e->getTraceAsString());
+        
         return redirect('/login')->with('error', 'Login failed: ' . $e->getMessage());
     }
 }
-
     /**
      * Handle callback for doctor
      */
