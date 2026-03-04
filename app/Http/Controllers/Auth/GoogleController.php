@@ -62,7 +62,7 @@ class GoogleController extends Controller
             
             Auth::login($user);
             
-            $dashboard = $role === 'doctor' ? '/doctor-dashboard' : '/patient/dashboard';
+            $dashboard = $role === 'doctor' ? '/doctor-dashboard' : '/dashboard';
             return redirect()->intended($dashboard);
             
         } catch (\Exception $e) {
