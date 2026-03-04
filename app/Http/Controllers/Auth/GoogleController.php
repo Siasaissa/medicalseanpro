@@ -57,9 +57,7 @@ class GoogleController extends Controller
                     'email_verified_at' => now(),
                     'role' => $role,
                 ]);
-                $user->profile()->create([
-                    'dp' => 'profiles/' . $avatarName,
-                ]);
+                
             } elseif ($user->role !== $role) {
                 return redirect('/login')->with('error', "This email is registered as a {$user->role}.");
             }
