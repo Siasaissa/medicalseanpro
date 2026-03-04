@@ -253,7 +253,7 @@
 													<div class="appointment-grid-head">
 														<div class="patinet-information">
 															<a href="patient-profile.html">
-																<img src="{{ asset($patient->profile->dp  ?? 'images/profile-06.jpg') }}" alt="User Image">
+																<img src="{{ asset($patient->patient->profile->dp  ?? 'images/profile-06.jpg') }}" alt="User Image">
 															</a>
 
 
