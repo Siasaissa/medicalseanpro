@@ -94,7 +94,7 @@
 												<div class="col-lg-4 col-md-6">
 													<div class="mb-3">
 														<label class="form-label">Sex <span class="text-danger">*</span></label>
-														<input type="text" name="sex" class="form-control">
+														<input type="date" name="sex" class="form-control">
 													</div>
 												</div>
 												<div class="col-lg-4 col-md-6">
