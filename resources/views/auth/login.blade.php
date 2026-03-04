@@ -131,12 +131,12 @@
 												<span class="span-or">or</span>
 											</div>
 											<div class="social-login-btn">
-												<a href="#" class="btn w-100">
-													<img src="images/google-icon.svg" alt="google-icon">Sign In With Google
+												<a href="{{ route('google.patient') }}" class="btn w-100">
+													<img src="images/google-icon.svg" alt="google-icon">Sign In With Google for patient
 												</a>
-												<a href="javascript:void(0);" class="btn w-100">
+												<!--<a href="javascript:void(0);" class="btn w-100">
 													<img src="images/facebook-icon.svg" alt="fb-icon">Sign in With Facebook
-												</a>
+												</a>-->
 											</div>
 											<div class="account-signup">
 												<p>Don't have an account ? <a href="{{ route('register') }}">Sign up</a></p>

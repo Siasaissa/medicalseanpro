@@ -181,9 +181,9 @@
 												<a href="{{ route('google.patient') }}" class="btn w-100">
 													<img src="images/google-icon 2.svg" alt="google-icon">Sign In With Google
 												</a>
-												<a href="javascript:void(0);" class="btn w-100">
+												<!--<a href="javascript:void(0);" class="btn w-100">
 													<img src="images/facebook-icon.svg" alt="fb-icon">Sign in With Facebook
-												</a>
+												</a>-->
 											</div>
 											<div class="account-signup">
 												<p>Already have account? <a href="{{ route('login') }}">Sign In</a></p>
