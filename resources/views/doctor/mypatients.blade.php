@@ -253,14 +253,14 @@
 													<div class="appointment-grid-head">
 														<div class="patinet-information">
 															<a href="patient-profile.html">
-																<img src="{{ asset($booking->patient->profile->dp  ?? 'images/profile-06.jpg') }}" alt="User Image">
+																<img src="{{ asset($patient->profile->dp  ?? 'images/profile-06.jpg') }}" alt="User Image">
 															</a>
 
 
 															<div class="patient-info">
 																<p>#Apt000{{ $patient->patient->id }}</p>
 																<h6><a
-																		href="patient-profile.html">{{ $patient->patient->name }}</a>
+																		href="#">{{ $patient->patient->name }}</a>
 																</h6>
 																<ul>
 																	@php
