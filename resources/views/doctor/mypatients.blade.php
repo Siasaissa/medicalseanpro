@@ -368,7 +368,7 @@
 													<div class="appointment-grid-head">
 														<div class="patinet-information">
 															<a href="patient-profile.html">
-																<img src="images/profile-01.jpg" alt="User Image">
+																<img src="{{ asset($booking->doctor->profile->dp ?? 'images/profile-06.jpg') }}" alt="User Image">
 															</a>
 															<div class="patient-info">
 																<p>#Apt0009</p>
