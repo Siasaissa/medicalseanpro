@@ -10,27 +10,45 @@ use Illuminate\Support\Str;
 
 class GoogleController extends Controller
 {
-    // 1️⃣ Redirect to Google
-    public function redirect($role)
+    public function redirectToGooglePatient()
     {
-        session(['google_role' => $role]);
-
-        return Socialite::driver('google')->redirect();
+        session(['google_role' => 'patient']);
+        $redirectUrl = config('services.google.redirect') . '';
+        return Socialite::driver('google')
+            ->redirectUrl($redirectUrl)
+            ->redirect();
     }
 
-    // 2️⃣ Handle Callback (Single Function)
-    public function callback()
+    public function redirectToGoogleDoctor()
+    {
+        session(['google_role' => 'doctor']);
+        $redirectUrl = config('services.google.redirect') . '/doctor';
+        return Socialite::driver('google')
+            ->redirectUrl($redirectUrl)
+            ->redirect();
+    }
+
+    public function handleGoogleCallbackPatient()
+    {
+        return $this->handleCallback('patient');
+    }
+
+    public function handleGoogleCallbackDoctor()
+    {
+        return $this->handleCallback('doctor');
+    }
+
+    private function handleCallback($role)
     {
         try {
-
-            $googleUser = Socialite::driver('google')->user();
-            $role = session('google_role');
-
-            // Check if user exists
+            $redirectUrl = config('services.google.redirect') . '/' . $role;
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl($redirectUrl)
+                ->user();
+            
             $user = User::where('email', $googleUser->email)->first();
-
+            
             if (!$user) {
-
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
@@ -38,25 +56,17 @@ class GoogleController extends Controller
                     'email_verified_at' => now(),
                     'role' => $role,
                 ]);
-
             } elseif ($user->role !== $role) {
-
-                return redirect()->route('login')
-                    ->with('error', "This email is registered as a {$user->role}.");
+                return redirect('/login')->with('error', "This email is registered as a {$user->role}.");
             }
-
+            
             Auth::login($user);
-
-            return redirect()->intended(
-                $role === 'doctor'
-                    ? route('doctor.dashboard')
-                    : route('patient.dashboard')
-            );
-
+            
+            $dashboard = $role === 'doctor' ? '/doctor-dashboard' : 'dashboard';
+            return redirect()->intended($dashboard);
+            
         } catch (\Exception $e) {
-
-            return redirect()->route('login')
-                ->with('error', 'Login failed. Please try again.');
+            return redirect('/login')->with('error', 'Login failed: ' . $e->getMessage());
         }
     }
 }
