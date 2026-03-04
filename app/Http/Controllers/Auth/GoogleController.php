@@ -39,66 +39,38 @@ class GoogleController extends Controller
     }
 
     private function handleCallback($role)
-{
-    try {
-        $redirectUrl = config('services.google.redirect') . '/' . $role;
+    {
+        try {
+            $redirectUrl = config('services.google.redirect') . '/' . $role;
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl($redirectUrl)
+                ->user();
+            
+            $user = User::where('email', $googleUser->email)->first();
+            
+            if (!$user) {
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
 
-        $googleUser = Socialite::driver('google')
-            ->redirectUrl($redirectUrl)
-            ->user();
-
-        $user = User::where('email', $googleUser->email)->first();
-
-        if (!$user) {
-
-            // 🔹 Get higher resolution avatar
-            $avatarUrl = str_replace('=s96-c', '=s400-c', $googleUser->avatar);
-
-            // 🔹 Prepare upload path (same as your store method)
-            $uploadPath = public_path('uploads/profile/');
-
-            if (!file_exists($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
+                    'password' => bcrypt(Str::random(16)),
+                    'email_verified_at' => now(),
+                    'role' => $role,
+                ]);
+                $user->profile()->create([
+                    'dp' => 'profiles/' . $avatarName,
+                ]);
+            } elseif ($user->role !== $role) {
+                return redirect('/login')->with('error', "This email is registered as a {$user->role}.");
             }
-
-            $filename = time() . '_' . uniqid() . '.jpg';
-
-            // 🔹 Download image
-            $imageContents = Http::get($avatarUrl)->body();
-
-            file_put_contents($uploadPath . $filename, $imageContents);
-
-            // 🔹 Create user
-            $user = User::create([
-                'name' => $googleUser->name,
-                'email' => $googleUser->email,
-                'password' => bcrypt(Str::random(16)),
-                'email_verified_at' => now(),
-                'role' => $role,
-            ]);
-
-            // 🔹 Create profile
-            $user->profile()->create([
-                'dp' => 'public/uploads/profile/' . $filename,
-            ]);
+            
+            Auth::login($user);
+            
+            $dashboard = $role === 'doctor' ? '/doctor-dashboard' : '/dashboard';
+            return redirect()->intended($dashboard);
+            
+        } catch (\Exception $e) {
+            return redirect('/login')->with('error', 'Login failed: ' . $e->getMessage());
         }
-
-        elseif ($user->role !== $role) {
-            return redirect('/login')
-                ->with('error', "This email is registered as a {$user->role}.");
-        }
-
-        Auth::login($user);
-
-        $dashboard = $role === 'doctor'
-            ? '/doctor-dashboard'
-            : '/dashboard';
-
-        return redirect()->intended($dashboard);
-
-    } catch (\Exception $e) {
-        return redirect('/login')
-            ->with('error', 'Login failed: ' . $e->getMessage());
     }
-}
 }
