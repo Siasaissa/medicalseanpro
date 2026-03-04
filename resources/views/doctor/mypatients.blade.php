@@ -253,9 +253,7 @@
 													<div class="appointment-grid-head">
 														<div class="patinet-information">
 															<a href="patient-profile.html">
-																<img src="{{ isset($patient->patient->profile->dp) && file_exists(public_path($patient->patient->profile->dp))
-																? asset($patient->patient->profile->dp)
-																: asset('images/default.jpeg') }}" alt="User Image">
+																<img src="{{ asset($booking->patient->profile->dp  ?? 'images/profile-06.jpg') }}" alt="User Image">
 															</a>
 
 
