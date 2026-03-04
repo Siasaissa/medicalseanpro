@@ -94,14 +94,14 @@
 												<div class="col-lg-4 col-md-6">
 													<div class="mb-3">
 														<label class="form-label">Sex <span class="text-danger">*</span></label>
-														<input type="date" name="sex" class="form-control">
+														<input type="text" name="sex" class="form-control">
 													</div>
 												</div>
 												<div class="col-lg-4 col-md-6">
 													<div class="mb-3">
 														<label class="form-label">Date of Birth <span class="text-danger">*</span></label>
 														<div class="form-icon">
-															<input type="text" name="dob" class="form-control datetimepicker" placeholder="dd/mm/yyyy">
+															<input type="date" name="dob" class="form-control datetimepicker" placeholder="dd/mm/yyyy">
 															<span class="icon"><i class="isax isax-calendar-1"></i></span>
 														</div>
 													</div>
