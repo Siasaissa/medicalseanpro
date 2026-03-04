@@ -323,7 +323,11 @@
                             <div class="col-xxl-4 col-md-6">
                                 <div class="card">
                                     <div class="card-img card-img-hover">
-                                        <img src="{{ asset($doctor->profile->dp ?? 'images/default-doctor.jpg') }}" alt="{{ $doctor->name }}">
+                                        <div class="ratio ratio-1x1">
+                                            <img src="{{ asset($doctor->profile->dp ?? 'images/default-doctor.jpg') }}" 
+                                                class="img-fluid object-fit-cover" 
+                                                alt="{{ $doctor->name }}">
+                                        </div>
                                         <div class="grid-overlay-item d-flex align-items-center justify-content-between">
                                             <span class="badge bg-orange"><i class="fa-solid fa-star me-1"></i>{{ $doctor->profile->rating ?? '5.0' }}</span>
                                             <a href="javascript:void(0)" class="fav-icon">
