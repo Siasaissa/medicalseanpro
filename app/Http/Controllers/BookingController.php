@@ -46,13 +46,8 @@ class BookingController extends Controller
     ])->post('https://api.clickpesa.com/third-parties/generate-token');
 
     if (!$response->successful()) {
-    return response()->json([
-        'status' => $response->status(),
-        'body'   => $response->body(),
-        'json'   => $response->json(),
-        'headers'=> $response->headers(),
-    ], 500);
-}
+        throw new \RuntimeException('Failed to generate ClickPesa token: ' . $response->body());
+    }
 
 
     // 👇 REMOVE "Bearer " prefix
@@ -258,17 +253,21 @@ class BookingController extends Controller
                     "https://api.clickpesa.com/third-parties/payments/{$orderReference}"
                 );
     
+    $paymentData = [];
+    $normalizedStatus = 'PROCESSING';
+
     // Check if the request was successful
     if ($response->successful()) {
         $data = $response->json();
         
         $paymentData = is_array($data) && isset($data[0]) ? $data[0] : $data;
+        $normalizedStatus = $this->normalizePaymentStatus($paymentData['status'] ?? null);
 
         // Update your table - adjust field names based on your database
         DB::table('bookings')
             ->where('payment_reference', $payment_reference)
             ->update([
-                'status' => $this->normalizePaymentStatus($paymentData['status'] ?? null),
+                'status' => $normalizedStatus,
                 'transaction_id' => $paymentData['id'] ?? null,
                 'payment_gateway' => $paymentData['channel'] ?? null,
                 'payment_response' => json_encode($paymentData ?? []),
@@ -276,13 +275,24 @@ class BookingController extends Controller
         
     }
     
-
-
-    // Handle error response
-            return redirect()->route('patient.appointment')->with([
+    if ($normalizedStatus === 'SUCCESS') {
+        return redirect()->route('patient.appointment')->with([
             'success' => 'Payment verified successfully!',
             'payment_data' => $paymentData
         ]);
+    }
+
+    if ($normalizedStatus === 'FAILED') {
+        return redirect()->route('patient.appointment')->with([
+            'error' => $paymentData['message'] ?? 'Payment failed. Please try again.',
+            'payment_data' => $paymentData
+        ]);
+    }
+
+    return redirect()->route('patient.appointment')->with([
+        'warning' => 'Payment is still processing. Please check again shortly.',
+        'payment_data' => $paymentData
+    ]);
 
 }
 
