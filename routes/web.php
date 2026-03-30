@@ -28,6 +28,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+Route::view('/about-us', 'about-us')->name('about.us');
+Route::view('/blog-grid', 'blog-grid')->name('blog.grid');
+
 //doctor-register
 Route::get('/auth/doctor-register', function(){
     return view('auth.doctor-register');

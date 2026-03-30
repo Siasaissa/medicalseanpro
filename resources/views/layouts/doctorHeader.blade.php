@@ -9,14 +9,14 @@
 									<span></span>
 								</span>
 							</a>
-							<a href="index.html" class="navbar-brand logo">
+							<a href="{{ route('doctor-dashboard') }}" class="navbar-brand logo">
 								<img src="{{asset('images/logo.svg')}}" class="img-fluid" alt="Logo">
 							</a>
 						</div>
 						<div class="header-menu">
 							<div class="main-menu-wrapper">
 								<div class="menu-header">
-									<a href="index.html" class="menu-logo">
+									<a href="{{ route('doctor-dashboard') }}" class="menu-logo">
 										<img src="{{asset('images/logo.svg')}}" class="img-fluid" alt="Logo">
 									</a>
 									<a id="menu_close" class="menu-close" href="javascript:void(0);">
@@ -25,13 +25,13 @@
 								</div>
 								<ul class="main-nav">
 									<li class="has-submenu">
-										<a href="#">Pharmacy</i></a>
+										<a href="{{ route('pharmacy.product') }}">Pharmacy</a>
 									</li>
 									<li class="has-submenu">
-										<a href="a#">About Us</a>
+										<a href="{{ route('about.us') }}">About Us</a>
 									</li>
 									<li class="has-submenu">
-										<a href="#">Blog Grid</i></a>
+										<a href="{{ route('blog.grid') }}">Blog Grid</a>
 									</li>
 									<li class="menu">
 										<a href="#">

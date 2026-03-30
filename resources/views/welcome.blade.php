@@ -164,10 +164,10 @@
 										<a href="{{ route('login') }}">Pharmacy</i></a>
 									</li>-->
 									<li class="has-submenu">
-										<a href="#">About Us</a>
+										<a href="{{ route('about.us') }}">About Us</a>
 									</li>
 									<!--<li class="has-submenu">
-										<a href="#">Blog Grid</i></a>
+										<a href="{{ route('blog.grid') }}">Blog Grid</a>
 									</li>-->
 									<li class="menu">
 										<a href="{{ route('login') }}">Login</a>
@@ -798,7 +798,7 @@
 						</div>
 					</div>		
 					<div class="text-center load-item aos" data-aos="fade-up">
-						<a href="blog-grid.html" class="btn btn-dark d-inline-flex align-items-center">View All Articles<i class="isax isax-arrow-right-3 ms-2"></i></a>
+						<a href="{{ route('blog.grid') }}" class="btn btn-dark d-inline-flex align-items-center">View All Articles<i class="isax isax-arrow-right-3 ms-2"></i></a>
 					</div>			
 				</div>
 			</section>
@@ -849,7 +849,7 @@
 										<div class="footer-widget footer-menu">
 											<h6 class="footer-title">Company</h6>
 											<ul>
-												<li><a href="about-us.html">About</a></li>
+												<li><a href="{{ route('about.us') }}">About</a></li>
 												<li><a href="search.html">Features</a></li>
 												<li><a href="javascript:void(0);">Works</a></li>
 												<li><a href="javascript:void(0);">Careers</a></li>
