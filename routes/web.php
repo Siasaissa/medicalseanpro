@@ -62,6 +62,7 @@ Route::middleware(['auth', 'verified', 'role:doctor'])->group(function () {
     Route::put('/doctor/update-password', [ProfileController::class, 'updatePassword'])->name('doctor.updatePassword');
 
     Route::get('/doctor/appointment', [BookingController::class, 'doctorBookings'])->middleware('auth')->name('doctor.appointment');
+    Route::get('/doctor/appointment/booking/{booking}', [BookingController::class, 'doctorBookingRedirect'])->name('doctor.appointment.booking');
     
     // Doctor chat routes
     Route::get('/doctor/chat', [ChatController::class, 'indexDoctor'])->middleware('auth')->name('doctor.chat');

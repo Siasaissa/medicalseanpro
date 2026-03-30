@@ -780,7 +780,22 @@
             
             // Initialize pagination for completed appointments
             initializePagination('completed');
+
+            openFocusedBookingModal();
         });
+
+        function openFocusedBookingModal() {
+            const focusedBookingId = @json(request('focus_booking'));
+            if (!focusedBookingId) return;
+
+            const modalEl = document.getElementById(`appointmentDetailsModal${focusedBookingId}`);
+            if (!modalEl) return;
+
+            setTimeout(function() {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }, 300);
+        }
         
         // ============================================
         // INITIALIZE TOOLTIPS

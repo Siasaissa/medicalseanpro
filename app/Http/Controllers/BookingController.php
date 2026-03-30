@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DoctorBookingNotification;
 use function Pest\Laravel\json;
 
 class BookingController extends Controller
@@ -190,6 +192,21 @@ class BookingController extends Controller
                 'payment_reference' => $orderReference,
                 'payment_response' => json_encode($paymentResponse),
             ]);
+
+            // Notify doctor with a direct link to this booking.
+            if ($paymentStatus !== 'FAILED' && !empty($booking->doctor?->email)) {
+                try {
+                    $booking->loadMissing(['doctor', 'patient']);
+                    $actionUrl = route('doctor.appointment.booking', ['booking' => $booking->id]);
+                    Mail::to($booking->doctor->email)->send(new DoctorBookingNotification($booking, $actionUrl));
+                } catch (\Exception $mailException) {
+                    Log::warning('Doctor booking notification email failed', [
+                        'booking_id' => $booking->id,
+                        'doctor_id' => $booking->doctor_id,
+                        'error' => $mailException->getMessage(),
+                    ]);
+                }
+            }
 
             if ($paymentStatus === 'FAILED') {
                 return response()->json([
@@ -425,6 +442,15 @@ public function clickpesaWebhook(Request $request)
 
         return response()->json(['message' => 'Server error'], 500);
     }
+}
+
+public function doctorBookingRedirect(Booking $booking)
+{
+    if ($booking->doctor_id !== Auth::id()) {
+        abort(403, 'Unauthorized booking access.');
+    }
+
+    return redirect()->route('doctor.appointment', ['focus_booking' => $booking->id]);
 }
 
 
