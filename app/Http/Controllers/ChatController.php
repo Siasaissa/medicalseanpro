@@ -290,6 +290,51 @@ class ChatController extends Controller
         ]);
     }
 
+    // Global browser notifications for new messages (for any page)
+    public function getMessageNotifications(Request $request)
+    {
+        $userId = Auth::id();
+        $lastId = (int) $request->query('last_id', 0);
+
+        $query = Message::where('receiver_id', $userId)
+            ->with(['sender:id,name', 'booking:id,user_id,doctor_id']);
+
+        // On first run, avoid flooding the user with old notifications.
+        if ($lastId > 0) {
+            $query->where('id', '>', $lastId);
+        } else {
+            $query->where('created_at', '>=', now()->subMinutes(10));
+        }
+
+        $messages = $query
+            ->orderBy('id', 'asc')
+            ->limit(20)
+            ->get()
+            ->map(function ($message) use ($userId) {
+                $isDoctor = $message->booking && (int) $message->booking->doctor_id === (int) $userId;
+                $chatUrl = $message->booking_id
+                    ? ($isDoctor
+                        ? route('doctor.chat', ['booking' => $message->booking_id])
+                        : route('chat.index', ['booking' => $message->booking_id]))
+                    : null;
+
+                return [
+                    'id' => $message->id,
+                    'booking_id' => $message->booking_id,
+                    'sender_name' => $message->sender->name ?? 'New Message',
+                    'message' => mb_strimwidth((string) $message->message, 0, 120, '...'),
+                    'url' => $chatUrl,
+                    'created_at' => optional($message->created_at)->toDateTimeString(),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'messages' => $messages,
+            'last_id' => $messages->max('id') ?? $lastId,
+        ]);
+    }
+
     // Helper method to get unread count for a specific booking
     private function getUnreadCountForBooking($bookingId)
     {

@@ -106,6 +106,17 @@
 			try {
 				console.log('🎥 Starting direct Zego call init...');
 
+                // Notify the other participant about this incoming call.
+                fetch(`{{ route('call.invite', ['booking' => $booking->id]) }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ type: 'video' })
+                }).catch(() => {});
+
 				const roomID = "booking_{{ $booking->id }}";
 
                 const tokenRes = await fetch(`/api/zego-token?booking_id={{ $booking->id }}`);

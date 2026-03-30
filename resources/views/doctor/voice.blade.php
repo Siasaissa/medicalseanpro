@@ -110,6 +110,17 @@
             try {
                 console.log('🎧 Starting Zego Voice Call...');
 
+                // Notify the other participant about this incoming call.
+                fetch(`{{ route('call.invite', ['booking' => $booking->id]) }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ type: 'voice' })
+                }).catch(() => {});
+
                 const roomID = "voice_booking_{{ $booking->id }}";
                 const tokenRes = await fetch(`/api/zego-token?booking_id={{ $booking->id }}`);
                 if (!tokenRes.ok) {

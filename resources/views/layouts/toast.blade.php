@@ -96,6 +96,149 @@
     };
 </script>
 
+@auth
+<script>
+    (function () {
+        if (window.globalBrowserNotifierInitialized) return;
+        window.globalBrowserNotifierInitialized = true;
+
+        const CONFIG = {
+            userId: {{ auth()->id() }},
+            role: @json(auth()->user()->role ?? ''),
+            icon: @json(asset('images/favicon.png')),
+            messagePollMs: 5000,
+            callPollMs: 3000,
+            maxBodyLength: 120
+        };
+
+        const STORAGE_KEYS = {
+            messageLastId: `notif_message_last_id_${CONFIG.userId}`,
+            callLastId: `notif_call_last_id_${CONFIG.userId}`
+        };
+
+        let isTabActive = true;
+
+        document.addEventListener('visibilitychange', function () {
+            isTabActive = document.visibilityState === 'visible';
+        });
+
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+
+        function requestBrowserPermission() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().catch(() => {});
+            }
+        }
+
+        function openUrl(url) {
+            if (!url) return;
+            window.location.href = url;
+        }
+
+        function showBrowserNotification(title, body, url) {
+            if (!('Notification' in window)) return;
+            if (Notification.permission !== 'granted') return;
+
+            const notification = new Notification(title, {
+                body: (body || '').slice(0, CONFIG.maxBodyLength),
+                icon: CONFIG.icon,
+                tag: 'med-sean-global-alert'
+            });
+
+            notification.onclick = function () {
+                window.focus();
+                notification.close();
+                openUrl(url);
+            };
+        }
+
+        async function fetchJson(url) {
+            const res = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            if (!res.ok) return null;
+            return res.json();
+        }
+
+        async function postJson(url, payload = {}) {
+            await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        async function pollMessageNotifications() {
+            const lastId = Number(localStorage.getItem(STORAGE_KEYS.messageLastId) || '0');
+            const data = await fetchJson(`{{ route('notifications.messages') }}?last_id=${lastId}`);
+            if (!data || !data.success || !Array.isArray(data.messages)) return;
+
+            let maxId = lastId;
+            data.messages.forEach(msg => {
+                maxId = Math.max(maxId, Number(msg.id || 0));
+                const title = `New message from ${msg.sender_name || 'User'}`;
+                const body = msg.message || 'You have a new message';
+
+                if (typeof window.showInfo === 'function') {
+                    window.showInfo(body, title);
+                }
+                if (!isTabActive || Notification.permission === 'granted') {
+                    showBrowserNotification(title, body, msg.url);
+                }
+            });
+
+            if (maxId > lastId) {
+                localStorage.setItem(STORAGE_KEYS.messageLastId, String(maxId));
+            }
+        }
+
+        async function pollCallNotifications() {
+            const lastId = Number(localStorage.getItem(STORAGE_KEYS.callLastId) || '0');
+            const data = await fetchJson(`{{ route('call.invites.new') }}?last_id=${lastId}`);
+            if (!data || !data.success || !Array.isArray(data.invites)) return;
+
+            let maxId = lastId;
+            for (const invite of data.invites) {
+                maxId = Math.max(maxId, Number(invite.id || 0));
+                const mode = invite.type === 'video' ? 'video call' : 'voice call';
+                const title = `Incoming ${mode}`;
+                const body = `${invite.sender_name || 'Caller'} is inviting you to join booking #APT000${invite.booking_id}`;
+
+                if (typeof window.showWarning === 'function') {
+                    window.showWarning(body, title);
+                }
+                showBrowserNotification(title, body, invite.url);
+
+                await postJson(`{{ url('/call/invites') }}/${invite.id}/seen`);
+            }
+
+            if (maxId > lastId) {
+                localStorage.setItem(STORAGE_KEYS.callLastId, String(maxId));
+            }
+        }
+
+        requestBrowserPermission();
+        setInterval(pollMessageNotifications, CONFIG.messagePollMs);
+        setInterval(pollCallNotifications, CONFIG.callPollMs);
+
+        // Kick once quickly after load.
+        setTimeout(pollMessageNotifications, 1200);
+        setTimeout(pollCallNotifications, 1400);
+    })();
+</script>
+@endauth
+
 <style>
 .toast-container {
     position: fixed;

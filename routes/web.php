@@ -135,6 +135,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/chat/unread-counts', [ChatController::class, 'getUnreadCounts'])->name('chat.unread.counts');
     Route::get('/chat/messages/{bookingId}/status', [ChatController::class, 'getMessagesWithStatus'])->name('chat.messages.status');
     Route::post('/chat/mark-booking-read/{bookingId}', [ChatController::class, 'markBookingAsRead'])->name('chat.mark.booking.read');
+    Route::get('/notifications/messages', [ChatController::class, 'getMessageNotifications'])->name('notifications.messages');
+
+    Route::post('/call/invite/{booking}', [CallController::class, 'invite'])->name('call.invite');
+    Route::get('/call/invites/new', [CallController::class, 'getNewInvites'])->name('call.invites.new');
+    Route::post('/call/invites/{invite}/seen', [CallController::class, 'markInviteSeen'])->name('call.invites.seen');
 });
 
 Route::post('/call/signal/{booking}', [CallController::class, 'signal'])->middleware('auth')->name('call.signal');
