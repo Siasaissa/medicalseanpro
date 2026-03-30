@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Auth;
 use App\Events\MessageSent;
+use Illuminate\Http\JsonResponse;
 
 class ChatController extends Controller
 {
@@ -40,6 +41,8 @@ class ChatController extends Controller
                 'last_message' => $lastMessage,
                 'unread_count' => $unreadCount
             ];
+        })->filter(function ($chatData) {
+            return $chatData->booking && $chatData->booking->isSessionActive();
         });
 
         $doctor = null;
@@ -47,7 +50,14 @@ class ChatController extends Controller
         $booking = null;
 
         if ($bookingId) {
-            $booking = Booking::with('doctor')->findOrFail($bookingId);
+            $booking = $this->getAuthorizedBooking((int) $bookingId);
+            if (!$booking->isSessionActive()) {
+                return redirect()
+                    ->route('patient.appointment')
+                    ->with('error', 'This chat session has ended. Please create a new booking to continue.');
+            }
+
+            $booking->loadMissing('doctor');
             $doctor = $booking->doctor;
 
             // Get messages for this booking
@@ -97,6 +107,8 @@ class ChatController extends Controller
                 'last_message' => $lastMessage,
                 'unread_count' => $unreadCount
             ];
+        })->filter(function ($chatData) {
+            return $chatData->booking && $chatData->booking->isSessionActive();
         });
 
         $doctor = Auth::user();
@@ -105,13 +117,15 @@ class ChatController extends Controller
         $booking = null;
 
         if ($bookingId) {
-            $booking = Booking::with(['doctor', 'patient'])->findOrFail($bookingId);
-            $patient = $booking->patient;
-
-            // Ensure logged-in doctor owns this booking
-            if ($booking->doctor->id !== Auth::id()) {
-                abort(403, 'Unauthorized access to this chat.');
+            $booking = $this->getAuthorizedBooking((int) $bookingId);
+            if (!$booking->isSessionActive()) {
+                return redirect()
+                    ->route('doctor.appointment')
+                    ->with('error', 'This chat session has ended. Please create a new booking to continue.');
             }
+
+            $booking->loadMissing(['doctor', 'patient']);
+            $patient = $booking->patient;
 
             // Get messages with this patient
             $messages = Message::where('booking_id', $bookingId)
@@ -140,6 +154,29 @@ class ChatController extends Controller
             'message' => 'required|string',
             'booking_id' => 'nullable|exists:bookings,id',
         ]);
+
+        if (!$request->filled('booking_id')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking is required for chat.'
+            ], 422);
+        }
+
+        $booking = $this->getAuthorizedBooking((int) $request->booking_id);
+        if (!$booking->isSessionActive()) {
+            return $this->expiredSessionJson();
+        }
+
+        $expectedReceiverId = (Auth::id() === (int) $booking->doctor_id)
+            ? (int) $booking->user_id
+            : (int) $booking->doctor_id;
+
+        if ((int) $request->receiver_id !== $expectedReceiverId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid receiver for this booking chat.'
+            ], 422);
+        }
 
         $message = Message::create([
             'sender_id' => Auth::id(),
@@ -173,6 +210,11 @@ class ChatController extends Controller
         ]);
 
         $bookingId = $request->booking_id;
+        $booking = $this->getAuthorizedBooking((int) $bookingId);
+        if (!$booking->isSessionActive()) {
+            return $this->expiredSessionJson();
+        }
+
         $lastMessageId = $request->last_message_id ?? 0;
 
         $messages = Message::where('booking_id', $bookingId)
@@ -197,6 +239,10 @@ class ChatController extends Controller
 
         $userId = Auth::id();
         $bookingId = $request->booking_id;
+        $booking = $this->getAuthorizedBooking((int) $bookingId);
+        if (!$booking->isSessionActive()) {
+            return $this->expiredSessionJson();
+        }
 
         $updated = Message::where('booking_id', $bookingId)
             ->where('receiver_id', $userId)
@@ -217,6 +263,10 @@ class ChatController extends Controller
     public function markBookingAsRead(Request $request, $bookingId)
     {
         $userId = Auth::id();
+        $booking = $this->getAuthorizedBooking((int) $bookingId);
+        if (!$booking->isSessionActive()) {
+            return $this->expiredSessionJson();
+        }
 
         $updated = Message::where('booking_id', $bookingId)
             ->where('receiver_id', $userId)
@@ -237,6 +287,17 @@ class ChatController extends Controller
     public function markMessageAsRead(Request $request, $messageId)
     {
         $message = Message::findOrFail($messageId);
+        if (!$message->booking_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Message is not linked to a booking.'
+            ], 422);
+        }
+
+        $booking = $this->getAuthorizedBooking((int) $message->booking_id);
+        if (!$booking->isSessionActive()) {
+            return $this->expiredSessionJson();
+        }
         
         if ($message->receiver_id == Auth::id() && !$message->is_read) {
             $message->update([
@@ -271,6 +332,11 @@ class ChatController extends Controller
 
         foreach ($bookingIds as $bookingId) {
             if (!$bookingId) continue;
+
+            $booking = Booking::find($bookingId);
+            if (!$booking || !$this->isBookingParticipant($booking, $userId) || !$booking->isSessionActive()) {
+                continue;
+            }
             
             $count = Message::where('booking_id', $bookingId)
                 ->where('receiver_id', $userId)
@@ -311,6 +377,9 @@ class ChatController extends Controller
             ->orderBy('id', 'asc')
             ->limit(20)
             ->get()
+            ->filter(function ($message) {
+                return $message->booking && $message->booking->isSessionActive();
+            })
             ->map(function ($message) use ($userId) {
                 $isDoctor = $message->booking && (int) $message->booking->doctor_id === (int) $userId;
                 $chatUrl = $message->booking_id
@@ -350,6 +419,11 @@ class ChatController extends Controller
     // Get messages with read status for a booking
     public function getMessagesWithStatus($bookingId)
     {
+        $booking = $this->getAuthorizedBooking((int) $bookingId);
+        if (!$booking->isSessionActive()) {
+            return $this->expiredSessionJson();
+        }
+
         $messages = Message::where('booking_id', $bookingId)
             ->with(['sender', 'receiver'])
             ->orderBy('created_at', 'asc')
@@ -372,5 +446,29 @@ class ChatController extends Controller
             'success' => true,
             'messages' => $messages
         ]);
+    }
+
+    private function getAuthorizedBooking(int $bookingId): Booking
+    {
+        $booking = Booking::findOrFail($bookingId);
+        if (!$this->isBookingParticipant($booking, Auth::id())) {
+            abort(403, 'Unauthorized booking access.');
+        }
+
+        return $booking;
+    }
+
+    private function isBookingParticipant(Booking $booking, int $userId): bool
+    {
+        return $userId === (int) $booking->user_id || $userId === (int) $booking->doctor_id;
+    }
+
+    private function expiredSessionJson(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Consultation time has ended for this booking. Create a new booking to continue.',
+            'session_expired' => true,
+        ], 403);
     }
 }

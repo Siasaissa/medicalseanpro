@@ -158,7 +158,21 @@ Route::middleware('auth')->get('/api/zego-token', function (Request $request) {
         return response()->json(['error' => 'booking_id is required'], 400);
     }
 
-    $userId = (string) $request->user()->id;
+    $booking = Booking::find($bookingId);
+    if (!$booking) {
+        return response()->json(['error' => 'Booking not found'], 404);
+    }
+
+    $authUserId = (int) $request->user()->id;
+    if ($authUserId !== (int) $booking->doctor_id && $authUserId !== (int) $booking->user_id) {
+        return response()->json(['error' => 'Unauthorized booking access'], 403);
+    }
+
+    if (!$booking->isSessionActive()) {
+        return response()->json(['error' => 'Consultation time has ended for this booking'], 403);
+    }
+
+    $userId = (string) $authUserId;
     
     // Generate Token04 format (required for UIKit Prebuilt)
     $kitToken = ZegoToken::generateToken04(

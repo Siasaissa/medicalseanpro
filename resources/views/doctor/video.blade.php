@@ -54,6 +54,10 @@
 															<span>Patient: {{ $booking->patient->name }}</span>
 														</div>
 													</div>
+                                                    <div class="text-end mt-3">
+                                                        <span>Call Time Remaining:</span>
+                                                        <span id="countdown" style=" color: #ff4444; font-weight: bold;">Loading...</span>
+                                                    </div>
 												</div>
 											</div>
 
@@ -179,6 +183,47 @@
 			}
 		});
 	</script>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const serviceString = "{{ $booking->service_time }}";
+    const appointmentStart = new Date("{{ $booking->appointment_datetime }}");
+    const countdownEl = document.getElementById('countdown');
+
+    const durationMs = parseInt(serviceString, 10) * 60 * 1000;
+    const endTime = new Date(appointmentStart.getTime() + durationMs);
+
+    function updateCountdown() {
+        const now = new Date();
+
+        if (now < appointmentStart) {
+            const diff = appointmentStart - now;
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+            countdownEl.innerText = `Appointment starts in ${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`;
+            return;
+        }
+
+        const remaining = endTime - now;
+        if (remaining <= 0) {
+            countdownEl.innerText = "Time's up! Ending call...";
+            clearInterval(timerInterval);
+            alert("Your consultation time has ended.");
+            window.location.href = "{{ route('doctor.appointment') }}";
+            return;
+        }
+
+        const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((remaining / (1000 * 60)) % 60);
+        const seconds = Math.floor((remaining / 1000) % 60);
+        countdownEl.innerText = `${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s remaining`;
+    }
+
+    updateCountdown();
+    const timerInterval = setInterval(updateCountdown, 1000);
+});
+</script>
 
 </body>
 </html>

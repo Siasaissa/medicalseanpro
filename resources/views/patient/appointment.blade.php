@@ -47,6 +47,17 @@
                     <!-- /Profile Sidebar -->
 
                     <div class="col-lg-8 col-xl-9">
+                        @if (session('error'))
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <strong>Session Ended:</strong> {{ session('error') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+
+                        <div class="alert alert-info mb-3" role="alert">
+                            Consultation access is only available during the booked time window. After end time, chat/call is locked until the next booking.
+                        </div>
+
                         <div class="dashboard-header">
                             <div class="d-flex align-items-center gap-3">
                                 <h3>Appointments</h3>

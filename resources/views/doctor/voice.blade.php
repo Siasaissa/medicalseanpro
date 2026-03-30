@@ -168,7 +168,7 @@
                     <div style="color: red; padding: 20px;">
                         <h5>Failed to start voice call</h5>
                         <p>${error.message}</p>
-                        <a href="{{ route('patient.appointment') }}" class="btn btn-primary mt-2">← Back</a>
+                        <a href="{{ route('doctor.appointment') }}" class="btn btn-primary mt-2">← Back</a>
                     </div>`;
             }
         });
@@ -199,7 +199,7 @@
                     countdownEl.innerText = "Time’s up!";
                     clearInterval(timerInterval);
                     alert("Your consultation time has ended.");
-                    window.location.href = "{{ route('patient.appointment') }}";
+                    window.location.href = "{{ route('doctor.appointment') }}";
                     return;
                 }
 

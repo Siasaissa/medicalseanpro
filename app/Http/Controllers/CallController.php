@@ -13,26 +13,26 @@ class CallController extends Controller
     // Video call page
     public function video($bookingId)
     {
-        $booking = Booking::with('doctor', 'patient')->findOrFail($bookingId);
+        $booking = $this->resolveActiveBookingForUser((int) $bookingId);
         return view('patient.video', compact('booking'));
     }
 
         public function videoDoctor($bookingId)
     {
-        $booking = Booking::with('doctor', 'patient')->findOrFail($bookingId);
+        $booking = $this->resolveActiveBookingForUser((int) $bookingId);
         return view('doctor.video', compact('booking'));
     }
 
     // Voice call page
     public function voice($bookingId)
     {
-        $booking = Booking::with('doctor', 'patient')->findOrFail($bookingId);
+        $booking = $this->resolveActiveBookingForUser((int) $bookingId);
         return view('patient.voice', compact('booking'));
     }
 
     public function voiceDoctor($bookingId)
     {
-        $booking = Booking::with('doctor', 'patient')->findOrFail($bookingId);
+        $booking = $this->resolveActiveBookingForUser((int) $bookingId);
         return view('doctor.voice', compact('booking'));
     }
 
@@ -52,6 +52,8 @@ class CallController extends Controller
 
     public function signal(Request $request, $bookingId)
     {
+        $this->resolveActiveBookingForUser((int) $bookingId);
+
         // Broadcast the signaling data to the other user
         broadcast(new CallSignal($bookingId, $request->all()))->toOthers();
 
@@ -65,7 +67,7 @@ class CallController extends Controller
             'type' => 'required|in:video,voice',
         ]);
 
-        $booking = Booking::with(['doctor', 'patient'])->findOrFail($bookingId);
+        $booking = $this->resolveActiveBookingForUser((int) $bookingId);
         $senderId = Auth::id();
 
         if ($senderId !== (int) $booking->doctor_id && $senderId !== (int) $booking->user_id) {
@@ -117,6 +119,11 @@ class CallController extends Controller
             ->orderBy('id', 'asc')
             ->limit(20)
             ->get()
+            ->filter(function ($invite) use ($receiverId) {
+                return $invite->booking
+                    && ((int) $invite->booking->doctor_id === (int) $receiverId || (int) $invite->booking->user_id === (int) $receiverId)
+                    && $invite->booking->isSessionActive();
+            })
             ->map(function ($invite) use ($receiverId) {
                 $isDoctor = $invite->booking && (int) $invite->booking->doctor_id === (int) $receiverId;
                 $joinUrl = '#';
@@ -159,5 +166,21 @@ class CallController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    private function resolveActiveBookingForUser(int $bookingId): Booking
+    {
+        $booking = Booking::with(['doctor', 'patient'])->findOrFail($bookingId);
+        $userId = (int) Auth::id();
+
+        if ($userId !== (int) $booking->doctor_id && $userId !== (int) $booking->user_id) {
+            abort(403, 'Unauthorized booking access.');
+        }
+
+        if (!$booking->isSessionActive()) {
+            abort(403, 'Consultation time has ended for this booking.');
+        }
+
+        return $booking;
     }
 }

@@ -13,6 +13,16 @@
             <div class="container">
 
                 <div class="content doctor-content">
+                    @if (session('error'))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>Session Ended:</strong> {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <div class="alert alert-info mb-3" role="alert">
+                        Past bookings cannot continue in chat. Create a new booking to resume communication.
+                    </div>
 
                     <div class="chat-sec">
 
@@ -653,7 +663,10 @@
             authImage: '{{ Auth::user()->profile && Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset("images/default.jpeg") }}',
             defaultImage: '{{ asset("images/default.jpeg") }}',
             soundEnabled: true,
-            isDoctor: false
+            isDoctor: false,
+            sessionStartAt: @json($booking ? $booking->sessionStartAt()->toIso8601String() : null),
+            sessionEndAt: @json($booking ? $booking->sessionEndAt()->toIso8601String() : null),
+            sessionRedirectUrl: '{{ route('patient.appointment') }}'
         };
 
         // State variables
@@ -663,6 +676,8 @@
         let typingTimer = null;
         let isTyping = false;
         let isSending = false; // Flag to prevent multiple sends
+        let sessionEndedHandled = false;
+        let sessionWatcherInterval = null;
         let notificationSound = document.getElementById('notificationSound');
 
         // ==================== UTILITY FUNCTIONS ====================
@@ -753,6 +768,54 @@
 
         function goHomeMobile() {
             window.location.href = `{{ route('dashboard') }}`;
+        }
+
+        function forceEndSession(message = 'Consultation time has ended for this booking.') {
+            if (sessionEndedHandled) return;
+            sessionEndedHandled = true;
+
+            if (pollInterval) clearInterval(pollInterval);
+            if (unreadPollInterval) clearInterval(unreadPollInterval);
+            if (sessionWatcherInterval) clearInterval(sessionWatcherInterval);
+
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendMessageBtn');
+            if (messageInput) messageInput.disabled = true;
+            if (sendBtn) sendBtn.disabled = true;
+
+            alert(message);
+            window.location.href = CONFIG.sessionRedirectUrl;
+        }
+
+        async function handleSessionExpiryResponse(response) {
+            if (response.status !== 403) return false;
+
+            try {
+                const data = await response.clone().json();
+                if (data?.session_expired) {
+                    forceEndSession(data.message || 'Consultation time has ended for this booking.');
+                    return true;
+                }
+            } catch (error) {
+                console.debug('Session expiry parse skipped:', error);
+            }
+
+            return false;
+        }
+
+        function startSessionExpiryWatcher() {
+            if (!CONFIG.sessionEndAt) return;
+            const sessionEndTs = Date.parse(CONFIG.sessionEndAt);
+            if (Number.isNaN(sessionEndTs)) return;
+
+            const check = () => {
+                if (Date.now() >= sessionEndTs) {
+                    forceEndSession('Consultation time has ended for this booking.');
+                }
+            };
+
+            check();
+            sessionWatcherInterval = setInterval(check, 1000);
         }
 
         // ==================== MESSAGE RENDERING ====================
@@ -1000,7 +1063,10 @@
                     }
                 });
 
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) {
+                    if (await handleSessionExpiryResponse(response)) return;
+                    throw new Error('Network response was not ok');
+                }
 
                 const data = await response.json();
                 
@@ -1144,6 +1210,10 @@
                 }
 
                 if (!response.ok) {
+                    if (data?.session_expired) {
+                        forceEndSession(data.message || 'Consultation time has ended for this booking.');
+                        return;
+                    }
                     throw new Error(data.message || `HTTP error! status: ${response.status}`);
                 }
 
@@ -1417,6 +1487,7 @@
             // Start polling
             if (currentBookingId) {
                 pollInterval = setInterval(fetchNewMessages, CONFIG.pollInterval);
+                startSessionExpiryWatcher();
             }
             
             unreadPollInterval = setInterval(fetchUnreadCounts, CONFIG.unreadPollInterval);
@@ -1462,6 +1533,7 @@
         window.addEventListener('beforeunload', function() {
             if (pollInterval) clearInterval(pollInterval);
             if (unreadPollInterval) clearInterval(unreadPollInterval);
+            if (sessionWatcherInterval) clearInterval(sessionWatcherInterval);
         });
     </script>
     <script src="{{asset('js/rocket-loader.min.js')}}" data-cf-settings="87d100b3f0de52923242b24d-|49" defer></script>
