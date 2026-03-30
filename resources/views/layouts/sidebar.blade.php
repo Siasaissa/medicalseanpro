@@ -71,11 +71,11 @@
                         </a>
                     </li>
 
-                    <li class="{{ Route::is('patient.chat') ? 'active' : '' }}">
+                    <li class="{{ Route::is('chat.index') ? 'active' : '' }}">
                         <a href="{{ route('chat.index') }}">
                             <i class="isax isax-messages-1"></i>
                             <span>Message</span>
-                            <small class="unread-msg">7</small>
+                            <small class="unread-msg d-none js-chat-unread-badge" data-chat-unread-badge>0</small>
                         </a>
                     </li>
 

@@ -12,20 +12,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\DoctorBookingNotification;
-use function Pest\Laravel\json;
+use App\Support\PaymentStatus;
 
 class BookingController extends Controller
 {
     private function normalizePaymentStatus(?string $status): string
     {
-        $value = strtoupper(trim((string) $status));
-
-        return match ($value) {
-            'SUCCESS', 'SUCCEEDED', 'COMPLETED', 'PAID' => 'SUCCESS',
-            'FAILED', 'FAIL', 'ERROR', 'DECLINED', 'CANCELLED' => 'FAILED',
-            'PROCESSING', 'PENDING', 'INITIATED', 'IN_PROGRESS' => 'PROCESSING',
-            default => 'PROCESSING',
-        };
+        return PaymentStatus::normalize($status);
     }
 
         public function showToken()

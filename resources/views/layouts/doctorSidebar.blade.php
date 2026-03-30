@@ -48,11 +48,11 @@
 					</a>
 				</li>
 
-				<li>
+				<li class="{{ Route::is('doctor.chat') ? 'active' : '' }}">
 					<a href="{{ route('doctor.chat') }}">
 						<i class="isax isax-messages-1"></i>
 						<span>Message</span>
-						<small class="unread-msg">7</small>
+						<small class="unread-msg d-none js-chat-unread-badge" data-chat-unread-badge>0</small>
 					</a>
 				</li>
 				<li class="{{ Route::is('doctor.profilesettings') ? 'active' : '' }}">

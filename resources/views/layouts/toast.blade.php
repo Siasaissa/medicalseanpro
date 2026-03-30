@@ -181,6 +181,27 @@
             });
         }
 
+        function updateUnreadBadges(totalUnread) {
+            const badges = document.querySelectorAll('[data-chat-unread-badge]');
+            const safeCount = Number(totalUnread || 0);
+            const badgeText = safeCount > 99 ? '99+' : String(safeCount);
+
+            badges.forEach((badge) => {
+                badge.textContent = badgeText;
+                if (safeCount > 0) {
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            });
+        }
+
+        async function pollUnreadCounts() {
+            const data = await fetchJson(`{{ route('chat.unread.counts') }}`);
+            if (!data || !data.success) return;
+            updateUnreadBadges(data.total_unread || 0);
+        }
+
         function readIdSet(storageKey) {
             try {
                 const raw = localStorage.getItem(storageKey);
@@ -258,6 +279,8 @@
         }
 
         requestBrowserPermission();
+        pollUnreadCounts();
+        setInterval(pollUnreadCounts, 5000);
         setInterval(pollMessageNotifications, CONFIG.messagePollMs);
         setInterval(pollCallNotifications, CONFIG.callPollMs);
 
