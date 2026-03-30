@@ -170,14 +170,17 @@ class AdminController extends Controller
     {
         $filters = [
             'q' => trim((string) $request->query('q', '')),
-            'status' => trim((string) $request->query('status', '')),
+            'source' => trim((string) $request->query('source', 'all')),
+            'pharmacy_status' => trim((string) $request->query('pharmacy_status', '')),
+            'booking_status' => trim((string) $request->query('booking_status', '')),
         ];
 
-        $query = Order::with(['user.profile']);
+        $pharmacyQuery = Order::with(['user.profile']);
+        $bookingQuery = Booking::with(['patient.profile', 'doctor.profile']);
 
         if ($filters['q'] !== '') {
             $q = $filters['q'];
-            $query->where(function ($sub) use ($q) {
+            $pharmacyQuery->where(function ($sub) use ($q) {
                 $sub->where('id', $q)
                     ->orWhere('phone', 'like', "%{$q}%")
                     ->orWhereHas('user', function ($userQ) use ($q) {
@@ -185,16 +188,55 @@ class AdminController extends Controller
                             ->orWhere('email', 'like', "%{$q}%");
                     });
             });
+
+            $bookingQuery->where(function ($sub) use ($q) {
+                $sub->where('id', $q)
+                    ->orWhereHas('doctor', function ($doctorQ) use ($q) {
+                        $doctorQ->where('name', 'like', "%{$q}%")
+                            ->orWhere('email', 'like', "%{$q}%");
+                    })
+                    ->orWhereHas('patient', function ($patientQ) use ($q) {
+                        $patientQ->where('name', 'like', "%{$q}%")
+                            ->orWhere('email', 'like', "%{$q}%");
+                    });
+            });
         }
 
-        if ($filters['status'] !== '') {
-            $query->where('status', strtolower($filters['status']));
+        if ($filters['pharmacy_status'] !== '') {
+            $pharmacyQuery->where('status', strtolower($filters['pharmacy_status']));
         }
 
-        $transactions = $query->latest()->paginate(25)->withQueryString();
+        if ($filters['booking_status'] !== '') {
+            $bookingQuery->where('status', strtoupper($filters['booking_status']));
+        }
+
+        $showPharmacy = in_array($filters['source'], ['all', 'pharmacy'], true);
+        $showBooking = in_array($filters['source'], ['all', 'booking'], true);
+
+        $pharmacyTransactions = $showPharmacy
+            ? $pharmacyQuery->latest()->paginate(15, ['*'], 'pharmacy_page')->withQueryString()
+            : null;
+
+        $bookingTransactions = $showBooking
+            ? $bookingQuery->latest()->paginate(15, ['*'], 'booking_page')->withQueryString()
+            : null;
+
+        $totals = [
+            'pharmacy' => (float) Order::sum('total'),
+            'booking' => (float) Booking::sum('total'),
+        ];
+
         $transactionStatusOptions = ['pending', 'processing', 'paid', 'failed', 'cancelled', 'refunded'];
+        $bookingStatusOptions = ['PENDING', 'PROCESSING', 'SUCCESS', 'FAILED', 'PAID', 'ACTIVE', 'COMPLETED', 'CANCELLED'];
 
-        return view('admin.Transaction', compact('transactions', 'filters', 'transactionStatusOptions'));
+        return view('admin.Transaction', compact(
+            'pharmacyTransactions',
+            'bookingTransactions',
+            'filters',
+            'transactionStatusOptions',
+            'bookingStatusOptions',
+            'totals'
+        ));
     }
 
     public function updateUserStatus(Request $request, User $user)

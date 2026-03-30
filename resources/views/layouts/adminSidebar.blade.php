@@ -10,11 +10,19 @@
 				</li>
 				<li class="{{ Route::is('admin.appointment') ? 'active' : '' }}">
 					<a href="{{ route('admin.appointment') }}"><i class="fe fe-layout"></i>
-						<span>Appointments</span></a>
+						<span>Appointments</span>
+						@if(($adminPendingCounts['bookings'] ?? 0) > 0)
+							<small class="badge bg-warning ms-2">{{ $adminPendingCounts['bookings'] }}</small>
+						@endif
+					</a>
 				</li>
 
 				<li class="{{ Route::is('admin.doctorList') ? 'active' : '' }}">
-					<a href="{{ route('admin.doctorList') }}"><i class="fe fe-user-plus"></i> <span>Doctors</span></a>
+					<a href="{{ route('admin.doctorList') }}"><i class="fe fe-user-plus"></i> <span>Doctors</span>
+						@if(($adminPendingCounts['doctors'] ?? 0) > 0)
+							<small class="badge bg-danger ms-2">{{ $adminPendingCounts['doctors'] }}</small>
+						@endif
+					</a>
 				</li>
 				<li class="{{ Route::is('admin.patientList') ? 'active' : '' }}">
 					<a href="{{ route('admin.patientList') }}"><i class="fe fe-user"></i> <span>Patients</span></a>
@@ -22,7 +30,11 @@
 
 				<li class="{{ Route::is('admin.Transaction') ? 'active' : '' }}">
 					<a href="{{ route('admin.Transaction') }}"><i class="fe fe-activity"></i>
-						<span>Transactions</span></a>
+						<span>Transactions</span>
+						@if(($adminPendingCounts['orders'] ?? 0) > 0)
+							<small class="badge bg-warning ms-2">{{ $adminPendingCounts['orders'] }}</small>
+						@endif
+					</a>
 				</li>
 
 				<li class="submenu">
@@ -41,31 +53,6 @@
 					</ul>
 				</li>
 
-
-				<li>
-					<a href="settings.html"><i class="fe fe-vector"></i> <span>Settings</span></a>
-				</li>
-				<li class="submenu">
-					<a href="#"><i class="fe fe-document"></i> <span> Reports</span> <span
-							class="menu-arrow"></span></a>
-					<ul style="display: none;">
-						<li><a href="invoice-report.html">Invoice Reports</a></li>
-					</ul>
-				</li>
-				<li class="menu-title">
-					<span>Pages</span>
-				</li>
-				<li>
-					<a href="profile.html"><i class="fe fe-user-plus"></i> <span>Profile</span></a>
-				</li>
-
-				<li>
-					<a href="blank-page.html"><i class="fe fe-file"></i> <span>Blank Page</span></a>
-				</li>
-
-				<li>
-					<a href="components.html"><i class="fe fe-vector"></i> <span>Components</span></a>
-				</li>
 			</ul>
 		</div>
 	</div>

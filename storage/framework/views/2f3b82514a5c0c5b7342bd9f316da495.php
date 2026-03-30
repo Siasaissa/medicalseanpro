@@ -1,0 +1,1611 @@
+<?php echo $__env->make('layouts.head', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo app('Illuminate\Foundation\Vite')('resources/js/app.js'); ?>
+<body class="main-chat-blk">
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+
+        <!-- Header -->
+        <?php echo $__env->make('layouts.doctorHeader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <!-- /Header -->
+
+        <div class="page-wrapper chat-page-wrapper">
+            <div class="container">
+
+                <div class="content doctor-content">
+                    <?php if(session('error')): ?>
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>Session Ended:</strong> <?php echo e(session('error')); ?>
+
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="alert alert-info mb-3" role="alert">
+                        Past bookings cannot continue in chat. Ask patient to create a new booking to resume communication.
+                    </div>
+
+                    <div class="chat-sec">
+
+                        <!-- sidebar group -->
+                        <div class="sidebar-group left-sidebar chat_sidebar" id="chatSidebar">
+
+                            <!-- Chats sidebar -->
+                            <div id="chats" class="left-sidebar-wrap sidebar active slimscroll">
+
+                                <div class="slimscroll-active-sidebar">
+
+                                    <!-- Left Chat Title -->
+                                    <div class="left-chat-title all-chats">
+                                        <div class="setting-title-head">
+                                            <h4>All Chats</h4>
+                                            <span class="total-unread-badge" id="totalUnreadBadge" style="display: none;">0</span>
+                                        </div>
+                                        <div class="add-section">
+                                            <!-- Chat Search -->
+                                            <form action="" method="">
+                                                <?php echo csrf_field(); ?>
+                                                <div class="user-chat-search">
+                                                    <span class="form-control-feedback"><i
+                                                            class="fa-solid fa-magnifying-glass"></i></span>
+                                                    <input type="text" name="chat-search" placeholder="Search"
+                                                        class="form-control" id="chatSearch">
+                                                </div>
+                                            </form>
+                                            <!-- /Chat Search -->
+                                        </div>
+                                    </div>
+                                    <!-- /Left Chat Title -->
+
+                                    <div class="sidebar-body chat-body" id="chatsidebar">
+
+                                        <!-- Left Chat Title -->
+                                        <div class="d-flex justify-content-between align-items-center ps-0 pe-0">
+                                            <div class="fav-title pin-chat">
+                                                <h6>Recent Chat</h6>
+                                            </div>
+                                        </div>
+                                        <!-- /Left Chat Title -->
+
+                                        <ul class="user-list" id="chatUserList">
+                                            <?php $__empty_1 = true; $__currentLoopData = $patients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bId => $chatData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                                <?php
+                                                    $booking = $chatData->booking;
+                                                    $patient = $booking?->patient;
+                                                    $patientImage = $patient?->profile->dp ? asset( $patient->profile->dp) : asset('images/default.jpeg');
+                                                    $lastMessage = $chatData->last_message;
+                                                    $unreadCount = $chatData->unread_count;
+                                                    $isActive = request('booking') == $booking?->id;
+                                                ?>
+                                                <?php if($patient && $lastMessage): ?>
+                                                    <li class="user-list-item chat-user-item <?php echo e($isActive ? 'active' : ''); ?>" 
+                                                        data-booking-id="<?php echo e($booking->id); ?>"
+                                                        data-patient-id="<?php echo e($patient->id); ?>"
+                                                        data-patient-name="<?php echo e($patient->name); ?>"
+                                                        data-patient-image="<?php echo e($patientImage); ?>"
+                                                        data-unread="<?php echo e($unreadCount); ?>">
+                                                        <a href="<?php echo e(route('doctor.chat', ['booking' => $booking->id])); ?>"
+                                                           onclick="handleChatClick(event, <?php echo e($booking->id); ?>)">
+                                                            <div class="avatar <?php echo e($patient->is_online ? 'avatar-online' : 'avatar-offline'); ?>">
+                                                                <img src="<?php echo e($patientImage); ?>" alt="<?php echo e($patient->name); ?>">
+                                                            </div>
+                                                            <div class="users-list-body">
+                                                                <div>
+                                                                    <h5><?php echo e($patient->name); ?></h5>
+                                                                    <p class="last-message"><?php echo e(Str::limit($lastMessage->message ?? 'No messages yet', 30)); ?></p>
+                                                                </div>
+                                                                <div class="last-chat-time">
+                                                                    <small class="text-muted last-message-time">
+                                                                        <?php echo e($lastMessage->created_at?->diffForHumans() ?? ''); ?>
+
+                                                                    </small>
+                                                                    <?php if($unreadCount > 0): ?>
+                                                                        <div class="new-message-count unread-badge">
+                                                                            <?php echo e($unreadCount); ?>
+
+                                                                        </div>
+                                                                    <?php endif; ?>
+                                                                </div>
+                                                            </div>
+                                                        </a>
+                                                    </li>
+                                                <?php endif; ?>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                                <li class="text-center text-muted p-3">No chats yet</li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- / Chats sidebar -->
+                        </div>
+                        <!-- /Sidebar group -->
+
+                        <!-- Chat -->
+                        <div class="chat chat-messages" id="chatMessages">
+                            <div class="slimscroll">
+                                <div class="chat-inner-header">
+                                    <div class="chat-header">
+                                        <div class="user-details">
+                                            <div class="d-lg-none">
+                                                <ul class="list-inline mt-2 me-2">
+                                                    <li class="list-inline-item">
+                                                        <a class="text-muted px-0 left_sides" href="javascript:void(0);" onclick="showSidebarOnMobile()">
+                                                            <i class="fas fa-arrow-left"></i>
+                                                        </a>
+                                                    </li>
+                                                    <li class="list-inline-item">
+                                                        <a class="text-muted px-2" href="javascript:void(0);" onclick="goHomeMobile()">
+                                                            <i class="fas fa-home"></i>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <?php
+                                                $activeBookingId = request('booking');
+                                                $activePatient = null;
+                                                $activePatientImage = asset('images/default.jpeg');
+                                                
+                                                if ($activeBookingId) {
+                                                    $activeBooking = \App\Models\Booking::with('patient')->find($activeBookingId);
+                                                    $activePatient = $activeBooking?->patient;
+                                                    $activePatientImage = $activePatient?->profile->dp 
+                                                        ? asset( $activePatient->profile->dp) 
+                                                        : asset('images/default.jpeg');
+                                                } elseif(isset($messages) && $messages->isNotEmpty()) {
+                                                    $activePatient = $messages->first()->booking?->patient;
+                                                    $activePatientImage = $activePatient?->profile->dp 
+                                                        ? asset( $activePatient->profile->dp) 
+                                                        : asset('images/default.jpeg');
+                                                }
+                                            ?>
+                                            <figure class="avatar <?php echo e($activePatient?->is_online ? 'avatar-online' : 'avatar-offline'); ?>">
+                                                <img src="<?php echo e($activePatientImage); ?>" alt="<?php echo e($activePatient?->name ?? 'Patient'); ?>" id="currentChatAvatar">
+                                            </figure>
+                                            <div class="mt-1">
+                                                <h5 id="currentChatName"><?php echo e($activePatient?->name ?? 'Select a chat'); ?></h5>
+                                                <small class="last-seen" id="currentChatStatus">
+                                                    <?php if($activePatient): ?>
+                                                        <span class="online-status <?php echo e($activePatient->is_online ? 'text-success' : 'text-secondary'); ?>">
+                                                            <?php echo e($activePatient->is_online ? '● Online' : '○ Offline'); ?>
+
+                                                        </span>
+                                                    <?php else: ?>
+                                                        &nbsp;
+                                                    <?php endif; ?>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="chat-options ">
+                                            <ul class="list-inline">
+                                                <li class="list-inline-item">
+                                                    <a href="javascript:void(0)"
+                                                        class="btn btn-outline-light chat-search-btn"
+                                                        data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                                        title="Search in chat">
+                                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                                    </a>
+                                                </li>
+                                                <li class="list-inline-item">
+                                                    <a class="btn btn-outline-light no-bg" href="#"
+                                                        data-bs-toggle="dropdown">
+                                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                    </a>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a href="#" class="dropdown-item" onclick="markAllAsRead()">Mark all as read</a>
+                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#clear-chat">Clear Chat</a>
+                                                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#block-user">Block User</a>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <!-- Chat Search -->
+                                        <div class="chat-search">
+                                            <form onsubmit="return false;">
+                                                <span class="form-control-feedback"><i
+                                                        class="fa-solid fa-magnifying-glass"></i></span>
+                                                <input type="text" placeholder="Search in conversation..."
+                                                    class="form-control" id="messageSearch">
+                                                <div class="close-btn-chat" onclick="closeMessageSearch()"><i class="fa fa-close"></i></div>
+                                            </form>
+                                        </div>
+                                        <!-- /Chat Search -->
+                                    </div>
+                                </div>
+                                <div class="chat-body" id="chatMessagesBody">
+
+                                    <div class="messages" id="messagesContainer">
+
+                                        <?php
+                                            $lastDate = null;
+                                        ?>
+
+                                        <?php if(isset($messages) && $messages->isNotEmpty()): ?>
+                                            <?php $__currentLoopData = $messages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $msg): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <?php
+                                                    $msgPatient = $msg->booking?->patient;
+                                                    $currentDate = $msg->created_at->format('F d, Y');
+                                                    
+                                                    // Get profile images
+                                                    if($msg->sender_id == Auth::id()) {
+                                                        $senderImage = Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset('images/default.jpeg');
+                                                        $senderName = Auth::user()->name;
+                                                    } else {
+                                                        $senderImage = $msgPatient?->profile->dp ? asset( $msgPatient->profile->dp) : asset('images/default.jpeg');
+                                                        $senderName = $msgPatient?->name ?? 'Patient';
+                                                    }
+                                                ?>
+
+                                                
+                                                <?php if($lastDate !== $currentDate): ?>
+                                                    <div class="chat-line">
+                                                        <span class="chat-date">
+                                                            <?php if($msg->created_at->isToday()): ?>
+                                                                Today
+                                                            <?php elseif($msg->created_at->isYesterday()): ?>
+                                                                Yesterday
+                                                            <?php else: ?>
+                                                                <?php echo e($currentDate); ?>
+
+                                                            <?php endif; ?>
+                                                        </span>
+                                                    </div>
+                                                    <?php
+                                                        $lastDate = $currentDate;
+                                                    ?>
+                                                <?php endif; ?>
+
+                                                <?php if($msg->sender_id == Auth::id()): ?>
+                                                    
+                                                    <div class="chats chats-right" data-message-id="<?php echo e($msg->id); ?>" data-read="<?php echo e($msg->is_read ? '1' : '0'); ?>" data-read-at="<?php echo e($msg->read_at); ?>">
+                                                        <div class="chat-content">
+                                                            <div class="chat-profile-name text-end justify-content-end">
+                                                                <h6><?php echo e($senderName); ?>
+
+                                                                    <span><?php echo e($msg->created_at->format('h:i A')); ?></span>
+                                                                </h6>
+                                                            </div>
+                                                            <div class="message-content">
+                                                                <?php echo e($msg->message); ?>
+
+                                                            </div>
+                                                            <div class="message-status">
+                                                                <?php if($msg->is_read): ?>
+                                                                    <span class="read-receipt read" title="Read <?php echo e($msg->read_at ? $msg->read_at->diffForHumans() : ''); ?>">
+                                                                        <i class="fa fa-check-double"></i> Read
+                                                                    </span>
+                                                                <?php else: ?>
+                                                                    <span class="read-receipt delivered" title="Delivered">
+                                                                        <i class="fa fa-check"></i> Delivered
+                                                                    </span>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                        <div class="chat-avatar">
+                                                            <img src="<?php echo e($senderImage); ?>" class="dreams_chat" alt="<?php echo e($senderName); ?>">
+                                                        </div>
+                                                    </div>
+                                                <?php else: ?>
+                                                    
+                                                    <div class="chats" data-message-id="<?php echo e($msg->id); ?>" data-is-read="<?php echo e($msg->is_read ? '1' : '0'); ?>">
+                                                        <div class="chat-avatar">
+                                                            <img src="<?php echo e($senderImage); ?>" class="dreams_chat" alt="<?php echo e($senderName); ?>">
+                                                        </div>
+                                                        <div class="chat-content">
+                                                            <div class="chat-profile-name">
+                                                                <h6><?php echo e($senderName); ?>
+
+                                                                    <span><?php echo e($msg->created_at->format('h:i A')); ?></span>
+                                                                </h6>
+                                                            </div>
+                                                            <div class="message-content">
+                                                                <?php echo e($msg->message); ?>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        <?php else: ?>
+                                            <div class="text-center text-muted p-5 no-messages">
+                                                <p>No messages yet. Start the conversation!</p>
+                                            </div>
+                                        <?php endif; ?>
+
+                                    </div>
+                                    
+                                    <!-- Typing indicator -->
+                                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div class="chat-footer">
+                                <?php
+                                    // Get current active booking and patient
+                                    $activeBookingId = request('booking');
+                                    $activeBooking = null;
+                                    $activePatientId = null;
+                                    $isChatSessionActive = false;
+                                    
+                                    if ($activeBookingId) {
+                                        $activeBooking = \App\Models\Booking::with('patient')->find($activeBookingId);
+                                        $activePatientId = $activeBooking?->patient?->id;
+                                        $isChatSessionActive = (bool) $activeBooking?->isSessionActive();
+                                    } elseif(isset($messages) && $messages->isNotEmpty()) {
+                                        $activeBookingId = $messages->first()->booking_id;
+                                        $activePatientId = $messages->first()->booking?->patient?->id;
+                                        $activeBooking = $messages->first()->booking;
+                                        $isChatSessionActive = (bool) $activeBooking?->isSessionActive();
+                                    }
+                                ?>
+
+                                <?php if($activeBookingId && $activePatientId): ?>
+                                    <form action="<?php echo e(route('chat.store')); ?>" method="POST" id="chatForm">
+                                        <?php echo csrf_field(); ?>
+                                        <input type="hidden" name="receiver_id" id="receiverId" value="<?php echo e($activePatientId); ?>">
+                                        <input type="hidden" name="booking_id" id="bookingId" value="<?php echo e($activeBookingId); ?>">
+
+                                        <div class="smile-foot">
+                                            <div class="chat-action-btns">
+                                                <div class="chat-action-col">
+                                                    <a class="action-circle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="fa-solid fa-paperclip"></i>
+                                                    </a>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a href="#" class="dropdown-item"><span><i class="fa-solid fa-image"></i></span>Image</a>
+                                                        <a href="#" class="dropdown-item"><span><i class="fa-solid fa-file"></i></span>Document</a>
+                                                        <a href="#" class="dropdown-item"><span><i class="fa-solid fa-camera"></i></span>Camera</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="smile-foot emoj-action-foot">
+                                            <a href="#" class="action-circle emoji-picker-btn"><i class="fa-regular fa-face-smile"></i></a>
+                                            <div class="emoj-group-list-foot down-emoji-circle" id="emojiPicker" style="display: none;">
+                                                <ul>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('😊')">😊</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('😂')">😂</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('❤️')">❤️</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('👍')">👍</a></li>
+                                                    <li><a href="javascript:void(0);" onclick="insertEmoji('🎉')">🎉</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div class="smile-foot">
+                                            <a href="#" class="action-circle"><i class="isax isax-microphone-2"></i></a>
+                                        </div>
+
+                                        <!-- Message input -->
+                                        <input type="text" name="message" class="form-control chat_form" id="messageInput"
+                                            placeholder="<?php echo e($isChatSessionActive ? 'Type your message here...' : 'Session ended. Ask patient to book again.'); ?>"
+                                            required autocomplete="off"
+                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+                                            <?php echo e($isChatSessionActive ? '' : 'disabled readonly'); ?>>
+
+                                        <div class="form-buttons">
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn" <?php echo e($isChatSessionActive ? '' : 'disabled'); ?>>
+                                                <i class="isax isax-send-25"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <?php if(!$isChatSessionActive): ?>
+                                        <small class="text-danger d-block mt-2">
+                                            Messaging is locked because this booking time has ended.
+                                        </small>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <div class="text-center p-3 text-muted no-chat-selected">
+                                        <i class="fa fa-comment-slash"></i> Select a chat to start messaging
+                                    </div>
+                                <?php endif; ?>
+
+                            </div>
+                        </div>
+                        <!-- /Chat -->
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /Main Wrapper -->
+
+    <!-- Toast notification for new messages -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+        <div id="newMessageToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast-header">
+                <img src="<?php echo e(asset('images/icon-message.png')); ?>" class="rounded me-2" width="20" height="20" alt="Message">
+                <strong class="me-auto" id="toastSender">New Message</strong>
+                <small>just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessageContent">
+                You have a new message
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Sound -->
+    <audio id="notificationSound" preload="auto" style="display: none;">
+        <source src="<?php echo e(asset('sounds/notification.mp3')); ?>" type="audio/mpeg">
+    </audio>
+
+    <!-- Voice Call Modal -->
+    <div class="modal fade call-modal" id="voice_call">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="call-box incoming-box">
+                        <div class="call-wrapper">
+                            <div class="call-inner">
+                                <div class="call-user">
+                                    <img alt="User Image" src="<?php echo e(asset('images/doctor-thumb-02.jpg')); ?>"
+                                        class="call-avatar">
+                                    <h4 id="callPatientName">Darren Elder</h4>
+                                    <span>Connecting...</span>
+                                </div>
+                                <div class="call-items">
+                                    <a href="javascript:void(0);" class="btn call-item call-end" data-bs-dismiss="modal"
+                                        aria-label="Close"><i class="material-icons">call_end</i></a>
+                                    <a href="voice-call.html" class="btn call-item call-start"><i
+                                            class="material-icons">call</i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Call Modal -->
+    <div class="modal fade call-modal" id="video_call">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="call-box incoming-box">
+                        <div class="call-wrapper">
+                            <div class="call-inner">
+                                <div class="call-user">
+                                    <img class="call-avatar" src="<?php echo e(asset('images/doctor-thumb-02.jpg')); ?>"
+                                        alt="User Image">
+                                    <h4 id="videoCallPatientName">Darren Elder</h4>
+                                    <span>Calling ...</span>
+                                </div>
+                                <div class="call-items">
+                                    <a href="javascript:void(0);" class="btn call-item call-end" data-bs-dismiss="modal"
+                                        aria-label="Close"><i class="material-icons">call_end</i></a>
+                                    <a href="video-call.html" class="btn call-item call-start"><i
+                                            class="material-icons">videocam</i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Chat Modal -->
+    <div class="modal fade" id="clear-chat" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clear Chat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to clear this conversation? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="clearCurrentChat()">Clear Chat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Block User Modal -->
+    <div class="modal fade" id="block-user" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Block User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to block this user? You will no longer receive messages from them.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="blockUser()">Block User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            min-width: 250px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .online-status.text-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .online-status.text-secondary {
+            color: #6c757d;
+        }
+        .chat-user-item.active {
+            background-color: #e3f2fd;
+            border-left: 3px solid #0d6efd;
+        }
+        .chat-user-item {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .chat-user-item:hover {
+            background-color: #f8f9fa;
+        }
+        .new-message-count {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            display: inline-block;
+            min-width: 20px;
+            text-align: center;
+        }
+        #messageInput:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+        .message-status {
+            font-size: 11px;
+            margin-top: 2px;
+            text-align: right;
+            color: #6c757d;
+        }
+        .message-status .read-receipt.read {
+            color: #0d6efd;
+        }
+        .message-status .read-receipt.delivered {
+            color: #6c757d;
+        }
+        .read-receipt i {
+            font-size: 12px;
+        }
+        .avatar-online {
+            position: relative;
+        }
+        .avatar-online::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background-color: #28a745;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .avatar-offline::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background-color: #6c757d;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .typing-indicator {
+            display: flex;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            margin: 10px;
+            width: fit-content;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            margin: 0 2px;
+            background-color: #9E9EA1;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .total-unread-badge {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        /* Notification animation */
+        @keyframes notificationPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); background-color: #fff3cd; }
+            100% { transform: scale(1); }
+        }
+        
+        .new-message-highlight {
+            animation: notificationPulse 1s ease 3;
+        }
+        
+        /* Message toast */
+        .message-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-left: 4px solid #0d6efd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            max-width: 350px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .message-toast img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        
+        .message-toast-content {
+            flex: 1;
+        }
+        
+        .message-toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .message-toast-text {
+            color: #6c757d;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+        
+        .message-toast-close {
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 18px;
+        }
+        
+        .message-toast-close:hover {
+            color: #dc3545;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="<?php echo e(asset('js/jquery-3.7.1.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/bootstrap.bundle.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/ResizeSensor.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/theia-sticky-sidebar.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/select2.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/moment.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/daterangepicker.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/script.js')); ?>"></script>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            pollInterval: 2000,
+            unreadPollInterval: 5000,
+            authId: <?php echo e(Auth::id()); ?>,
+            authName: '<?php echo e(Auth::user()->name); ?>',
+            authImage: '<?php echo e(Auth::user()->profile && Auth::user()->profile->dp ? asset( Auth::user()->profile->dp) : asset("images/default.jpeg")); ?>',
+            defaultImage: '<?php echo e(asset("images/default.jpeg")); ?>',
+            soundEnabled: true,
+            isDoctor: true,
+            sessionStartAt: <?php echo json_encode($booking ? $booking->sessionStartAt()->toIso8601String() : null, 15, 512) ?>,
+            sessionEndAt: <?php echo json_encode($booking ? $booking->sessionEndAt()->toIso8601String() : null, 15, 512) ?>,
+            sessionRedirectUrl: '<?php echo e(route('doctor.appointment')); ?>'
+        };
+
+        // State variables
+        let lastMessageId = <?php echo e($messages->last()->id ?? 0); ?>;
+        let pollInterval = null;
+        let unreadPollInterval = null;
+        let typingTimer = null;
+        let isTyping = false;
+        let isSending = false; // Flag to prevent multiple sends
+        let sessionEndedHandled = false;
+        let sessionWatcherInterval = null;
+        let notificationSound = document.getElementById('notificationSound');
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function getCurrentBookingId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('booking');
+        }
+
+        function getCurrentReceiverId() {
+            return document.getElementById('receiverId')?.value || null;
+        }
+
+        function getApiBaseUrl() {
+            return '/doctor/chat';
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function formatRelativeTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            if (diffDays === 1) return 'yesterday';
+            return date.toLocaleDateString();
+        }
+
+        function playNotificationSound() {
+            if (CONFIG.soundEnabled && notificationSound) {
+                notificationSound.play().catch(e => console.log('Sound play failed:', e));
+            }
+        }
+
+        function showToast(message, senderName = 'New Message') {
+            const toastEl = document.getElementById('newMessageToast');
+            if (!toastEl) return;
+            
+            document.getElementById('toastSender').textContent = senderName;
+            document.getElementById('toastMessageContent').textContent = message;
+            
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==================== MOBILE HANDLING ====================
+        function handleChatClick(event, bookingId) {
+            if (event) {
+                event.preventDefault();
+            }
+            
+            if (window.innerWidth < 992) {
+                setTimeout(function() {
+                    document.getElementById('chatSidebar').classList.add('d-none');
+                    document.getElementById('chatMessages').classList.remove('d-none');
+                    document.getElementById('chatMessages').classList.add('d-block');
+                }, 50);
+            }
+            
+            // Navigate to the chat
+            window.location.href = `<?php echo e(route('doctor.chat')); ?>?booking=${bookingId}`;
+        }
+
+        function showSidebarOnMobile() {
+            document.getElementById('chatMessages').classList.add('d-none');
+            document.getElementById('chatMessages').classList.remove('d-block');
+            document.getElementById('chatSidebar').classList.remove('d-none');
+            
+            // Remove booking from URL
+            const url = new URL(window.location);
+            url.searchParams.delete('booking');
+            window.history.pushState({}, '', url);
+        }
+
+        function goHomeMobile() {
+            window.location.href = `<?php echo e(route('doctor-dashboard')); ?>`;
+        }
+
+        function forceEndSession(message = 'Consultation time has ended for this booking.') {
+            if (sessionEndedHandled) return;
+            sessionEndedHandled = true;
+
+            if (pollInterval) clearInterval(pollInterval);
+            if (unreadPollInterval) clearInterval(unreadPollInterval);
+            if (sessionWatcherInterval) clearInterval(sessionWatcherInterval);
+
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendMessageBtn');
+            if (messageInput) messageInput.disabled = true;
+            if (sendBtn) sendBtn.disabled = true;
+
+            alert(message);
+            window.location.href = CONFIG.sessionRedirectUrl;
+        }
+
+        async function handleSessionExpiryResponse(response) {
+            if (response.status !== 403) return false;
+
+            try {
+                const data = await response.clone().json();
+                if (data?.session_expired) {
+                    forceEndSession(data.message || 'Consultation time has ended for this booking.');
+                    return true;
+                }
+            } catch (error) {
+                console.debug('Session expiry parse skipped:', error);
+            }
+
+            return false;
+        }
+
+        function startSessionExpiryWatcher() {
+            if (!CONFIG.sessionEndAt) return;
+            const sessionEndTs = Date.parse(CONFIG.sessionEndAt);
+            if (Number.isNaN(sessionEndTs)) return;
+
+            const check = () => {
+                if (Date.now() >= sessionEndTs) {
+                    forceEndSession('Consultation time has ended for this booking.');
+                }
+            };
+
+            check();
+            sessionWatcherInterval = setInterval(check, 1000);
+        }
+
+        // ==================== MESSAGE RENDERING ====================
+        function createMessageElement(message, isCurrentUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isCurrentUser ? 'chats chats-right' : 'chats';
+            messageDiv.setAttribute('data-message-id', message.id);
+            if (!isCurrentUser) {
+                messageDiv.setAttribute('data-is-read', message.is_read ? '1' : '0');
+            }
+            
+            const timeString = formatTime(message.created_at);
+            const senderName = isCurrentUser ? CONFIG.authName : (message.sender?.name || 'Patient');
+            
+            // Fix image path syntax
+            let senderImage = CONFIG.defaultImage;
+            if (isCurrentUser) {
+                senderImage = CONFIG.authImage;
+            } else if (message.sender?.profile_image) {
+                senderImage = `/storage/${message.sender.profile_image}`;
+            } else if (message.sender?.profile?.dp) {
+                senderImage = message.sender.profile.dp;
+            }
+            
+            if (isCurrentUser) {
+                messageDiv.innerHTML = `
+                    <div class="chat-content">
+                        <div class="chat-profile-name text-end justify-content-end">
+                            <h6>${senderName} <span>${timeString}</span></h6>
+                        </div>
+                        <div class="message-content">
+                            ${escapeHtml(message.message)}
+                        </div>
+                        <div class="message-status">
+                            <span class="read-receipt ${message.is_read ? 'read' : 'delivered'}" title="${message.is_read ? 'Read' : 'Delivered'}">
+                                <i class="fa ${message.is_read ? 'fa-check-double' : 'fa-check'}"></i> 
+                                ${message.is_read ? 'Read' : 'Delivered'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="chat-avatar">
+                        <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="chat-avatar">
+                        <img src="${senderImage}" class="dreams_chat" alt="${senderName}">
+                    </div>
+                    <div class="chat-content">
+                        <div class="chat-profile-name">
+                            <h6>${senderName} <span>${timeString}</span></h6>
+                        </div>
+                        <div class="message-content">
+                            ${escapeHtml(message.message)}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return messageDiv;
+        }
+
+        function addMessageToContainer(message, isCurrentUser, scroll = true) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (!messagesContainer) return;
+
+            // Remove "no messages" placeholder
+            const noMessages = messagesContainer.querySelector('.no-messages');
+            if (noMessages) noMessages.remove();
+
+            // Check for duplicates
+            if (messagesContainer.querySelector(`[data-message-id="${message.id}"]`)) {
+                return;
+            }
+
+            const messageElement = createMessageElement(message, isCurrentUser);
+            messagesContainer.appendChild(messageElement);
+
+            if (scroll) scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const chatBody = document.getElementById('chatMessagesBody');
+            if (chatBody) {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        }
+
+        // ==================== READ RECEIPTS ====================
+        async function markMessagesAsRead(bookingId) {
+            if (!bookingId) return;
+
+            try {
+                const response = await fetch(`/doctor/chat/mark-booking-read/${bookingId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to mark messages as read');
+
+                const data = await response.json();
+                
+                if (data.marked_read > 0) {
+                    removeUnreadBadge(bookingId);
+                    updateMessageReadStatus(bookingId);
+                    fetchUnreadCounts();
+                }
+            } catch (error) {
+                console.error('Error marking messages as read:', error);
+            }
+        }
+
+        function removeUnreadBadge(bookingId) {
+            const chatItem = document.querySelector(`.chat-user-item[data-booking-id="${bookingId}"]`);
+            if (chatItem) {
+                const badge = chatItem.querySelector('.unread-badge');
+                if (badge) badge.remove();
+                chatItem.dataset.unread = '0';
+            }
+        }
+
+        function updateMessageReadStatus(bookingId) {
+            // Update all my messages in current chat to show as read
+            const myMessages = document.querySelectorAll('.chats-right[data-message-id]');
+            myMessages.forEach(msg => {
+                const statusSpan = msg.querySelector('.message-status .read-receipt');
+                if (statusSpan) {
+                    statusSpan.className = 'read-receipt read';
+                    statusSpan.innerHTML = '<i class="fa fa-check-double"></i> Read';
+                    statusSpan.title = 'Read';
+                }
+            });
+        }
+
+        async function markMessageAsRead(messageId) {
+            if (!messageId) return false;
+
+            try {
+                const response = await fetch(`/doctor/chat/mark-message-read/${messageId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to mark message as read');
+
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error('Error marking message as read:', error);
+                return false;
+            }
+        }
+
+        // ==================== UNREAD COUNTS ====================
+        async function fetchUnreadCounts() {
+            try {
+                const response = await fetch(`${getApiBaseUrl()}/unread-counts`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch unread counts');
+
+                const data = await response.json();
+                
+                updateSidebarUnreadBadges(data.unread_counts);
+                updateTotalUnreadBadge(data.total_unread);
+                updatePageTitle(data.total_unread);
+                
+            } catch (error) {
+                console.error('Error fetching unread counts:', error);
+            }
+        }
+
+        function updateSidebarUnreadBadges(unreadCounts) {
+            const chatItems = document.querySelectorAll('.chat-user-item');
+            
+            chatItems.forEach(item => {
+                const bookingId = item.dataset.bookingId;
+                const unreadCount = unreadCounts[bookingId] || 0;
+                
+                item.dataset.unread = unreadCount;
+                
+                const lastChatTime = item.querySelector('.last-chat-time');
+                let badge = item.querySelector('.unread-badge');
+                
+                if (unreadCount > 0) {
+                    if (badge) {
+                        badge.textContent = unreadCount;
+                    } else {
+                        badge = document.createElement('div');
+                        badge.className = 'new-message-count unread-badge';
+                        badge.textContent = unreadCount;
+                        lastChatTime?.appendChild(badge);
+                    }
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
+        }
+
+        function updateTotalUnreadBadge(total) {
+            const badge = document.getElementById('totalUnreadBadge');
+            if (badge) {
+                if (total > 0) {
+                    badge.textContent = total;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        function updatePageTitle(totalUnread) {
+            const baseTitle = 'Doctor Chat - <?php echo e(config("app.name")); ?>';
+            document.title = totalUnread > 0 ? `(${totalUnread}) ${baseTitle}` : baseTitle;
+        }
+
+        // ==================== POLLING FOR NEW MESSAGES ====================
+        async function fetchNewMessages() {
+            const bookingId = getCurrentBookingId();
+            if (!bookingId) return;
+
+            try {
+                const response = await fetch(`${getApiBaseUrl()}/messages/new?booking_id=${bookingId}&last_message_id=${lastMessageId}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    if (await handleSessionExpiryResponse(response)) return;
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                if (data.messages && data.messages.length > 0) {
+                    let hasNewMessages = false;
+                    
+                    data.messages.forEach(message => {
+                        const isCurrentUser = message.sender_id == CONFIG.authId;
+                        
+                        if (message.booking_id == bookingId) {
+                            addMessageToContainer(message, isCurrentUser, true);
+                            hasNewMessages = true;
+                            
+                            if (!isCurrentUser) {
+                                showToast(message.message, message.sender?.name || 'Patient');
+                                playNotificationSound();
+                                
+                                // If chat is visible, mark as read
+                                if (isChatVisible()) {
+                                    markMessagesAsRead(bookingId);
+                                }
+                            }
+                        }
+                        
+                        if (message.id > lastMessageId) {
+                            lastMessageId = message.id;
+                        }
+                    });
+                    
+                    if (hasNewMessages) {
+                        updateSidebarLastMessage(bookingId, data.messages[data.messages.length - 1]);
+                        fetchUnreadCounts();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+        }
+
+        function updateSidebarLastMessage(bookingId, lastMessage) {
+            const chatItem = document.querySelector(`.chat-user-item[data-booking-id="${bookingId}"]`);
+            if (chatItem) {
+                const lastMsgEl = chatItem.querySelector('.last-message');
+                const timeEl = chatItem.querySelector('.last-message-time');
+                
+                if (lastMsgEl) {
+                    lastMsgEl.textContent = lastMessage.message.substring(0, 30) + (lastMessage.message.length > 30 ? '...' : '');
+                }
+                if (timeEl) {
+                    timeEl.textContent = formatRelativeTime(lastMessage.created_at);
+                }
+            }
+        }
+
+        function isChatVisible() {
+            return document.visibilityState === 'visible' && 
+                   document.getElementById('chatMessages').classList.contains('d-block');
+        }
+
+        // ==================== SEND MESSAGE (FIXED - PREVENTS MULTIPLE SENDS) ====================
+        async function sendMessage() {
+            // Prevent multiple simultaneous sends
+            if (isSending) {
+                console.log('Message already sending, please wait...');
+                return;
+            }
+
+            const form = document.getElementById('chatForm');
+            if (!form) {
+                console.error('Chat form not found');
+                return;
+            }
+
+            const messageInput = document.getElementById('messageInput');
+            if (!messageInput) {
+                console.error('Message input not found');
+                return;
+            }
+
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            // Check if receiver_id and booking_id are set
+            const receiverId = document.getElementById('receiverId')?.value;
+            const bookingId = document.getElementById('bookingId')?.value;
+            
+            if (!receiverId || !bookingId) {
+                alert('Chat session not properly initialized. Please select a chat again.');
+                return;
+            }
+
+            // Set sending flag to true
+            isSending = true;
+            
+            // Disable the send button and input to prevent multiple clicks
+            const sendBtn = document.getElementById('sendMessageBtn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+            }
+            messageInput.disabled = true;
+
+            // Create FormData manually to ensure all fields are sent
+            const formData = new FormData();
+            formData.append('_token', '<?php echo e(csrf_token()); ?>');
+            formData.append('receiver_id', receiverId);
+            formData.append('booking_id', bookingId);
+            formData.append('message', message);
+            
+            console.log('Sending message once:', {
+                url: form.action,
+                receiver_id: receiverId,
+                booking_id: bookingId,
+                message: message
+            });
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                        // Don't set Content-Type header - let browser set it with boundary for FormData
+                    }
+                });
+
+                // Try to parse the response
+                let data;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response');
+                }
+
+                if (!response.ok) {
+                    if (data?.session_expired) {
+                        forceEndSession(data.message || 'Consultation time has ended for this booking.');
+                        return;
+                    }
+                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                }
+
+                console.log('Message sent successfully:', data);
+                
+                if (data.success) {
+                    // Add message to chat
+                    addMessageToContainer(data.message, true, true);
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    
+                    // Update last message ID
+                    if (data.message.id > lastMessageId) {
+                        lastMessageId = data.message.id;
+                    }
+                    
+                    // Update sidebar with last message
+                    updateSidebarLastMessage(data.message.booking_id, data.message);
+                    
+                    // Fetch updated unread counts
+                    fetchUnreadCounts();
+                } else {
+                    alert('Failed to send message: ' + (data.message || 'Unknown error'));
+                }
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please check your connection and try again.\nError: ' + error.message);
+            } finally {
+                // Reset sending flag and re-enable inputs
+                isSending = false;
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                }
+                messageInput.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // ==================== TYPING INDICATOR ====================
+        function checkTyping() {
+            if (!isTyping) {
+                isTyping = true;
+                // Broadcast typing status (can be implemented with WebSocket)
+            }
+            
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                isTyping = false;
+                // Broadcast stopped typing
+            }, 1000);
+        }
+
+        // ==================== EMOJI PICKER ====================
+        const emojiPickerBtn = document.querySelector('.emoji-picker-btn');
+        if (emojiPickerBtn) {
+            emojiPickerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const picker = document.getElementById('emojiPicker');
+                if (picker) {
+                    picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Close emoji picker when clicking outside
+        document.addEventListener('click', function(e) {
+            const picker = document.getElementById('emojiPicker');
+            const btn = document.querySelector('.emoji-picker-btn');
+            if (picker && btn && !btn.contains(e.target) && !picker.contains(e.target)) {
+                picker.style.display = 'none';
+            }
+        });
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('messageInput');
+            if (input) {
+                input.value += emoji;
+                input.focus();
+                document.getElementById('emojiPicker').style.display = 'none';
+            }
+        }
+
+        // ==================== MESSAGE SEARCH ====================
+        const messageSearch = document.getElementById('messageSearch');
+        if (messageSearch) {
+            messageSearch.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const messages = document.querySelectorAll('.chats .message-content');
+                
+                messages.forEach(msg => {
+                    const text = msg.textContent.toLowerCase();
+                    const chatElement = msg.closest('.chats');
+                    
+                    if (text.includes(searchTerm) && searchTerm.length > 0) {
+                        chatElement.style.backgroundColor = '#fff3cd';
+                        chatElement.style.transition = 'background-color 0.3s';
+                    } else {
+                        chatElement.style.backgroundColor = '';
+                    }
+                });
+            });
+        }
+
+        function closeMessageSearch() {
+            const searchInput = document.getElementById('messageSearch');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            document.querySelectorAll('.chats').forEach(el => el.style.backgroundColor = '');
+        }
+
+        // ==================== CHAT ACTIONS ====================
+        function markAllAsRead() {
+            const bookingId = getCurrentBookingId();
+            if (bookingId) {
+                markMessagesAsRead(bookingId);
+                
+                // Also update the UI for all messages in current chat
+                const unreadMessages = document.querySelectorAll('.chats:not(.chats-right)[data-is-read="0"]');
+                unreadMessages.forEach(msg => {
+                    msg.dataset.isRead = '1';
+                });
+            }
+        }
+
+        function clearCurrentChat() {
+            const bookingId = getCurrentBookingId();
+            if (bookingId && confirm('Are you sure you want to clear this chat?')) {
+                // Implement clear chat functionality
+                $('#clear-chat').modal('hide');
+            }
+        }
+
+        function blockUser() {
+            const patientName = document.getElementById('currentChatName')?.textContent || 'this user';
+            if (confirm(`Are you sure you want to block ${patientName}?`)) {
+                // Implement block user functionality
+                $('#block-user').modal('hide');
+            }
+        }
+
+        // ==================== CHAT SEARCH ====================
+        function setupChatSearch() {
+            const searchInput = document.getElementById('chatSearch');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const chatItems = document.querySelectorAll('.chat-user-item');
+                
+                chatItems.forEach(item => {
+                    const patientName = item.querySelector('h5')?.textContent.toLowerCase() || '';
+                    const lastMessage = item.querySelector('.last-message')?.textContent.toLowerCase() || '';
+                    
+                    item.style.display = (patientName.includes(searchTerm) || lastMessage.includes(searchTerm)) ? '' : 'none';
+                });
+            });
+        }
+
+        // ==================== INTERSECTION OBSERVER FOR AUTO-READ ====================
+        function setupReadReceiptObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const messageElement = entry.target;
+                        const messageId = messageElement.dataset.messageId;
+                        const isFromOther = !messageElement.classList.contains('chats-right');
+                        
+                        if (isFromOther && messageId && messageElement.dataset.isRead === '0') {
+                            markMessageAsRead(messageId).then(success => {
+                                if (success) {
+                                    messageElement.dataset.isRead = '1';
+                                }
+                            });
+                            
+                            observer.unobserve(messageElement);
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            // Observe all messages from other users that are not read
+            const messages = document.querySelectorAll('.chats:not(.chats-right)[data-is-read="0"]');
+            messages.forEach(msg => observer.observe(msg));
+        }
+
+        // ==================== FORM SUBMISSION HANDLER (SIMPLIFIED) ====================
+        function setupFormHandler() {
+            const form = document.getElementById('chatForm');
+            if (form) {
+                // Remove any existing listeners to prevent duplicates
+                form.removeEventListener('submit', handleFormSubmit);
+                form.addEventListener('submit', handleFormSubmit);
+            }
+
+            // Enter key handler
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.removeEventListener('keydown', handleEnterKey);
+                messageInput.addEventListener('keydown', handleEnterKey);
+            }
+
+            // Send button click handler
+            const sendBtn = document.getElementById('sendMessageBtn');
+            if (sendBtn) {
+                // Remove the onclick attribute if it exists
+                sendBtn.removeAttribute('onclick');
+                sendBtn.removeEventListener('click', handleButtonClick);
+                sendBtn.addEventListener('click', handleButtonClick);
+            }
+        }
+
+        // Separate handler functions to allow proper removal
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            sendMessage();
+        }
+
+        function handleEnterKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function handleButtonClick(e) {
+            e.preventDefault();
+            sendMessage();
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set last message ID
+            const lastMessage = document.querySelector('.messages .chats:last-child');
+            if (lastMessage) {
+                lastMessageId = parseInt(lastMessage.dataset.messageId) || 0;
+                console.log('Last message ID:', lastMessageId);
+            }
+
+            // Mobile view handling
+            const currentBookingId = getCurrentBookingId();
+            
+            if (window.innerWidth < 992) {
+                if (currentBookingId) {
+                    document.getElementById('chatSidebar').classList.add('d-none');
+                    document.getElementById('chatMessages').classList.remove('d-none');
+                    document.getElementById('chatMessages').classList.add('d-block');
+                    
+                    const activeChat = document.querySelector(`[data-booking-id="${currentBookingId}"]`);
+                    if (activeChat) activeChat.classList.add('active');
+                } else {
+                    document.getElementById('chatSidebar').classList.remove('d-none');
+                    document.getElementById('chatMessages').classList.add('d-none');
+                }
+            }
+
+            // Scroll to bottom
+            scrollToBottom();
+
+            // Setup chat search
+            setupChatSearch();
+
+            // Setup read receipt observer
+            setupReadReceiptObserver();
+
+            // Setup form handler
+            setupFormHandler();
+
+            // Start polling
+            if (currentBookingId) {
+                pollInterval = setInterval(fetchNewMessages, CONFIG.pollInterval);
+                startSessionExpiryWatcher();
+            }
+            
+            unreadPollInterval = setInterval(fetchUnreadCounts, CONFIG.unreadPollInterval);
+            
+            // Initial fetch
+            fetchUnreadCounts();
+
+            // Mark messages as read if chat is open
+            if (currentBookingId && isChatVisible()) {
+                markMessagesAsRead(currentBookingId);
+            }
+
+            // Visibility change handler
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden && currentBookingId) {
+                    markMessagesAsRead(currentBookingId);
+                }
+            });
+
+            console.log('Chat initialized with booking ID:', currentBookingId);
+        });
+
+        // ==================== RESIZE HANDLING ====================
+        window.addEventListener('resize', function() {
+            const currentBookingId = getCurrentBookingId();
+            
+            if (window.innerWidth >= 992) {
+                document.getElementById('chatSidebar').classList.remove('d-none');
+                document.getElementById('chatMessages').classList.remove('d-none');
+                document.getElementById('chatMessages').classList.add('d-block');
+            } else {
+                if (currentBookingId) {
+                    document.getElementById('chatSidebar').classList.add('d-none');
+                    document.getElementById('chatMessages').classList.remove('d-none');
+                } else {
+                    document.getElementById('chatSidebar').classList.remove('d-none');
+                    document.getElementById('chatMessages').classList.add('d-none');
+                }
+            }
+        });
+
+        // ==================== CLEANUP ====================
+        window.addEventListener('beforeunload', function() {
+            if (pollInterval) clearInterval(pollInterval);
+            if (unreadPollInterval) clearInterval(unreadPollInterval);
+            if (sessionWatcherInterval) clearInterval(sessionWatcherInterval);
+        });
+    </script>
+</body>
+
+</html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/doctor/chat.blade.php ENDPATH**/ ?>
