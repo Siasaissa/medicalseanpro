@@ -1,174 +1,123 @@
 @include('layouts.adminHead')
-
 <body>
+<div class="main-wrapper">
+    @include('layouts.adminHeader')
+    @include('layouts.adminSidebar')
 
-	<!-- Main Wrapper -->
-	<div class="main-wrapper">
+    <div class="page-wrapper">
+        <div class="content container-fluid">
+            <div class="page-header">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3 class="page-title">Transactions Control Panel</h3>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Transactions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-		<!-- Header -->
-		@include('layouts.adminHeader')
-		<!-- /Header -->
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
 
-		<!-- Sidebar -->
-		@include('layouts.adminSidebar')
-		<!-- /Sidebar -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" action="{{ route('admin.Transaction') }}" class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <input type="text" name="q" class="form-control" placeholder="Search order ID / user / email / phone" value="{{ $filters['q'] ?? '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="status" class="form-control">
+                                <option value="">All Statuses</option>
+                                @foreach($transactionStatusOptions as $statusOption)
+                                    <option value="{{ $statusOption }}" @selected(($filters['status'] ?? '') === $statusOption)>{{ ucfirst($statusOption) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ route('admin.Transaction') }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
 
-		<!-- Page Wrapper -->
-		<div class="page-wrapper">
-			<div class="content container-fluid">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>User</th>
+                                    <th>Phone</th>
+                                    <th>Total</th>
+                                    <th>Current Status</th>
+                                    <th>Control</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($transactions as $trans)
+                                    @php
+                                        $avatar = $trans->user?->profile?->dp ? asset($trans->user->profile->dp) : asset('images/default.jpeg');
+                                        $status = strtolower((string) $trans->status);
+                                        $statusClass = $status === 'paid'
+                                            ? 'bg-success'
+                                            : (in_array($status, ['pending','processing']) ? 'bg-warning text-dark' : 'bg-danger');
+                                    @endphp
+                                    <tr>
+                                        <td>#ORD{{ str_pad($trans->id, 4, '0', STR_PAD_LEFT) }}</td>
+                                        <td>
+                                            <h2 class="table-avatar">
+                                                <a href="javascript:void(0);" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="{{ $avatar }}" alt="User"></a>
+                                                <a href="javascript:void(0);">{{ $trans->user?->name ?? 'Guest User' }}<br><small>{{ $trans->user?->email ?? 'No email' }}</small></a>
+                                            </h2>
+                                        </td>
+                                        <td>{{ $trans->phone ?? 'N/A' }}</td>
+                                        <td>Tsh {{ number_format((float) $trans->total, 2) }}</td>
+                                        <td><span class="badge rounded-pill {{ $statusClass }}">{{ strtoupper($status) }}</span></td>
+                                        <td>
+                                            <div class="d-flex flex-column gap-2">
+                                                <form method="POST" action="{{ route('admin.transactions.status', $trans) }}" class="d-flex gap-2 align-items-center">
+                                                    @csrf
+                                                    <select name="status" class="form-select form-select-sm" style="min-width: 150px;">
+                                                        @foreach($transactionStatusOptions as $statusOption)
+                                                            <option value="{{ $statusOption }}" @selected($status === $statusOption)>{{ ucfirst($statusOption) }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                                </form>
 
-				<!-- Page Header -->
-				<div class="page-header">
-					<div class="row">
-						<div class="col-sm-12">
-							<h3 class="page-title">Transactions</h3>
-							<ul class="breadcrumb">
-								<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
-								<li class="breadcrumb-item active">Transactions</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-				<!-- /Page Header -->
+                                                <form method="POST" action="{{ route('admin.transactions.destroy', $trans) }}" onsubmit="return confirm('Delete this transaction permanently?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">No transactions found.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
-				<div class="row">
-					<div class="col-sm-12">
-						<div class="card">
-							<div class="card-body">
-								<div class="table-responsive">
-									<table class="datatable table table-hover table-center mb-0">
-										<thead>
-											<tr>
-												<th>Invoice Number</th>
-												<th>Patient ID</th>
-												<th>Patient Name</th>
-												<th>Total Amount</th>
-												<th>Status</th>
-												<th>Actions</th>
-											</tr>
-										</thead>
-										<tbody>
-											@foreach ($transactions as $trans)
-																				<tr>
-																					<td>
-																						<a href="">#ORD{{ str_pad($trans->id, 4, '0', STR_PAD_LEFT) }}</a>
-																					</td>
+                    <div class="mt-3">
+                        {{ $transactions->links() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-																					<td>
-																						@if($trans->user_id)
-																							#USR{{ str_pad($trans->user_id, 3, '0', STR_PAD_LEFT) }}
-																						@else
-																							Guest
-																						@endif
-																					</td>
-
-																					<td>
-																						<h2 class="table-avatar">
-																							<a href="profile.html" class="avatar avatar-sm me-2">
-																								<img class="avatar-img rounded-circle"
-																									src="{{ asset($trans->profile->dp) }}"
-																									alt="User Image">
-																							</a>
-																							<a href="profile.html">
-																								{{ $trans->user->name ?? 'Guest User' }}
-																							</a>
-																						</h2>
-																					</td>
-
-																					<td>
-																						Tsh. {{ number_format($trans->total, 0) }}
-																					</td>
-
-																					<td>
-																						@php
-																							$normalizedStatus = strtoupper((string) $trans->status);
-																							if (in_array($normalizedStatus, ['PAID', 'SUCCESS'], true)) {
-																								$statusClass = 'bg-success';
-																								$statusLabel = 'Success';
-																							} elseif (in_array($normalizedStatus, ['PENDING', 'PROCESSING'], true)) {
-																								$statusClass = 'bg-warning';
-																								$statusLabel = 'Processing';
-																							} else {
-																								$statusClass = 'bg-danger';
-																								$statusLabel = 'Failed';
-																							}
-																						@endphp
-																						<span class="badge rounded-pill 
-																							{{ $statusClass }}">
-																							{{ $statusLabel }}
-																						</span>
-																					</td>
-
-																					<td>
-																						<div class="actions">
-																							<a href="#" class="btn btn-sm bg-success-light">
-																								<i class="fe fe-eye"></i> View
-																							</a>
-																							<a href="#" class="btn btn-sm bg-danger-light"
-																								data-bs-toggle="modal"
-																								data-bs-target="#delete_modal_{{ $trans->id }}">
-																								<i class="fe fe-trash"></i> Delete
-																							</a>
-																						</div>
-																					</td>
-																				</tr>
-											@endforeach
-
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- /Page Wrapper -->
-
-		<!-- Delete Modal -->
-		<div class="modal fade" id="delete_modal" aria-hidden="true" role="dialog">
-			<div class="modal-dialog modal-dialog-centered" role="document">
-				<div class="modal-content">
-					<div class="modal-body">
-						<div class="form-content p-2">
-							<h4 class="modal-title">Delete</h4>
-							<p class="mb-4">Are you sure want to delete?</p>
-							<button type="button" class="btn btn-primary">Save </button>
-							<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- /Delete Modal -->
-
-	</div>
-	<!-- /Main Wrapper -->
-
-	<!-- jQuery -->
-	<script src="{{asset('js/jquery-3.7.1.min.js')}}" type="d2241dbc8fbf4e82f8c24724-text/javascript"></script>
-
-	<!-- Bootstrap Core JS -->
-	<script src="{{asset('js/bootstrap.bundle.min.js')}}" type="d2241dbc8fbf4e82f8c24724-text/javascript"></script>
-
-	<!-- Slimscroll JS -->
-	<script src="{{asset('js/jquery.slimscroll.min.js')}}" type="d2241dbc8fbf4e82f8c24724-text/javascript"></script>
-
-	<!-- Datatables JS -->
-	<script src="{{asset('js/jquery.dataTables.min.js')}}" type="d2241dbc8fbf4e82f8c24724-text/javascript"></script>
-	<script src="{{asset('js/datatables.min.js')}}" type="d2241dbc8fbf4e82f8c24724-text/javascript"></script>
-
-	<!-- Custom JS -->
-	<script src="{{asset('js/script.js')}}" type="d2241dbc8fbf4e82f8c24724-text/javascript"></script>
-
-	<script src="{{asset('js/rocket-loader.min.js')}}" data-cf-settings="d2241dbc8fbf4e82f8c24724-|49"
-		defer=""></script>
-	<script defer=""
-		src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
-		data-cf-beacon="{"
-		version":"2024.11.0","token":"3ca157e612a14eccbb30cf6db6691c29","server_timing":{"name":{"cfcachestatus":true,"cfedge":true,"cfextpri":true,"cfl4":true,"cforigin":true,"cfspeedbrain":true},"location_startswith":null}}"=""
-		crossorigin="anonymous"></script>
-
+<script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
+<script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('js/jquery.slimscroll.min.js') }}"></script>
+<script src="{{ asset('js/script.js') }}"></script>
 </body>
-
 </html>

@@ -23,14 +23,13 @@ class Order extends Model
         'items' => 'array',
     ];
 
-public function user()
-{
-    return $this->belongsTo(\App\Models\User::class);
-}
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function profile()
-{
-    return $this->hasOne(Profile::class, 'user_id');
-}
-
+    {
+        return $this->belongsTo(Profile::class, 'user_id', 'user_id');
+    }
 }

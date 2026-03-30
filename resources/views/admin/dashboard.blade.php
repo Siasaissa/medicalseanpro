@@ -1,183 +1,167 @@
 @include('layouts.adminHead')
-    <body>
-	
-		<!-- Main Wrapper -->
-        <div class="main-wrapper">
-		
-			<!-- Header -->
-            @include('layouts.adminHeader')
-			<!-- /Header -->
-			
-			<!-- Sidebar -->
-            @include('layouts.adminSidebar')
-			<!-- /Sidebar -->
-			
-			<!-- Page Wrapper -->
-            <div class="page-wrapper">
-			
-                <div class="content container-fluid">	
-					<!-- Page Header -->
-					<div class="page-header">
-						<div class="row">
-							<div class="col-sm-12">
-								<h3 class="page-title">Welcome <span class="text-danger">{{ Auth::user()->role }}!</span></h3>
-								<ul class="breadcrumb">
-									<li class="breadcrumb-item active">Dashboard</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-					<!-- /Page Header -->
+<body>
+<div class="main-wrapper">
+    @include('layouts.adminHeader')
+    @include('layouts.adminSidebar')
 
-					<div class="row">
-						<div class="col-xl-3 col-sm-6 col-12">
-							<div class="card">
-								<div class="card-body">
-									<div class="dash-widget-header">
-										<span class="dash-widget-icon text-primary border-primary">
-											<i class="fe fe-users"></i>
-										</span>
-										<div class="dash-count">
-											<h3>{{ $doctor }}</h3>
-										</div>
-									</div>
-									<div class="dash-widget-info">
-										<h6 class="text-muted">Doctors</h6>
-										<div class="progress progress-sm">
-											<div class="progress-bar bg-primary w-50"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-xl-3 col-sm-6 col-12">
-							<div class="card">
-								<div class="card-body">
-									<div class="dash-widget-header">
-										<span class="dash-widget-icon text-success">
-											<i class="fe fe-credit-card"></i>
-										</span>
-										<div class="dash-count">
-											<h3>{{ $patient }}</h3>
-										</div>
-									</div>
-									<div class="dash-widget-info">
-										
-										<h6 class="text-muted">Patients</h6>
-										<div class="progress progress-sm">
-											<div class="progress-bar bg-success w-50"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-xl-3 col-sm-6 col-12">
-							<div class="card">
-								<div class="card-body">
-									<div class="dash-widget-header">
-										<span class="dash-widget-icon text-danger border-danger">
-											<i class="fe fe-money"></i>
-										</span>
-										<div class="dash-count">
-											<h3>{{ $booking }}</h3>
-										</div>
-									</div>
-									<div class="dash-widget-info">
-										
-										<h6 class="text-muted">Appointment</h6>
-										<div class="progress progress-sm">
-											<div class="progress-bar bg-danger w-50"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-xl-3 col-sm-6 col-12">
-							<div class="card">
-								<div class="card-body">
-									<div class="dash-widget-header">
-										<span class="dash-widget-icon text-warning border-warning">
-											<i class="fe fe-folder"></i>
-										</span>
-										<div class="dash-count">
-											<h6>Tsh{{ number_format($revenue, 2) }}</h6>
-										</div>
-									</div>
-									<div class="dash-widget-info">
-										
-										<h6 class="text-muted">Revenue</h6>
-										<div class="progress progress-sm">
-											<div class="progress-bar bg-warning w-50"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-md-12 col-lg-12">
-						
-							<!-- Sales Chart -->
-							<div class="card card-chart">
-								<div class="card-header">
-									<h4 class="card-title">Revenue</h4>
-								</div>
-								<div class="card-body">
-									<div id="morrisArea"></div>
-								</div>
-							</div>
-							<!-- /Sales Chart -->
-							
-						</div>
-						<div class="col-md-12 col-lg-12">
-						
-							<!-- Invoice Chart -->
-							<div class="card card-chart">
-								<div class="card-header">
-									<h4 class="card-title">Status</h4>
-								</div>
-								<div class="card-body">
-									<div id="morrisLine"></div>
-								</div>
-							</div>
-							<!-- /Invoice Chart -->
-							
-						</div>	
-					</div>
+    <div class="page-wrapper">
+        <div class="content container-fluid">
+            <div class="page-header">
+                <div class="row">
+                    <div class="col-sm-12 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="page-title">Admin Control Center</h3>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item active">Dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-					<div class="row">
-						<div class="col-md-12">
-						
-							<!-- Recent Orders -->
-							
-							<!-- /Recent Orders -->
-							
-						</div>
-					</div>
-					
-				</div>			
-			</div>
-			<!-- /Page Wrapper -->
-		
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+
+            <div class="row">
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="dash-widget-header">
+                                <span class="dash-widget-icon text-primary border-primary"><i class="fe fe-users"></i></span>
+                                <div class="dash-count"><h3>{{ $doctor }}</h3></div>
+                            </div>
+                            <div class="dash-widget-info"><h6 class="text-muted">Doctors</h6></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="dash-widget-header">
+                                <span class="dash-widget-icon text-success border-success"><i class="fe fe-user"></i></span>
+                                <div class="dash-count"><h3>{{ $patient }}</h3></div>
+                            </div>
+                            <div class="dash-widget-info"><h6 class="text-muted">Patients</h6></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="dash-widget-header">
+                                <span class="dash-widget-icon text-danger border-danger"><i class="fe fe-calendar"></i></span>
+                                <div class="dash-count"><h3>{{ $booking }}</h3></div>
+                            </div>
+                            <div class="dash-widget-info"><h6 class="text-muted">Bookings</h6></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="dash-widget-header">
+                                <span class="dash-widget-icon text-warning border-warning"><i class="fe fe-dollar-sign"></i></span>
+                                <div class="dash-count"><h6>Tsh {{ number_format((float) $revenue, 2) }}</h6></div>
+                            </div>
+                            <div class="dash-widget-info"><h6 class="text-muted">Total Revenue</h6></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="mb-3">Quick Controls</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{{ route('admin.doctorList') }}" class="btn btn-outline-primary">Manage Doctors</a>
+                                <a href="{{ route('admin.patientList') }}" class="btn btn-outline-primary">Manage Patients</a>
+                                <a href="{{ route('admin.appointment') }}" class="btn btn-outline-primary">Manage Bookings</a>
+                                <a href="{{ route('admin.Transaction') }}" class="btn btn-outline-primary">Manage Transactions</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0">Recent Bookings</h5></div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Doctor</th>
+                                            <th>Patient</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($recentBookings as $b)
+                                            @php $status = strtoupper((string) $b->status); @endphp
+                                            <tr>
+                                                <td>#APT{{ str_pad($b->id, 4, '0', STR_PAD_LEFT) }}</td>
+                                                <td>{{ $b->doctor?->name ?? 'N/A' }}</td>
+                                                <td>{{ $b->patient?->name ?? 'N/A' }}</td>
+                                                <td>{{ $status }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr><td colspan="4" class="text-muted text-center">No bookings yet.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0">Recent Transactions</h5></div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($recentTransactions as $t)
+                                            <tr>
+                                                <td>#ORD{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</td>
+                                                <td>{{ $t->user?->name ?? 'Guest' }}</td>
+                                                <td>Tsh {{ number_format((float) $t->total, 2) }}</td>
+                                                <td>{{ strtoupper((string) $t->status) }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr><td colspan="4" class="text-muted text-center">No transactions yet.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-		<!-- /Main Wrapper -->
-		
-		<!-- jQuery -->
-        <script src="{{asset('admincss/js/jquery-3.7.1.min.js')}}" type="ddae2681d5c9e0c25c9ee012-text/javascript"></script>
-		
-		<!-- Bootstrap Core JS -->
-        <script src="{{asset('admincss/js/bootstrap.bundle.min.js')}}" type="ddae2681d5c9e0c25c9ee012-text/javascript"></script>
-		
-		<!-- Slimscroll JS -->
-        <script src="{{asset('admincss/js/jquery.slimscroll.min.js')}}" type="ddae2681d5c9e0c25c9ee012-text/javascript"></script>
-		
-		<script src="{{asset('admincss/js/raphael.min.js')}}" type="ddae2681d5c9e0c25c9ee012-text/javascript"></script>    
-		<script src="{{asset('admincss/js/morris.min.js')}}" type="ddae2681d5c9e0c25c9ee012-text/javascript"></script>  
-		<script src="{{asset('admincss/js/chart.morris.js')}}" type="ddae2681d5c9e0c25c9ee012-text/javascript"></script>
-		
-		<!-- Custom JS -->
-		<script src="{{asset('admincss/js/script.js')}}" type="ddae2681d5c9e0c25c9ee012-text/javascript"></script>
-		
-    <script src="{{asset('admincss/js/rocket-loader.min.js')}}" data-cf-settings="ddae2681d5c9e0c25c9ee012-|49" defer=""></script><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" data-cf-beacon="{" rayid":"97c6b5108cb86627","servertiming":{"name":{"cfextpri":true,"cfedge":true,"cforigin":true,"cfl4":true,"cfspeedbrain":true,"cfcachestatus":true}},"version":"2025.8.0","token":"3ca157e612a14eccbb30cf6db6691c29"}"="" crossorigin="anonymous"></script>
+    </div>
+</div>
 
-</body></html>
+<script src="{{ asset('admincss/js/jquery-3.7.1.min.js') }}"></script>
+<script src="{{ asset('admincss/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('admincss/js/jquery.slimscroll.min.js') }}"></script>
+<script src="{{ asset('admincss/js/script.js') }}"></script>
+</body>
+</html>

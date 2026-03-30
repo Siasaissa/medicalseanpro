@@ -48,7 +48,11 @@ Route::middleware(['auth','verified', 'role:admin'])->group(function (){
     Route::get('/admin/appointment', [AdminController::class, 'appointment'])->name('admin.appointment');
     Route::get('/admin/doctorList', [AdminController::class, 'doctorList'])->name('admin.doctorList');
     Route::get('/admin/patientList', [AdminController::class, 'patientList'])->name('admin.patientList');
-    Route::get('/admin/Transaction', [AdminController::class, 'Transaction'])->name('admin.Transaction');
+    Route::get('/admin/Transaction', [AdminController::class, 'transaction'])->name('admin.Transaction');
+    Route::post('/admin/users/{user}/status', [AdminController::class, 'updateUserStatus'])->name('admin.users.status');
+    Route::post('/admin/bookings/{booking}/status', [AdminController::class, 'updateBookingStatus'])->name('admin.bookings.status');
+    Route::post('/admin/transactions/{order}/status', [AdminController::class, 'updateTransactionStatus'])->name('admin.transactions.status');
+    Route::delete('/admin/transactions/{order}', [AdminController::class, 'destroyTransaction'])->name('admin.transactions.destroy');
 });
 
 // doctor routes
