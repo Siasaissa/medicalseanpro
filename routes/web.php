@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Services\ZegoToken; 
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\PatientVitalController;
 use Carbon\Carbon;
 use App\Http\Controllers\Auth\GoogleController;
 
@@ -90,7 +91,9 @@ Route::middleware(['auth', 'verified', 'role:patient'])->group(function () {
     Route::get('/patient/favourites', [BookingController::class, 'favourites'])->name('patient.favourites');
     Route::get('/patient/wallet', [walletController::class, 'transaction'])->name('patient.wallet');
     
-    Route::get('/patient/vitals', fn () => view('patient.vitals'))->name('patient.vitals');
+    Route::get('/patient/vitals', [PatientVitalController::class, 'index'])->name('patient.vitals');
+    Route::post('/patient/vitals', [PatientVitalController::class, 'store'])->name('patient.vitals.store');
+    Route::delete('/patient/vitals/{vital}', [PatientVitalController::class, 'destroy'])->name('patient.vitals.destroy');
     Route::get('/patient/settings', fn () => view('patient.settings'))->name('patient.settings');
     Route::get('/patient/doctor-grid', [DoctorGrid::class, 'grid'])->name('patient.doctor-grid');
 

@@ -58,18 +58,21 @@
 													<div class="col-lg-6 col-md-6">
 														<div class="payment-amount">
 															<h6><i class="isa isax-wallet-25 text-warning"></i>Total Balance</h6>
-															<span>Tsh 1200</span>
+															<span>Tsh {{ number_format($totalSuccessful ?? 0, 2) }}</span>
 														</div>
 													</div>
 													<div class="col-lg-6 col-md-6">
 														<div class="payment-amount">
 															<h6><i class="isax isax-document5 text-success"></i>Total Transaction</h6>
-															<span>{{ number_format($total,2)}}</span>
+															<span>{{ number_format($totalTransactions ?? 0) }}</span>
 														</div>
 													</div>
 												</div>
 												<div class="payment-request">
-													<span>Last Payment Request: {{ $history->first()->appointment_datetime }}</span>
+													<span>
+                                                        Last Payment Request:
+                                                        {{ $lastPaymentDate ? \Carbon\Carbon::parse($lastPaymentDate)->format('d M Y h:i A') : 'No payment yet' }}
+                                                    </span>
 
 													<a href="#payment_request" class="btn btn-md btn-primary-gradient rounded-pill" data-bs-toggle="modal">Add Payment</a>
 												</div>
@@ -133,16 +136,20 @@
 																<a href="javascript:void(0);" class="link-primary">#AC000{{ $loop->iteration }}</a>
 															</td>
 															<td class="text-gray-9">{{ $transact->phone }}</td>
-															<td>{{ $transact->appointment_type }}</td>
-															<td>{{ $transact->appointment_datetime }}</td>
-														<td>{{ number_format($transact->service_price,2) }}</td>
-														@if ( $transact->appointment_datetime < now() )
+															<td>{{ ucfirst($transact->appointment_type) }}</td>
+															<td>{{ \Carbon\Carbon::parse($transact->appointment_datetime)->format('d M Y h:i A') }}</td>
+														<td>{{ number_format($transact->total,2) }}</td>
+														@if ( strtoupper((string)$transact->status) === 'SUCCESS' || strtoupper((string)$transact->status) === 'PAID' )
 															<td>
-																<span class="badge badge-success-transparent inline-flex align-items-center"><i class="fa-solid fa-circle me-1 fs-5"></i>Completed</span>
+																<span class="badge badge-success-transparent inline-flex align-items-center"><i class="fa-solid fa-circle me-1 fs-5"></i>Success</span>
+															</td>
+                                                            @elseif ( strtoupper((string)$transact->status) === 'PROCESSING' || strtoupper((string)$transact->status) === 'PENDING' )
+                                                            <td>
+																<span class="badge badge-warning-transparent inline-flex align-items-center"><i class="fa-solid fa-circle me-1 fs-5"></i>Processing</span>
 															</td>
 															@else
 															<td>
-																<span class="badge badge-warning-transparent inline-flex align-items-center"><i class="fa-solid fa-circle me-1 fs-5"></i>Pending</span>
+																<span class="badge badge-danger-transparent inline-flex align-items-center"><i class="fa-solid fa-circle me-1 fs-5"></i>Failed</span>
 															</td>
 														@endif
 														</tr>
