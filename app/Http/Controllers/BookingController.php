@@ -163,10 +163,13 @@ class BookingController extends Controller
                 Log::error('ClickPesa error', ['error' => $e->getMessage()]);
 
                 $paymentResponse = [
-                    'status' => 'ERROR',
+                    'status' => 'FAILED',
                     'message' => $e->getMessage()
                 ];
             }
+
+            $paymentStatus = $this->normalizePaymentStatus($paymentResponse['status'] ?? null);
+            $paymentMessage = $paymentResponse['message'] ?? null;
 
             /** ---------------- SAVE BOOKING ---------------- */
             $booking = Booking::create([
@@ -183,15 +186,27 @@ class BookingController extends Controller
                 'total' => $validated['total'],
                 'phone' => $validated['phone'],
                 'payment_gateway' => $validated['payment_gateway'],
-                'status' => 'PENDING',
+                'status' => $paymentStatus,
                 'payment_reference' => $orderReference,
                 'payment_response' => json_encode($paymentResponse),
             ]);
 
+            if ($paymentStatus === 'FAILED') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $paymentMessage ?: 'Payment failed. Please top up and try again.',
+                    'booking_id' => $booking->id,
+                    'payment_status' => $paymentStatus
+                ], 200);
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Booking created successfully. Please check your phone for payment prompt.',
+                'message' => $paymentStatus === 'SUCCESS'
+                    ? 'Payment completed successfully.'
+                    : 'Booking created successfully. Please check your phone for payment prompt.',
                 'booking_id' => $booking->id,
+                'payment_status' => $paymentStatus,
                 'redirect' => route('patient.doctor-grid', $doctorId)
             ]);
 

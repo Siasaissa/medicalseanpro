@@ -825,6 +825,9 @@ $(document).ready(function() {
                     } else {
                         // Show error messages from response
                         var errorMessages = [];
+                        if (response.message) {
+                            errorMessages.push(response.message);
+                        }
                         if (response.errors) {
                             for (var field in response.errors) {
                                 if (Array.isArray(response.errors[field])) {
@@ -850,6 +853,9 @@ $(document).ready(function() {
                     var errorMessage = 'An error occurred while processing your payment. Please try again.';
                     
                     try {
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
                         if (xhr.responseJSON && xhr.responseJSON.errors) {
                             var errors = xhr.responseJSON.errors;
                             var errorMessages = [];
