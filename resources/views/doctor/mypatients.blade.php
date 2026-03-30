@@ -246,6 +246,10 @@
 
 									<!-- Appointment Grid -->
 									@foreach ($Mypatient as $patient)
+									@php
+										$patientUser = $patient->patient;
+										$patientProfile = $patientUser?->profile;
+									@endphp
 									<div class="col-xl-6 col-lg-8 col-md-8 d-flex">
 										<div class="appointment-wrap appointment-grid-wrap">
 											<ul>
@@ -253,18 +257,18 @@
 													<div class="appointment-grid-head">
 														<div class="patinet-information">
 															<a href="patient-profile.html">
-																<img src="{{ asset($patient->patient->profile->dp  ?? 'images/profile-06.jpg') }}" alt="User Image">
+																<img src="{{ asset($patientProfile?->dp ?? 'images/profile-06.jpg') }}" alt="User Image">
 															</a>
 
 
 															<div class="patient-info">
-																<p>#Apt000{{ $patient->patient->id }}</p>
+																<p>#Apt000{{ $patientUser?->id ?? 'N/A' }}</p>
 																<h6><a
-																		href="#">{{ $patient->patient->name }}</a>
+																		href="#">{{ $patientUser?->name ?? 'Unknown Patient' }}</a>
 																</h6>
 																<ul>
 																	@php
-																		$dob = $patient->patient->profile->dob ?? null;
+																		$dob = $patientProfile?->dob;
 																		$ageText = 'Not set';
 
 																		if ($dob) {
@@ -281,9 +285,9 @@
 																	@endphp
 
 																	<li>Age : {{ $ageText }}</li>
-																	<li>Sex: {{ $patient->patient->profile->sex ?? 'Not set' }}
+																	<li>Sex: {{ $patientProfile?->sex ?? 'Not set' }}
 																	</li>
-																	<li>Blood Group: {{ $patient->patient->profile->blood_group ?? 'Not set' }}
+																	<li>Blood Group: {{ $patientProfile?->blood_group ?? 'Not set' }}
 																	</li>
 																</ul>
 															</div>
@@ -292,12 +296,16 @@
 													</div>
 												</li>
 												<li class="appointment-info">
-													<p><i class="isax isax-clock5"></i>Join : {{ $patient->patient->created_at }}</p>
-													<p class="mb-0"><i class="isax isax-location5"></i>{{ $patient->patient->profile->address }}</p>
+													<p><i class="isax isax-clock5"></i>Join : {{ $patientUser?->created_at ?? 'N/A' }}</p>
+													<p class="mb-0"><i class="isax isax-location5"></i>{{ $patientProfile?->address ?? 'Address not set' }}</p>
 												</li>
 												<li class="appointment-action">
 													<div class="patient-book">
-														<p><i class="isax isax-calendar-1"></i>Last Booking <span>{{ \Carbon\Carbon::parse($patient->last_appointment)->format('M d, Y h:i A') }}</span></p>
+														<p><i class="isax isax-calendar-1"></i>Last Booking
+															<span>
+																{{ $patient->last_appointment ? \Carbon\Carbon::parse($patient->last_appointment)->format('M d, Y h:i A') : 'No booking yet' }}
+															</span>
+														</p>
 													</div>
 												</li>
 											</ul>
