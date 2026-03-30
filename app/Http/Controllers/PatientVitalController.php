@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PatientVital;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class PatientVitalController extends Controller
 {
@@ -35,12 +37,46 @@ class PatientVitalController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $validated['user_id'] = Auth::id();
-        $validated['recorded_at'] = $validated['recorded_at'] ?? now();
+        // Ensure at least one vital field is provided.
+        $hasAtLeastOneMetric = collect([
+            'bmi',
+            'heart_rate',
+            'fbc_status',
+            'weight',
+            'blood_pressure',
+            'glucose_level',
+            'body_temperature',
+            'spo2',
+        ])->contains(fn ($field) => filled($validated[$field] ?? null));
 
-        PatientVital::create($validated);
+        if (!$hasAtLeastOneMetric) {
+            return redirect()
+                ->route('patient.vitals')
+                ->withErrors(['vitals' => 'Please enter at least one vital measurement.'])
+                ->withInput();
+        }
 
-        return redirect()->route('patient.vitals')->with('success', 'Vitals added successfully.');
+        try {
+            $validated['user_id'] = Auth::id();
+            $validated['recorded_at'] = !empty($validated['recorded_at'])
+                ? Carbon::parse($validated['recorded_at'])
+                : now();
+
+            PatientVital::create($validated);
+
+            return redirect()->route('patient.vitals')->with('success', 'Vitals added successfully.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to save patient vital', [
+                'user_id' => Auth::id(),
+                'payload' => $request->except(['_token']),
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('patient.vitals')
+                ->withErrors(['vitals' => 'Could not save vitals right now. Please try again.'])
+                ->withInput();
+        }
     }
 
     public function destroy(PatientVital $vital)
@@ -54,4 +90,3 @@ class PatientVitalController extends Controller
         return redirect()->route('patient.vitals')->with('success', 'Vital record deleted.');
     }
 }
-

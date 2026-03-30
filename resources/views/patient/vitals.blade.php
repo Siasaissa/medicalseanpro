@@ -33,6 +33,16 @@
                     @include('layouts.sidebar')
 
                     <div class="col-lg-8 col-xl-9">
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div class="dashboard-header d-flex align-items-center justify-content-between">
                             <h3>Vitals</h3>
                             <a href="#addVitalModal" class="btn btn-md btn-primary-gradient rounded-pill" data-bs-toggle="modal">
@@ -215,5 +225,16 @@
     <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/script.js') }}"></script>
+    @if ($errors->any())
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modalEl = document.getElementById('addVitalModal');
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            });
+        </script>
+    @endif
 </body>
 </html>
