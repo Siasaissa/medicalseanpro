@@ -119,6 +119,11 @@
                                                             <i class="fas fa-arrow-left"></i>
                                                         </a>
                                                     </li>
+                                                    <li class="list-inline-item">
+                                                        <a class="text-muted px-2" href="javascript:void(0);" onclick="goHomeMobile()">
+                                                            <i class="fas fa-home"></i>
+                                                        </a>
+                                                    </li>
                                                 </ul>
                                             </div>
                                             @php
@@ -744,6 +749,10 @@
             const url = new URL(window.location);
             url.searchParams.delete('booking');
             window.history.pushState({}, '', url);
+        }
+
+        function goHomeMobile() {
+            window.location.href = `{{ route('dashboard') }}`;
         }
 
         // ==================== MESSAGE RENDERING ====================
