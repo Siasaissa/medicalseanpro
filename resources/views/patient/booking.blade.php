@@ -1,4 +1,7 @@
 @include ('layouts.head')
+@php
+    $serviceOptions = $serviceOptions ?? config('booking.service_options', []);
+@endphp
 
 <body>
     <div class="main-wrapper">
@@ -96,78 +99,29 @@
                                         <div class="card-body booking-body">
                                             <h6 class="mb-3">Services Per Time</h6>
                                             <div class="row">
-                                                <div class="col-lg-4 col-md-6">
-                                                    <div class="service-item">
-                                                        <input class="form-check-input ms-0 mt-0" type="radio"
-                                                            name="service_time" id="service20" value="20" checked
-                                                            data-price="2000" data-fees="20" data-tax="18"
-                                                            data-discount="15">
-                                                        <label class="form-check-label ms-2" for="service20">
-                                                            <span class="service-title d-block mb-1">20 minutes</span>
-                                                            <span class="fs-14 d-block">Tsh 2000</span>
-                                                        </label>
+                                                @forelse ($serviceOptions as $index => $serviceOption)
+                                                    @php $inputId = 'service' . $serviceOption['minutes']; @endphp
+                                                    <div class="col-lg-4 col-md-6">
+                                                        <div class="service-item">
+                                                            <input class="form-check-input ms-0 mt-0" type="radio"
+                                                                name="service_time" id="{{ $inputId }}"
+                                                                value="{{ $serviceOption['minutes'] }}"
+                                                                {{ $index === 0 ? 'checked' : '' }}
+                                                                data-price="{{ $serviceOption['price'] }}"
+                                                                data-fees="{{ $serviceOption['fees'] }}"
+                                                                data-tax="{{ $serviceOption['tax'] }}"
+                                                                data-discount="{{ $serviceOption['discount'] }}">
+                                                            <label class="form-check-label ms-2" for="{{ $inputId }}">
+                                                                <span class="service-title d-block mb-1">{{ $serviceOption['label'] }}</span>
+                                                                <span class="fs-14 d-block">Tsh {{ $serviceOption['price'] }}</span>
+                                                            </label>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-lg-4 col-md-6">
-                                                    <div class="service-item">
-                                                        <input class="form-check-input ms-0 mt-0" type="radio"
-                                                            name="service_time" id="service40" value="40"
-                                                            data-price="4000" data-fees="20" data-tax="18"
-                                                            data-discount="15">
-                                                        <label class="form-check-label ms-2" for="service40">
-                                                            <span class="service-title d-block mb-1">40 minutes</span>
-                                                            <span class="fs-14 d-block">Tsh 4000</span>
-                                                        </label>
+                                                @empty
+                                                    <div class="col-12">
+                                                        <div class="alert alert-warning mb-0">Service options are not configured.</div>
                                                     </div>
-                                                </div>
-                                                <div class="col-lg-4 col-md-6">
-                                                    <div class="service-item">
-                                                        <input class="form-check-input ms-0 mt-0" type="radio"
-                                                            name="service_time" id="service60" value="60"
-                                                            data-price="6000" data-fees="20" data-tax="18"
-                                                            data-discount="15">
-                                                        <label class="form-check-label ms-2" for="service60">
-                                                            <span class="service-title d-block mb-1">1 hour</span>
-                                                            <span class="fs-14 d-block">Tsh 6000</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4 col-md-6">
-                                                    <div class="service-item">
-                                                        <input class="form-check-input ms-0 mt-0" type="radio"
-                                                            name="service_time" id="service80" value="80"
-                                                            data-price="8000" data-fees="20" data-tax="18"
-                                                            data-discount="15">
-                                                        <label class="form-check-label ms-2" for="service80">
-                                                            <span class="service-title d-block mb-1">1 hour 20 minutes</span>
-                                                            <span class="fs-14 d-block">Tsh 8000</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4 col-md-6">
-                                                    <div class="service-item">
-                                                        <input class="form-check-input ms-0 mt-0" type="radio"
-                                                            name="service_time" id="service100" value="100"
-                                                            data-price="10000" data-fees="20" data-tax="18"
-                                                            data-discount="15">
-                                                        <label class="form-check-label ms-2" for="service100">
-                                                            <span class="service-title d-block mb-1">1 hour 40 minutes</span>
-                                                            <span class="fs-14 d-block">Tsh 10000</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4 col-md-6">
-                                                    <div class="service-item">
-                                                        <input class="form-check-input ms-0 mt-0" type="radio"
-                                                            name="service_time" id="service120" value="120"
-                                                            data-price="12000" data-fees="20" data-tax="18"
-                                                            data-discount="15">
-                                                        <label class="form-check-label ms-2" for="service120">
-                                                            <span class="service-title d-block mb-1">2 hours</span>
-                                                            <span class="fs-14 d-block">Tsh 12000</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
+                                                @endforelse
                                             </div>
                                         </div>
 

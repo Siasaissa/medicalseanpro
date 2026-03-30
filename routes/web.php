@@ -203,7 +203,8 @@ Route::post('/doctor/update-availability', [App\Http\Controllers\DoctorGrid::cla
 
 Route::get('/filter/doctors', [DoctorGrid::class, 'filterDoctors'])->name('doctor.filter');
 
-Route::get('/run-storage-link', function () {
+Route::middleware(['auth', 'role:admin'])->get('/run-storage-link', function () {
+    abort_unless(app()->environment('local'), 403);
     Artisan::call('storage:link');
     return 'Storage link created successfully!';
 });

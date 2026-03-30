@@ -50,7 +50,7 @@
 		<!-- Main CSS -->
 		<link rel="stylesheet" href="{{asset('css/custom.css')}}">
 
-		<script type="module" src="http://localhost:5173/resources/js/app.js"></script>
+		@vite('resources/js/app.js')
 
 	
 	</head>

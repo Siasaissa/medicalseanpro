@@ -80,11 +80,22 @@
 																					</td>
 
 																					<td>
+																						@php
+																							$normalizedStatus = strtoupper((string) $trans->status);
+																							if (in_array($normalizedStatus, ['PAID', 'SUCCESS'], true)) {
+																								$statusClass = 'bg-success';
+																								$statusLabel = 'Success';
+																							} elseif (in_array($normalizedStatus, ['PENDING', 'PROCESSING'], true)) {
+																								$statusClass = 'bg-warning';
+																								$statusLabel = 'Processing';
+																							} else {
+																								$statusClass = 'bg-danger';
+																								$statusLabel = 'Failed';
+																							}
+																						@endphp
 																						<span class="badge rounded-pill 
-																							@if($trans->status == 'paid') bg-success 
-																							@elseif($trans->status == 'pending') bg-warning 
-																							@else bg-danger @endif">
-																							{{ ucfirst($trans->status) }}
+																							{{ $statusClass }}">
+																							{{ $statusLabel }}
 																						</span>
 																					</td>
 

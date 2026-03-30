@@ -385,8 +385,9 @@ public function grid(Request $request)
 public function show($doctorId)
 {
     $doctor = User::findOrFail($doctorId);
+    $serviceOptions = config('booking.service_options', []);
 
-    return view('patient.booking', compact('doctor'));
+    return view('patient.booking', compact('doctor', 'serviceOptions'));
 }
 
 
