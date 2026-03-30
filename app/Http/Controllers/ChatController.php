@@ -297,6 +297,7 @@ class ChatController extends Controller
         $lastId = (int) $request->query('last_id', 0);
 
         $query = Message::where('receiver_id', $userId)
+            ->where('is_read', false)
             ->with(['sender:id,name', 'booking:id,user_id,doctor_id']);
 
         // On first run, avoid flooding the user with old notifications.

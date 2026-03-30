@@ -113,7 +113,9 @@
 
         const STORAGE_KEYS = {
             messageLastId: `notif_message_last_id_${CONFIG.userId}`,
-            callLastId: `notif_call_last_id_${CONFIG.userId}`
+            callLastId: `notif_call_last_id_${CONFIG.userId}`,
+            shownMessageIds: `notif_shown_message_ids_${CONFIG.userId}`,
+            shownCallIds: `notif_shown_call_ids_${CONFIG.userId}`
         };
 
         let isTabActive = true;
@@ -179,38 +181,63 @@
             });
         }
 
+        function readIdSet(storageKey) {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                const list = raw ? JSON.parse(raw) : [];
+                return new Set(Array.isArray(list) ? list.map(Number) : []);
+            } catch {
+                return new Set();
+            }
+        }
+
+        function writeIdSet(storageKey, idSet) {
+            const compact = Array.from(idSet).slice(-300); // keep bounded history
+            localStorage.setItem(storageKey, JSON.stringify(compact));
+        }
+
         async function pollMessageNotifications() {
             const lastId = Number(localStorage.getItem(STORAGE_KEYS.messageLastId) || '0');
+            const shownMessageIds = readIdSet(STORAGE_KEYS.shownMessageIds);
             const data = await fetchJson(`{{ route('notifications.messages') }}?last_id=${lastId}`);
             if (!data || !data.success || !Array.isArray(data.messages)) return;
 
             let maxId = lastId;
             data.messages.forEach(msg => {
-                maxId = Math.max(maxId, Number(msg.id || 0));
+                const currentId = Number(msg.id || 0);
+                maxId = Math.max(maxId, currentId);
+                if (shownMessageIds.has(currentId)) return;
+
                 const title = `New message from ${msg.sender_name || 'User'}`;
                 const body = msg.message || 'You have a new message';
 
                 if (typeof window.showInfo === 'function') {
                     window.showInfo(body, title);
                 }
-                if (!isTabActive || Notification.permission === 'granted') {
+                if (!isTabActive) {
                     showBrowserNotification(title, body, msg.url);
                 }
+                shownMessageIds.add(currentId);
             });
 
             if (maxId > lastId) {
                 localStorage.setItem(STORAGE_KEYS.messageLastId, String(maxId));
             }
+            writeIdSet(STORAGE_KEYS.shownMessageIds, shownMessageIds);
         }
 
         async function pollCallNotifications() {
             const lastId = Number(localStorage.getItem(STORAGE_KEYS.callLastId) || '0');
+            const shownCallIds = readIdSet(STORAGE_KEYS.shownCallIds);
             const data = await fetchJson(`{{ route('call.invites.new') }}?last_id=${lastId}`);
             if (!data || !data.success || !Array.isArray(data.invites)) return;
 
             let maxId = lastId;
             for (const invite of data.invites) {
-                maxId = Math.max(maxId, Number(invite.id || 0));
+                const inviteId = Number(invite.id || 0);
+                maxId = Math.max(maxId, inviteId);
+                if (shownCallIds.has(inviteId)) continue;
+
                 const mode = invite.type === 'video' ? 'video call' : 'voice call';
                 const title = `Incoming ${mode}`;
                 const body = `${invite.sender_name || 'Caller'} is inviting you to join booking #APT000${invite.booking_id}`;
@@ -221,11 +248,13 @@
                 showBrowserNotification(title, body, invite.url);
 
                 await postJson(`{{ url('/call/invites') }}/${invite.id}/seen`);
+                shownCallIds.add(inviteId);
             }
 
             if (maxId > lastId) {
                 localStorage.setItem(STORAGE_KEYS.callLastId, String(maxId));
             }
+            writeIdSet(STORAGE_KEYS.shownCallIds, shownCallIds);
         }
 
         requestBrowserPermission();
