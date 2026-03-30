@@ -210,18 +210,24 @@ Route::middleware(['auth'])->get('/booking/{booking}/call', function (Booking $b
 });
 
 Route::post('/profile', [ProfileController::class, 'store'])->name('profile.store');
-Route::get('/pharmacy/product', [PharmacyController::class, 'pharmacy'])->name('pharmacy.product');
-Route::get('/admin/pharmacy', [PharmacyController::class, 'product'])->name('admin.pharmacy');
-Route::get('/admin/AddProduct', [PharmacyController::class, 'AddProduct'])->name('admin.addproduct');
-Route::post('/admin/AddProduct/store', [PharmacyController::class, 'store'])->name('products.store');
-Route::get('/pharmacy/cart', [PharmacyController::class, 'view'])->name('pharmacy.cart');
-Route::post('/cart/add', [PharmacyController::class, 'add'])->name('cart.add');
-Route::post('/cart/remove', [PharmacyController::class, 'remove'])->name('cart.remove');
-Route::post('/cart/update', [PharmacyController::class, 'update'])->name('cart.update');
-Route::get('/pharmacy/checkout', [PharmacyController::class, 'checkout'])->name('pharmacy.checkout');
-Route::post('/pharmacy/checkout/pay', [PharmacyController::class, 'payment'])->name('pharmacy.payment');
-Route::get('/pharmacy/payment/{order}', [PharmacyController::class, 'success'])->name('pharmacy.successfully');
-Route::get('/pharmacy/payment/verify/{payment_reference}', [PharmacyController::class, 'verifyPayment'])->name('pharmacy.verify');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pharmacy/product', [PharmacyController::class, 'pharmacy'])->name('pharmacy.product');
+    Route::get('/pharmacy/cart', [PharmacyController::class, 'view'])->name('pharmacy.cart');
+    Route::post('/cart/add', [PharmacyController::class, 'add'])->name('cart.add');
+    Route::post('/cart/remove', [PharmacyController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/update', [PharmacyController::class, 'update'])->name('cart.update');
+    Route::get('/pharmacy/checkout', [PharmacyController::class, 'checkout'])->name('pharmacy.checkout');
+    Route::post('/pharmacy/checkout/pay', [PharmacyController::class, 'payment'])->name('pharmacy.payment');
+    Route::get('/pharmacy/payment/{order}', [PharmacyController::class, 'success'])->name('pharmacy.successfully');
+    Route::get('/pharmacy/payment/verify/{payment_reference}', [PharmacyController::class, 'verifyPayment'])->name('pharmacy.verify');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/pharmacy', [PharmacyController::class, 'product'])->name('admin.pharmacy');
+    Route::get('/admin/AddProduct', [PharmacyController::class, 'AddProduct'])->name('admin.addproduct');
+    Route::post('/admin/AddProduct/store', [PharmacyController::class, 'store'])->name('products.store');
+});
 
 
 Route::post('/doctor/update-availability', [App\Http\Controllers\DoctorGrid::class, 'updateAvailability'])

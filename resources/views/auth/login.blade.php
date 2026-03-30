@@ -35,7 +35,7 @@
 										<a href="doctor-grid01.html">Doctors</i></a>		
 									</li>
 									<li class="has-submenu">
-										<a href="pharmacy-index.html">Pharmacy</i></a>
+										<a href="{{ route('pharmacy.product') }}">Pharmacy</a>
 									</li>
 									<li class="has-submenu">
 										<a href="{{ route('about.us') }}">About Us</a>
