@@ -41,6 +41,17 @@
 
 				<div class="row">
 					<div class="col-md-6 col-lg-7">
+                        @if(session('error'))
+                            <div class="alert alert-danger">{{ session('error') }}</div>
+                        @endif
+                        @if(session('warning'))
+                            <div class="alert alert-warning">{{ session('warning') }}</div>
+                        @endif
+                        @if($errors->any())
+                            <div class="alert alert-danger">
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
 						<div class="card">
 							<div class="card-header">
 								<h3 class="card-title">Billing details</h3>
@@ -48,19 +59,8 @@
 							<div class="card-body">
 
 								<!-- Checkout Form -->
-								<form action="{{ route('pharmacy.successfully') }}" method="POST">
+								<form action="{{ route('pharmacy.payment') }}" method="POST">
 									@csrf
-
-									<input type="hidden" name="total" value="{{ $total + 5000 }}">
-
-									@foreach ($cart as $item)
-										<input type="hidden" name="items[{{ $item['id'] }}][name]"
-											value="{{ $item['name'] }}">
-										<input type="hidden" name="items[{{ $item['id'] }}][price]"
-											value="{{ $item['price'] }}">
-										<input type="hidden" name="items[{{ $item['id'] }}][quantity]"
-											value="{{ $item['quantity'] ?? 1 }}">
-									@endforeach
 
 									<div class="info-widget">
 										<h4 class="card-title">Shipping Details</h4>
@@ -85,7 +85,7 @@
 										<!-- Halopesa -->
 										<div class="payment-list">
 											<label class="payment-radio credit-card-option">
-												<input type="radio" name="payment_method" value="halopesa" checked>
+												<input type="radio" name="payment_method" value="halopesa" {{ old('payment_method', 'halopesa') === 'halopesa' ? 'checked' : '' }}>
 												<span class="checkmark"></span>
 												Halopesa
 											</label>
@@ -94,7 +94,7 @@
 													<div class="mb-3 card-label">
 														<label for="halopesa_phone">Phone Number</label>
 														<input class="form-control" id="halopesa_phone"
-															name="halopesa_phone" type="number">
+															name="halopesa_phone" type="text" value="{{ old('halopesa_phone') }}">
 													</div>
 												</div>
 											</div>
@@ -104,7 +104,7 @@
 										<!-- Tigo Pesa -->
 										<div class="payment-list">
 											<label class="payment-radio paypal-option">
-												<input type="radio" name="payment_method" value="tigopesa">
+												<input type="radio" name="payment_method" value="tigopesa" {{ old('payment_method') === 'tigopesa' ? 'checked' : '' }}>
 												<span class="checkmark"></span>
 												Tigo Pesa
 											</label>
@@ -113,7 +113,7 @@
 													<div class="mb-3 card-label">
 														<label for="tigopesa_phone">Phone Number</label>
 														<input class="form-control" id="tigopesa_phone"
-															name="tigopesa_phone" type="number">
+															name="tigopesa_phone" type="text" value="{{ old('tigopesa_phone') }}">
 													</div>
 												</div>
 											</div>
@@ -171,7 +171,7 @@
 												<li>{{ $item['name'] }} <span> Tsh. {{ $item['price'] }}</span></li>
 											@endforeach
 
-											<li>Shipping <span>Tsh 5000.00</span></li>
+											<li>Shipping <span>Tsh {{ number_format($shippingFee ?? 5000, 2) }}</span></li>
 
 										</ul>
 										<ul class="booking-fee">
@@ -182,7 +182,7 @@
 												<li>
 													<span>Total</span>
 													<span class="total-cost">Tsh.
-														{{ number_format($total + 5000)  }}</span>
+														{{ number_format($grandTotal ?? ($total + 5000), 2)  }}</span>
 												</li>
 												<li>
 												</li>

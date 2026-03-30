@@ -89,6 +89,66 @@
 							
 						</div>
 					</div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title mb-0">Pharmacy Orders From Patients</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Patient</th>
+                                                    <th>Phone</th>
+                                                    <th>Total</th>
+                                                    <th>Status</th>
+                                                    <th>Reference</th>
+                                                    <th>Control</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($orders as $order)
+                                                    @php
+                                                        $status = strtolower((string) $order->status);
+                                                        $statusClass = $status === 'paid'
+                                                            ? 'bg-success'
+                                                            : (in_array($status, ['pending', 'processing'], true) ? 'bg-warning text-dark' : 'bg-danger');
+                                                    @endphp
+                                                    <tr>
+                                                        <td>#ORD{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}</td>
+                                                        <td>{{ $order->user?->name ?? 'Guest User' }}</td>
+                                                        <td>{{ $order->phone ?? 'N/A' }}</td>
+                                                        <td>Tsh {{ number_format((float) $order->total, 2) }}</td>
+                                                        <td><span class="badge rounded-pill {{ $statusClass }}">{{ strtoupper($status) }}</span></td>
+                                                        <td>{{ $order->payment_reference ?? '-' }}</td>
+                                                        <td>
+                                                            <form method="POST" action="{{ route('admin.transactions.status', $order) }}" class="d-flex gap-2 align-items-center">
+                                                                @csrf
+                                                                <select name="status" class="form-select form-select-sm" style="min-width: 130px;">
+                                                                    @foreach($orderStatusOptions as $statusOption)
+                                                                        <option value="{{ $statusOption }}" @selected($statusOption === $status)>{{ ucfirst($statusOption) }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                                <button class="btn btn-sm btn-primary" type="submit">Update</button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="7" class="text-center text-muted">No pharmacy orders yet.</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 				</div>			
 			</div>
 			<!-- /Page Wrapper -->

@@ -216,7 +216,9 @@ Route::post('/cart/add', [PharmacyController::class, 'add'])->name('cart.add');
 Route::post('/cart/remove', [PharmacyController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/update', [PharmacyController::class, 'update'])->name('cart.update');
 Route::get('/pharmacy/checkout', [PharmacyController::class, 'checkout'])->name('pharmacy.checkout');
-Route::post('/pharmacy/successfully', [PharmacyController::class, 'payment'])->name('pharmacy.successfully');
+Route::post('/pharmacy/checkout/pay', [PharmacyController::class, 'payment'])->name('pharmacy.payment');
+Route::get('/pharmacy/payment/{order}', [PharmacyController::class, 'success'])->name('pharmacy.successfully');
+Route::get('/pharmacy/payment/verify/{payment_reference}', [PharmacyController::class, 'verifyPayment'])->name('pharmacy.verify');
 
 
 Route::post('/doctor/update-availability', [App\Http\Controllers\DoctorGrid::class, 'updateAvailability'])

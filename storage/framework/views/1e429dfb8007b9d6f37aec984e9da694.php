@@ -61,13 +61,13 @@
                                         <div class="shopping-cart-icon">
                                             <a href="<?php echo e(route('pharmacy.cart')); ?>">
                                                 <img src="<?php echo e(asset('images/bag-2.svg')); ?>" alt="Cart">
-                                                <span id="cart-count">0</span>
+                                                <span id="cart-count"><?php echo e($cartCount ?? 0); ?></span>
                                             </a>
                                         </div>
 
                                         <div class="shopping-cart-content">
                                             <p class="text-white">Shopping cart</p>
-                                            <p class="text-white" id="cart-total">Tsh 0</p>
+                                            <p class="text-white" id="cart-total">Tsh <?php echo e(number_format($cartTotal ?? 0, 2)); ?></p>
                                         </div>
                                     </div>
                                 </li>
@@ -182,8 +182,7 @@
                                                 </div>
                                                 <div class="col-lg-6 text-end">
                                                     <a href="javascript:void(0)" class="cart-icon add-to-cart"
-                                                        data-id="<?php echo e($product->id); ?>" data-name="<?php echo e($product->brand_name); ?>"
-                                                        data-price="<?php echo e($product->price); ?>">
+                                                        data-id="<?php echo e($product->id); ?>">
                                                         <i class="fas fa-shopping-cart"></i>
                                                     </a>
 
@@ -217,22 +216,22 @@
     <script>
 $(document).ready(function () {
     $('.add-to-cart').on('click', function () {
-        const product = {
-            id: $(this).data('id'),
-            name: $(this).data('name'),
-            price: parseFloat($(this).data('price')),
-        };
+        const productId = $(this).data('id');
 
         $.ajax({
             url: "<?php echo e(route('cart.add')); ?>",
             method: "POST",
             data: {
                 _token: "<?php echo e(csrf_token()); ?>",
-                product: product
+                product_id: productId
             },
             success: function (response) {
                 $('#cart-count').text(response.count);
-                $('#cart-total').text('Tsh ' + response.total.toLocaleString());
+                $('#cart-total').text('Tsh ' + Number(response.total).toLocaleString());
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON?.message || 'Could not add product to cart.';
+                alert(msg);
             }
         });
     });
@@ -277,4 +276,5 @@ $(document).ready(function () {
 
 </body>
 
-</html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/pharmacy/product.blade.php ENDPATH**/ ?>
+</html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/pharmacy/product.blade.php ENDPATH**/ ?>

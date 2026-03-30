@@ -90,6 +90,66 @@
 							
 						</div>
 					</div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title mb-0">Pharmacy Orders From Patients</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Patient</th>
+                                                    <th>Phone</th>
+                                                    <th>Total</th>
+                                                    <th>Status</th>
+                                                    <th>Reference</th>
+                                                    <th>Control</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php $__empty_1 = true; $__currentLoopData = $orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                                    <?php
+                                                        $status = strtolower((string) $order->status);
+                                                        $statusClass = $status === 'paid'
+                                                            ? 'bg-success'
+                                                            : (in_array($status, ['pending', 'processing'], true) ? 'bg-warning text-dark' : 'bg-danger');
+                                                    ?>
+                                                    <tr>
+                                                        <td>#ORD<?php echo e(str_pad($order->id, 4, '0', STR_PAD_LEFT)); ?></td>
+                                                        <td><?php echo e($order->user?->name ?? 'Guest User'); ?></td>
+                                                        <td><?php echo e($order->phone ?? 'N/A'); ?></td>
+                                                        <td>Tsh <?php echo e(number_format((float) $order->total, 2)); ?></td>
+                                                        <td><span class="badge rounded-pill <?php echo e($statusClass); ?>"><?php echo e(strtoupper($status)); ?></span></td>
+                                                        <td><?php echo e($order->payment_reference ?? '-'); ?></td>
+                                                        <td>
+                                                            <form method="POST" action="<?php echo e(route('admin.transactions.status', $order)); ?>" class="d-flex gap-2 align-items-center">
+                                                                <?php echo csrf_field(); ?>
+                                                                <select name="status" class="form-select form-select-sm" style="min-width: 130px;">
+                                                                    <?php $__currentLoopData = $orderStatusOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $statusOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                        <option value="<?php echo e($statusOption); ?>" <?php if($statusOption === $status): echo 'selected'; endif; ?>><?php echo e(ucfirst($statusOption)); ?></option>
+                                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                                </select>
+                                                                <button class="btn btn-sm btn-primary" type="submit">Update</button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                                    <tr>
+                                                        <td colspan="7" class="text-center text-muted">No pharmacy orders yet.</td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 				</div>			
 			</div>
 			<!-- /Page Wrapper -->
@@ -138,4 +198,5 @@
 		
     <script src="<?php echo e(asset('js/rocket-loader.min.js')); ?>" data-cf-settings="d2241dbc8fbf4e82f8c24724-|49" defer=""></script><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" data-cf-beacon="{" version":"2024.11.0","token":"3ca157e612a14eccbb30cf6db6691c29","server_timing":{"name":{"cfcachestatus":true,"cfedge":true,"cfextpri":true,"cfl4":true,"cforigin":true,"cfspeedbrain":true},"location_startswith":null}}"="" crossorigin="anonymous"></script>
 
-</body></html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/admin/pharmacy.blade.php ENDPATH**/ ?>
+</body></html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/admin/pharmacy.blade.php ENDPATH**/ ?>

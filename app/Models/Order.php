@@ -15,12 +15,18 @@ class Order extends Model
         'total',
         'shipping_address',
         'payment_method',
+        'payment_gateway',
         'phone',
         'status',
+        'payment_reference',
+        'transaction_id',
+        'payment_response',
+        'fulfilled_at',
     ];
 
     protected $casts = [
         'items' => 'array',
+        'fulfilled_at' => 'datetime',
     ];
 
     public function user()

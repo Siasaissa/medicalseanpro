@@ -1,80 +1,85 @@
 <?php echo $__env->make('layouts.head', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-	<body>
+<body>
+    <div class="main-wrapper">
+        <?php echo $__env->make('layouts.header', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-		<!-- Main Wrapper -->
-		<div class="main-wrapper">
-		
-			<!-- Header -->
-			<?php echo $__env->make('layouts.header', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-			<!-- /Header -->
-
-			<!-- Breadcrumb -->
-			<div class="breadcrumb-bar">
-				<div class="container">
-					<div class="row align-items-center inner-banner">
-						<div class="col-md-12 col-12 text-center">
-							<nav aria-label="breadcrumb" class="page-breadcrumb">
-								<ol class="breadcrumb">
-									<li class="breadcrumb-item"><a href="index.html"><i class="isax isax-home-15"></i></a></li>
-									<li class="breadcrumb-item" aria-current="page">Pharmacy</li>
-									<li class="breadcrumb-item active">Payment</li>
-								</ol>
-								<h2 class="breadcrumb-title">Payment</h2>
-							</nav>
-						</div>
-					</div>
-				</div>
-				<div class="breadcrumb-bg">
-                <img src="<?php echo e(asset('images/breadcrumb-bg-01.png')); ?>" alt="img" class="breadcrumb-bg-01">
-                <img src="<?php echo e(asset('images/breadcrumb-bg-02.png')); ?>" alt="img" class="breadcrumb-bg-02">
-                <img src="<?php echo e(asset('images/breadcrumb-icon.webp')); ?>" alt="img" class="breadcrumb-bg-03">
-                <img src="<?php echo e(asset('images/breadcrumb-icon.webp')); ?>" alt="img" class="breadcrumb-bg-04">
+        <div class="breadcrumb-bar">
+            <div class="container">
+                <div class="row align-items-center inner-banner">
+                    <div class="col-md-12 col-12 text-center">
+                        <nav aria-label="breadcrumb" class="page-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="<?php echo e(route('pharmacy.product')); ?>"><i class="isax isax-home-15"></i></a></li>
+                                <li class="breadcrumb-item" aria-current="page">Pharmacy</li>
+                                <li class="breadcrumb-item active">Order Payment</li>
+                            </ol>
+                            <h2 class="breadcrumb-title">Order Payment</h2>
+                        </nav>
+                    </div>
+                </div>
             </div>
-			</div>
-			<!-- /Breadcrumb -->
-			
-			<!-- Page Content -->
-			<div class="content success-page-cont">
-				<div class="container">
-				
-					<div class="row justify-content-center">
-						<div class="col-lg-6">
-						
-							<!-- Success Card -->
-							<div class="card success-card">
-								<div class="card-body">
-									<div class="success-cont">
-										<i class="fas fa-check"></i>
-										<h3>Payment Successfully!</h3>
-										<p class="mb-0">Product ID: 245468</p>
-									</div>
-								</div>
-							</div>
-							<!-- /Success Card -->
-							
-						</div>
-					</div>
-					
-				</div>
-			</div>		
-			<!-- /Page Content -->
-   
-			<!-- Footer Section -->
-			<?php echo $__env->make('layouts.footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-			<!-- /Footer Section -->
-		   
-		</div>
-		<!-- /Main Wrapper -->
-	  
-		<!-- jQuery -->
-		<script src="<?php echo e(asset('js/jquery-3.7.1.min.js')); ?>" type="8beac9251430fc17312fc8b9-text/javascript"></script>
-		
-		<!-- Bootstrap Core JS -->
-		<script src="<?php echo e(asset('js/bootstrap.bundle.min.js')); ?>" type="8beac9251430fc17312fc8b9-text/javascript"></script>
-		
-		<!-- Custom JS -->
-		<script src="<?php echo e(asset('js/script.js')); ?>" type="8beac9251430fc17312fc8b9-text/javascript"></script>
-		
-	<script src="<?php echo e(asset('js/rocket-loader.min.js')); ?>" data-cf-settings="8beac9251430fc17312fc8b9-|49" defer=""></script><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" data-cf-beacon="{" version":"2024.11.0","token":"3ca157e612a14eccbb30cf6db6691c29","server_timing":{"name":{"cfcachestatus":true,"cfedge":true,"cfextpri":true,"cfl4":true,"cforigin":true,"cfspeedbrain":true},"location_startswith":null}}"="" crossorigin="anonymous"></script>
+        </div>
 
-</body></html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/pharmacy/successfully.blade.php ENDPATH**/ ?>
+        <div class="content success-page-cont">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card success-card">
+                            <div class="card-body">
+                                <?php
+                                    $status = strtolower((string) ($order->status ?? 'processing'));
+                                    $isPaid = $status === 'paid';
+                                    $isFailed = $status === 'failed';
+                                ?>
+
+                                <div class="success-cont text-center">
+                                    <i class="fas <?php echo e($isPaid ? 'fa-check text-success' : ($isFailed ? 'fa-times text-danger' : 'fa-clock text-warning')); ?>"></i>
+                                    <h3>
+                                        <?php if($isPaid): ?>
+                                            Payment Completed
+                                        <?php elseif($isFailed): ?>
+                                            Payment Failed
+                                        <?php else: ?>
+                                            Payment Processing
+                                        <?php endif; ?>
+                                    </h3>
+                                    <p class="mb-1">Order ID: <strong>#ORD<?php echo e(str_pad($order->id, 4, '0', STR_PAD_LEFT)); ?></strong></p>
+                                    <p class="mb-3">Reference: <strong><?php echo e($order->payment_reference ?? '-'); ?></strong></p>
+                                    <p class="mb-0">Total: <strong>Tsh <?php echo e(number_format((float) $order->total, 2)); ?></strong></p>
+                                </div>
+
+                                <?php if(session('success')): ?>
+                                    <div class="alert alert-success mt-4"><?php echo e(session('success')); ?></div>
+                                <?php endif; ?>
+                                <?php if(session('warning')): ?>
+                                    <div class="alert alert-warning mt-4"><?php echo e(session('warning')); ?></div>
+                                <?php endif; ?>
+                                <?php if(session('error')): ?>
+                                    <div class="alert alert-danger mt-4"><?php echo e(session('error')); ?></div>
+                                <?php endif; ?>
+
+                                <div class="d-flex gap-2 flex-wrap mt-4 justify-content-center">
+                                    <?php if(!$isPaid && !empty($order->payment_reference)): ?>
+                                        <a href="<?php echo e(route('pharmacy.verify', $order->payment_reference)); ?>" class="btn btn-primary">
+                                            Verify Payment Status
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="<?php echo e(route('pharmacy.product')); ?>" class="btn btn-outline-primary">Continue Shopping</a>
+                                    <a href="<?php echo e(route('pharmacy.cart')); ?>" class="btn btn-outline-secondary">Go To Cart</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php echo $__env->make('layouts.footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    </div>
+
+    <script src="<?php echo e(asset('js/jquery-3.7.1.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/bootstrap.bundle.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/script.js')); ?>"></script>
+</body>
+</html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/pharmacy/successfully.blade.php ENDPATH**/ ?>

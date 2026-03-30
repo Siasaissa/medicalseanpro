@@ -37,6 +37,12 @@
         <!-- Page Content -->
         <div class="content">
             <div class="container">
+                @if(session('error'))
+                    <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
+                @if(session('success'))
+                    <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
 
                 <div class="card card-table">
                     <div class="card-body">
@@ -120,13 +126,11 @@
                                 <h4 class="card-title">Cart Total</h4>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('pharmacy.checkout') }}" method="POST">
-                                    @csrf
                                 <div class="booking-summary">
                                     <div class="booking-item-wrap">
                                         <ul class="booking-date d-block pb-0">
                                             <li>Subtotal <span id="subtotal">Tsh {{ number_format($total) }}</span></li>
-                                            <li>Shipping <span>Tsh 5000.00</span></li>
+                                            <li>Shipping <span>Tsh {{ number_format($shippingFee ?? 5000, 2) }}</span></li>
                                         </ul>
                                         <ul class="booking-fee pt-4">
                                             <li>Tax <span>Tsh 0.00</span></li>
@@ -136,20 +140,18 @@
                                                 <li>
                                                     <span>Total</span>
                                                     <span class="total-cost" id="grand-total">
-                                                        Tsh {{ number_format($total + 5000) }}
+                                                        Tsh {{ number_format($grandTotal ?? ($total + 5000), 2) }}
                                                     </span>
                                                 </li>
                                                 <li>
                                                     <div class="clinic-booking pt-4">
-                                                        <a class="btn btn-primary"
-                                                            href="{{ route('pharmacy.checkout', ['total' =>$total , 'cart' =>$cart ])}}" type="submit">Proceed to checkout</a>
+                                                        <a class="btn btn-primary" href="{{ route('pharmacy.checkout') }}">Proceed to checkout</a>
                                                     </div>
                                                 </li>
                                             </ul>
                                         </div>
                                     </div>
                                 </div>
-                                </form>
                             </div>
                         </div>
                         <!-- /Booking Summary -->
@@ -202,7 +204,7 @@
                         row.remove();
                         $('#cart-count').text(response.count);
                         $('#subtotal').text('Tsh ' + response.total.toLocaleString());
-                        $('#grand-total').text('Tsh ' + (response.total + 25).toLocaleString());
+                        $('#grand-total').text('Tsh ' + (Number(response.total) + 5000).toLocaleString());
                         if (response.count === 0) {
                             location.reload();
                         }
@@ -238,9 +240,16 @@
                         quantity: quantity
                     },
                     success: function (response) {
+                        if (!response.success) {
+                            alert(response.message || 'Unable to update quantity');
+                            return;
+                        }
                         row.find('.item-total').text('Tsh ' + response.itemTotal.toLocaleString());
                         $('#subtotal').text('Tsh ' + response.total.toLocaleString());
                         $('#grand-total').text('Tsh ' + (response.total + 5000).toLocaleString());
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseJSON?.message || 'Unable to update quantity.');
                     }
                 });
             });

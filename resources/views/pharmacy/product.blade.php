@@ -61,13 +61,13 @@
                                         <div class="shopping-cart-icon">
                                             <a href="{{ route('pharmacy.cart') }}">
                                                 <img src="{{ asset('images/bag-2.svg') }}" alt="Cart">
-                                                <span id="cart-count">0</span>
+                                                <span id="cart-count">{{ $cartCount ?? 0 }}</span>
                                             </a>
                                         </div>
 
                                         <div class="shopping-cart-content">
                                             <p class="text-white">Shopping cart</p>
-                                            <p class="text-white" id="cart-total">Tsh 0</p>
+                                            <p class="text-white" id="cart-total">Tsh {{ number_format($cartTotal ?? 0, 2) }}</p>
                                         </div>
                                     </div>
                                 </li>
@@ -182,8 +182,7 @@
                                                 </div>
                                                 <div class="col-lg-6 text-end">
                                                     <a href="javascript:void(0)" class="cart-icon add-to-cart"
-                                                        data-id="{{ $product->id }}" data-name="{{ $product->brand_name }}"
-                                                        data-price="{{ $product->price }}">
+                                                        data-id="{{ $product->id }}">
                                                         <i class="fas fa-shopping-cart"></i>
                                                     </a>
 
@@ -217,22 +216,22 @@
     <script>
 $(document).ready(function () {
     $('.add-to-cart').on('click', function () {
-        const product = {
-            id: $(this).data('id'),
-            name: $(this).data('name'),
-            price: parseFloat($(this).data('price')),
-        };
+        const productId = $(this).data('id');
 
         $.ajax({
             url: "{{ route('cart.add') }}",
             method: "POST",
             data: {
                 _token: "{{ csrf_token() }}",
-                product: product
+                product_id: productId
             },
             success: function (response) {
                 $('#cart-count').text(response.count);
-                $('#cart-total').text('Tsh ' + response.total.toLocaleString());
+                $('#cart-total').text('Tsh ' + Number(response.total).toLocaleString());
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON?.message || 'Could not add product to cart.';
+                alert(msg);
             }
         });
     });

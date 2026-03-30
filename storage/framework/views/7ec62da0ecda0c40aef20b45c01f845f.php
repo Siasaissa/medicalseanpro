@@ -41,6 +41,18 @@
 
 				<div class="row">
 					<div class="col-md-6 col-lg-7">
+                        <?php if(session('error')): ?>
+                            <div class="alert alert-danger"><?php echo e(session('error')); ?></div>
+                        <?php endif; ?>
+                        <?php if(session('warning')): ?>
+                            <div class="alert alert-warning"><?php echo e(session('warning')); ?></div>
+                        <?php endif; ?>
+                        <?php if($errors->any()): ?>
+                            <div class="alert alert-danger">
+                                <?php echo e($errors->first()); ?>
+
+                            </div>
+                        <?php endif; ?>
 						<div class="card">
 							<div class="card-header">
 								<h3 class="card-title">Billing details</h3>
@@ -48,19 +60,8 @@
 							<div class="card-body">
 
 								<!-- Checkout Form -->
-								<form action="<?php echo e(route('pharmacy.successfully')); ?>" method="POST">
+								<form action="<?php echo e(route('pharmacy.payment')); ?>" method="POST">
 									<?php echo csrf_field(); ?>
-
-									<input type="hidden" name="total" value="<?php echo e($total + 5000); ?>">
-
-									<?php $__currentLoopData = $cart; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-										<input type="hidden" name="items[<?php echo e($item['id']); ?>][name]"
-											value="<?php echo e($item['name']); ?>">
-										<input type="hidden" name="items[<?php echo e($item['id']); ?>][price]"
-											value="<?php echo e($item['price']); ?>">
-										<input type="hidden" name="items[<?php echo e($item['id']); ?>][quantity]"
-											value="<?php echo e($item['quantity'] ?? 1); ?>">
-									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
 									<div class="info-widget">
 										<h4 class="card-title">Shipping Details</h4>
@@ -85,7 +86,7 @@
 										<!-- Halopesa -->
 										<div class="payment-list">
 											<label class="payment-radio credit-card-option">
-												<input type="radio" name="payment_method" value="halopesa" checked>
+												<input type="radio" name="payment_method" value="halopesa" <?php echo e(old('payment_method', 'halopesa') === 'halopesa' ? 'checked' : ''); ?>>
 												<span class="checkmark"></span>
 												Halopesa
 											</label>
@@ -94,7 +95,7 @@
 													<div class="mb-3 card-label">
 														<label for="halopesa_phone">Phone Number</label>
 														<input class="form-control" id="halopesa_phone"
-															name="halopesa_phone" type="number">
+															name="halopesa_phone" type="text" value="<?php echo e(old('halopesa_phone')); ?>">
 													</div>
 												</div>
 											</div>
@@ -104,7 +105,7 @@
 										<!-- Tigo Pesa -->
 										<div class="payment-list">
 											<label class="payment-radio paypal-option">
-												<input type="radio" name="payment_method" value="tigopesa">
+												<input type="radio" name="payment_method" value="tigopesa" <?php echo e(old('payment_method') === 'tigopesa' ? 'checked' : ''); ?>>
 												<span class="checkmark"></span>
 												Tigo Pesa
 											</label>
@@ -113,7 +114,7 @@
 													<div class="mb-3 card-label">
 														<label for="tigopesa_phone">Phone Number</label>
 														<input class="form-control" id="tigopesa_phone"
-															name="tigopesa_phone" type="number">
+															name="tigopesa_phone" type="text" value="<?php echo e(old('tigopesa_phone')); ?>">
 													</div>
 												</div>
 											</div>
@@ -171,7 +172,7 @@
 												<li><?php echo e($item['name']); ?> <span> Tsh. <?php echo e($item['price']); ?></span></li>
 											<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-											<li>Shipping <span>Tsh 5000.00</span></li>
+											<li>Shipping <span>Tsh <?php echo e(number_format($shippingFee ?? 5000, 2)); ?></span></li>
 
 										</ul>
 										<ul class="booking-fee">
@@ -182,7 +183,7 @@
 												<li>
 													<span>Total</span>
 													<span class="total-cost">Tsh.
-														<?php echo e(number_format($total + 5000)); ?></span>
+														<?php echo e(number_format($grandTotal ?? ($total + 5000), 2)); ?></span>
 												</li>
 												<li>
 												</li>
@@ -268,4 +269,5 @@ $(document).ready(function () {
 
 </body>
 
-</html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/pharmacy/checkout.blade.php ENDPATH**/ ?>
+</html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/pharmacy/checkout.blade.php ENDPATH**/ ?>
