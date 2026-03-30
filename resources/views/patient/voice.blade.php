@@ -1,4 +1,3 @@
-```blade
 @include('layouts.head')
 
 <body class="call-page">
@@ -107,19 +106,20 @@
             try {
                 console.log('🎧 Starting Zego Voice Call...');
 
-                const appID = {{ env('ZEGO_APP_ID') }};
-                const serverSecret = "{{ env('ZEGO_SERVER_SECRET') }}";
                 const roomID = "voice_booking_{{ $booking->id }}";
-                const userID = "{{ auth()->id() ?? rand(1000, 9999) }}";
-                const userName = "{{ auth()->user()->name ?? 'Guest_' . rand(1000, 9999) }}";
+                const tokenRes = await fetch(`/api/zego-token?booking_id={{ $booking->id }}`);
+                if (!tokenRes.ok) {
+                    throw new Error('Failed to fetch secure call token');
+                }
+                const tokenData = await tokenRes.json();
 
-                const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-                    appID,
-                    serverSecret,
-                    roomID,
-                    userID,
-                    userName
-                );
+                const appID = Number(tokenData.appId);
+                const userID = String(tokenData.userId);
+                const userName = tokenData.userName || 'Guest';
+                const token = tokenData.kitToken;
+                const kitToken = (typeof ZegoUIKitPrebuilt.generateKitTokenForProduction === 'function')
+                    ? ZegoUIKitPrebuilt.generateKitTokenForProduction(appID, token, roomID, userID, userName)
+                    : token;
 
                 document.getElementById('loading-message').style.display = 'none';
                 const zp = ZegoUIKitPrebuilt.create(kitToken);
@@ -200,4 +200,3 @@
 
 </body>
 </html>
-```

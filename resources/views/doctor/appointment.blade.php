@@ -179,6 +179,8 @@
                                                                     {{ route('doctor.video', ['booking' => $booking->id]) }}
                                                                 @elseif ($booking->appointment_type == 'voice')
                                                                     {{ route('doctor.voice', ['booking' => $booking->id]) }}
+                                                                @elseif ($booking->appointment_type == 'home')
+                                                                    {{ route('doctor.home', ['booking' => $booking->id]) }}
                                                                 @endif
                                                             " class="btn btn-md btn-primary-gradient">
                                                                 <i class="isax isax-calendar-tick5 me-1"></i> Attend Now
@@ -313,6 +315,8 @@
                                                                                     {{ route('doctor.video', ['booking' => $booking->id]) }}
                                                                                 @elseif ($booking->appointment_type == 'voice')
                                                                                     {{ route('doctor.voice', ['booking' => $booking->id]) }}
+                                                                                @elseif ($booking->appointment_type == 'home')
+                                                                                    {{ route('doctor.home', ['booking' => $booking->id]) }}
                                                                                 @endif
                                                                             " class="btn btn-primary">
                                                                                 <i class="isax isax-calendar-tick5 me-1"></i> Attend

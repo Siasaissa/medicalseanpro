@@ -115,23 +115,21 @@
 			try {
 				console.log('🎥 Starting direct Zego call init...');
 
-				// Variables from Laravel
-				const appID = {{ env('ZEGO_APP_ID') }};
-				const serverSecret = "{{ env('ZEGO_SERVER_SECRET') }}";
 				const roomID = "booking_{{ $booking->id }}";
-				const userID = "{{ auth()->id() ?? rand(1000, 9999) }}";
-				const userName = "{{ auth()->user()->name ?? 'Guest_' . rand(1000, 9999) }}";
 
-				console.log('⚙️ Config:', { appID, roomID, userID, userName });
+                const tokenRes = await fetch(`/api/zego-token?booking_id={{ $booking->id }}`);
+                if (!tokenRes.ok) {
+                    throw new Error('Failed to fetch secure call token');
+                }
+                const tokenData = await tokenRes.json();
 
-				// Generate Kit Token directly (for dev/demo use)
-				const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-					appID,
-					serverSecret,
-					roomID,
-					userID,
-					userName
-				);
+                const appID = Number(tokenData.appId);
+                const userID = String(tokenData.userId);
+                const userName = tokenData.userName || 'Guest';
+                const token = tokenData.kitToken;
+                const kitToken = (typeof ZegoUIKitPrebuilt.generateKitTokenForProduction === 'function')
+                    ? ZegoUIKitPrebuilt.generateKitTokenForProduction(appID, token, roomID, userID, userName)
+                    : token;
 
 				console.log('✅ Kit Token generated successfully');
 

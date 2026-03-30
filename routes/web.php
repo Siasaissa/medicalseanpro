@@ -80,6 +80,7 @@ Route::middleware(['auth', 'verified', 'role:doctor'])->group(function () {
     // Doctor call routes
     Route::get('/doctor/video/{booking}', [CallController::class, 'videoDoctor'])->name('doctor.video');
     Route::get('/doctor/voice/{booking}', [CallController::class, 'voiceDoctor'])->name('doctor.voice');
+    Route::get('/doctor/home/{booking}', [CallController::class, 'homeDoctor'])->name('doctor.home');
 });
 
 // patient routes
@@ -106,6 +107,7 @@ Route::middleware(['auth', 'verified', 'role:patient'])->group(function () {
     // Patient call routes
     Route::get('/patient/video/{booking}', [CallController::class, 'video'])->name('patient.video');
     Route::get('/patient/voice/{booking}', [CallController::class, 'voice'])->name('patient.voice');
+    Route::get('/patient/home/{booking}', [CallController::class, 'home'])->name('patient.home');
 
     // Patient chat routes
     Route::get('/patient/chat', [ChatController::class, 'index'])->middleware('auth')->name('chat.index');

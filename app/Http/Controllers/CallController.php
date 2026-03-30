@@ -34,6 +34,20 @@ class CallController extends Controller
         return view('doctor.voice', compact('booking'));
     }
 
+    // Home visit details (Patient side)
+    public function home($bookingId)
+    {
+        $booking = Booking::with('doctor', 'patient')->findOrFail($bookingId);
+        return view('patient.home', compact('booking'));
+    }
+
+    // Home visit details (Doctor side)
+    public function homeDoctor($bookingId)
+    {
+        $booking = Booking::with('doctor', 'patient')->findOrFail($bookingId);
+        return view('doctor.home', compact('booking'));
+    }
+
     public function signal(Request $request, $bookingId)
     {
         // Broadcast the signaling data to the other user

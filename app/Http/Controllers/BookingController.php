@@ -14,6 +14,18 @@ use function Pest\Laravel\json;
 
 class BookingController extends Controller
 {
+    private function normalizePaymentStatus(?string $status): string
+    {
+        $value = strtoupper(trim((string) $status));
+
+        return match ($value) {
+            'SUCCESS', 'SUCCEEDED', 'COMPLETED', 'PAID' => 'SUCCESS',
+            'FAILED', 'FAIL', 'ERROR', 'DECLINED', 'CANCELLED' => 'FAILED',
+            'PROCESSING', 'PENDING', 'INITIATED', 'IN_PROGRESS' => 'PROCESSING',
+            default => 'PROCESSING',
+        };
+    }
+
         public function showToken()
     {
         return response()->json([
@@ -171,7 +183,7 @@ class BookingController extends Controller
                 'total' => $validated['total'],
                 'phone' => $validated['phone'],
                 'payment_gateway' => $validated['payment_gateway'],
-                'status' => 'pending',
+                'status' => 'PENDING',
                 'payment_reference' => $orderReference,
                 'payment_response' => json_encode($paymentResponse),
             ]);
@@ -224,10 +236,10 @@ class BookingController extends Controller
         DB::table('bookings')
             ->where('payment_reference', $payment_reference)
             ->update([
-                'status' => $paymentData['status'] ?? null,
+                'status' => $this->normalizePaymentStatus($paymentData['status'] ?? null),
                 'transaction_id' => $paymentData['id'] ?? null,
                 'payment_gateway' => $paymentData['channel'] ?? null,
-                'payment_response' => $paymentData ?? null,
+                'payment_response' => json_encode($paymentData ?? []),
             ]);
         
     }
@@ -363,7 +375,7 @@ public function clickpesaWebhook(Request $request)
         }
 
         // Prevent duplicate processing
-        if ($booking->status === 'paid') {
+        if ($this->normalizePaymentStatus($booking->status) === 'SUCCESS') {
             return response()->json(['message' => 'Already processed'], 200);
         }
 
@@ -372,10 +384,10 @@ public function clickpesaWebhook(Request $request)
             return response()->json(['message' => 'Amount mismatch'], 400);
         }
 
-        if (strtoupper($status) === 'SUCCESS') {
+        if ($this->normalizePaymentStatus($status) === 'SUCCESS') {
 
             $booking->update([
-                'status' => 'paid',
+                'status' => 'SUCCESS',
                 'transaction_id' => $transactionId,
                 'payment_response' => json_encode($request->all()),
             ]);
@@ -383,7 +395,7 @@ public function clickpesaWebhook(Request $request)
         } else {
 
             $booking->update([
-                'status' => 'failed',
+                'status' => 'FAILED',
                 'payment_response' => json_encode($request->all()),
             ]);
         }

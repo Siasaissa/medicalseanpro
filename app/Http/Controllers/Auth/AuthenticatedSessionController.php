@@ -42,8 +42,8 @@ public function store(LoginRequest $request): RedirectResponse
         return redirect()->intended(route('admin.dashboard',absolute: false));
     }
 
-    // fallback if no role matched
-    return redirect()->intended(route('welcome', absolute: false));
+    // Fallback to patient dashboard to keep auth flow stable for users without role.
+    return redirect()->intended(route('dashboard', absolute: false));
 }
 
     /**

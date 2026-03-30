@@ -177,26 +177,32 @@
                                                     </li>
 
                                                     @if ($now->between($appointmentStart, $appointmentEnd))
-														@if ($booking->status == 'pending')
+                                                    @php
+                                                        $normalizedStatus = strtoupper((string) $booking->status);
+                                                        if ($normalizedStatus === 'PAID') {
+                                                            $normalizedStatus = 'SUCCESS';
+                                                        }
+                                                    @endphp
+													@if ($normalizedStatus == 'PENDING')
 														<li class="appointment-detail-btn">
                                                             <a href="{{ route('patient.appointment.verify' , $booking->payment_reference)}}" class="btn btn-md btn-primary-gradient">
                                                                 <i class="isax isax-calendar-tick5 me-1"></i> confirm payment
                                                             </a>
                                                         </li>
-														@elseif ($booking->status == 'PROCESSING')
+														@elseif ($normalizedStatus == 'PROCESSING')
 														<li class="appointment-detail-btn">
                                                             <a href="{{ route('patient.appointment.verify' , $booking->payment_reference)}}" class="btn btn-md btn-primary-gradient">
                                                                 <i class="isax isax-calendar-tick5 me-1"></i> confirm payment
                                                             </a>
                                                         </li>
-														@elseif ($booking->status == 'FAILED' )
+														@elseif ($normalizedStatus == 'FAILED' )
 														<li class="appointment-detail-btn">
                                                             <a href="{{ route('patient.booking', ['doctor' => $doctor->id]) }}" class="btn btn-md btn-danger-gradient">
                                                                 <i class="isax isax-calendar-tick5 me-1"></i> Your Payment Failed
                                                             </a>
                                                         </li>
 														@endif
-														@if ($booking->status == 'SUCCESS')
+														@if ($normalizedStatus == 'SUCCESS')
                                                         <li class="appointment-detail-btn">
                                                             <a href="
                                                                 @if ($booking->appointment_type == 'chat')
@@ -205,6 +211,8 @@
                                                                     {{ route('patient.video', ['booking' => $booking->id]) }}
                                                                 @elseif($booking->appointment_type == 'voice')
                                                                     {{ route('patient.voice', ['booking' => $booking->id]) }}
+                                                                @elseif($booking->appointment_type == 'home')
+                                                                    {{ route('patient.home', ['booking' => $booking->id]) }}
                                                                 @endif
 																" class="btn btn-md btn-primary-gradient">
 																	<i class="isax isax-calendar-tick5 me-1"></i> Attend Now
