@@ -321,14 +321,19 @@
                                 @php
                                     // Get current active booking and patient
                                     $activeBookingId = request('booking');
+                                    $activeBooking = null;
                                     $activePatientId = null;
+                                    $isChatSessionActive = false;
                                     
                                     if ($activeBookingId) {
                                         $activeBooking = \App\Models\Booking::with('patient')->find($activeBookingId);
                                         $activePatientId = $activeBooking?->patient?->id;
+                                        $isChatSessionActive = (bool) $activeBooking?->isSessionActive();
                                     } elseif(isset($messages) && $messages->isNotEmpty()) {
                                         $activeBookingId = $messages->first()->booking_id;
                                         $activePatientId = $messages->first()->booking?->patient?->id;
+                                        $activeBooking = $messages->first()->booking;
+                                        $isChatSessionActive = (bool) $activeBooking?->isSessionActive();
                                     }
                                 @endphp
 
@@ -372,15 +377,22 @@
 
                                         <!-- Message input -->
                                         <input type="text" name="message" class="form-control chat_form" id="messageInput"
-                                            placeholder="Type your message here..." required autocomplete="off"
-                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
+                                            placeholder="{{ $isChatSessionActive ? 'Type your message here...' : 'Session ended. Ask patient to book again.' }}"
+                                            required autocomplete="off"
+                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+                                            {{ $isChatSessionActive ? '' : 'disabled readonly' }}>
 
                                         <div class="form-buttons">
-                                            <button class="btn send-btn" type="button" id="sendMessageBtn">
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn" {{ $isChatSessionActive ? '' : 'disabled' }}>
                                                 <i class="isax isax-send-25"></i>
                                             </button>
                                         </div>
                                     </form>
+                                    @if(!$isChatSessionActive)
+                                        <small class="text-danger d-block mt-2">
+                                            Messaging is locked because this booking time has ended.
+                                        </small>
+                                    @endif
                                 @else
                                     <div class="text-center p-3 text-muted no-chat-selected">
                                         <i class="fa fa-comment-slash"></i> Select a chat to start messaging

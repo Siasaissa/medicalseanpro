@@ -309,29 +309,21 @@
 
                                     use Carbon\Carbon;
 
-                                    $now = Carbon::now();
-
-                                    $activeType = \App\Models\Booking::get()->contains(function ($booking) use ($now) {
-                                        $appointmentStart = Carbon::parse($booking->appointment_datetime);
-
-                                        // Cast service_time to integer
-                                        $serviceTime = (int) $booking->service_time;
-
-                                        $appointmentEnd = $appointmentStart->copy()->addMinutes($serviceTime);
-
-                                        return $now->between($appointmentStart, $appointmentEnd);
-                                    });
-
                                     // Get current active booking and doctor
                                     $activeBookingId = request('booking');
+                                    $activeBooking = null;
                                     $activeDoctorId = null;
+                                    $isChatSessionActive = false;
                                     
                                     if ($activeBookingId) {
                                         $activeBooking = \App\Models\Booking::with('doctor')->find($activeBookingId);
                                         $activeDoctorId = $activeBooking?->doctor?->id;
+                                        $isChatSessionActive = (bool) $activeBooking?->isSessionActive();
                                     } elseif(isset($messages) && $messages->isNotEmpty()) {
                                         $activeBookingId = $messages->first()->booking_id;
                                         $activeDoctorId = $messages->first()->booking?->doctor?->id;
+                                        $activeBooking = $messages->first()->booking;
+                                        $isChatSessionActive = (bool) $activeBooking?->isSessionActive();
                                     }
                                 @endphp
 
@@ -370,29 +362,25 @@
                                         </div>
 
                                         <!-- Message input -->
-                                        
-
-                                         @if ($activeType)
-
-                                            <input type="text" name="message" class="form-control chat_form" id="messageInput"
-                                            placeholder="Type your message here..." required autocomplete="off"
-                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
- 
-                                         @else
-                                            
-
-                                             <input type="text" name="message" class="form-control chat_form" id="messageInput"
-                                            placeholder="Type your message here..." required autocomplete="off"
-                                            onkeyup="checkTyping()" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }" readonly>
-
-                                         @endif
+                                        <input type="text" name="message" class="form-control chat_form" id="messageInput"
+                                            placeholder="{{ $isChatSessionActive ? 'Type your message here...' : 'Session ended. Please create a new booking.' }}"
+                                            required autocomplete="off"
+                                            onkeyup="checkTyping()"
+                                            onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+                                            {{ $isChatSessionActive ? '' : 'disabled readonly' }}>
                                         
                                         <div class="form-buttons">
-                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()" >
+                                            <button class="btn send-btn" type="button" id="sendMessageBtn" onclick="sendMessage()"
+                                                {{ $isChatSessionActive ? '' : 'disabled' }}>
                                                 <i class="isax isax-send-25"></i>
                                             </button>
                                         </div>
                                     </form>
+                                    @if(!$isChatSessionActive)
+                                        <small class="text-danger d-block mt-2">
+                                            Messaging is locked because this booking time has ended.
+                                        </small>
+                                    @endif
                                 @else
                                     <div class="text-center p-3 text-muted no-chat-selected">
                                         <i class="fa fa-comment-slash"></i> Select a chat to start messaging
