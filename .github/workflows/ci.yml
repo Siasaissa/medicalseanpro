@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ["8.2"]
+        node-version: ["20.x"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, bcmath, zip, intl, pdo, sqlite, pdo_mysql
+          tools: composer
+          coverage: xdebug
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Cache npm modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build front‑end assets
+        run: npm run build --if-present
+        env:
+          NODE_ENV: production
+
+      - name: Run PHP code style check (Laravel Pint)
+        run: |
+          # Pint is installed as a dev dependency; run in test mode (no changes)
+          ./vendor/bin/pint --test
+
+      - name: Run test suite
+        run: php artisan test --parallel
+        env:
+          # Use in‑memory SQLite for tests (configured in phpunit.xml)
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
