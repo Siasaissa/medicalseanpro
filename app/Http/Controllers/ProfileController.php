@@ -17,6 +17,34 @@ use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
+    private function persistProfileImage(Request $request, Profile $profile): void
+    {
+        if (! $request->hasFile('dp')) {
+            return;
+        }
+
+        $uploadPath = public_path('uploads/profile');
+
+        if (! is_dir($uploadPath)) {
+            mkdir($uploadPath, 0775, true);
+        }
+
+        if ($profile->dp) {
+            $oldImagePath = public_path($profile->dp);
+
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+        }
+
+        $file = $request->file('dp');
+        $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+        $file->move($uploadPath, $filename);
+
+        // Save a public-relative path so asset($profile->dp) resolves correctly.
+        $profile->dp = 'uploads/profile/'.$filename;
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -29,7 +57,7 @@ public function store(Request $request)
         'dob' => 'nullable|string',
         'blood_group' => 'nullable|string',
         'address' => 'nullable|string',
-        'dp' => 'nullable|image|mimes:jpg,png,svg|max:4096',
+        'dp' => 'nullable|image|mimes:jpg,jpeg,png,svg,webp|max:4096',
     ]);
 
     $profile = Profile::firstOrNew(['user_id' => Auth::id()]);
@@ -48,63 +76,7 @@ public function store(Request $request)
         $profile->address = $request->address;
     }
 
-    // Handle image upload with DEBUGGING
-    if ($request->hasFile('dp')) {
-        $file = $request->file('dp');
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        
-        // Define the upload path
-        $uploadPath = public_path('uploads/profile/');
-        
-        // DEBUG: Check if directory exists and its permissions
-        $debugInfo = [
-            'upload_path' => $uploadPath,
-            'directory_exists' => file_exists($uploadPath),
-            'is_writable' => is_writable($uploadPath),
-            'original_name' => $file->getClientOriginalName(),
-            'temp_path' => $file->getRealPath(),
-            'file_size' => $file->getSize(),
-            'mime_type' => $file->getMimeType(),
-        ];
-        
-        // Create directory if it doesn't exist
-        if (!file_exists($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-            $debugInfo['directory_created'] = true;
-        }
-        
-        // Try to move the file
-        try {
-            $file->move($uploadPath, $filename);
-            
-            // Check if file was actually moved
-            $savedFilePath = $uploadPath . '/' . $filename;
-            if (file_exists($savedFilePath)) {
-                $debugInfo['file_saved'] = true;
-                $debugInfo['saved_path'] = $savedFilePath;
-                $debugInfo['file_permissions'] = substr(sprintf('%o', fileperms($savedFilePath)), -4);
-                
-                // Delete old image if it exists
-                if ($profile->dp) {
-                    $oldImagePath = public_path($profile->dp);
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                        $debugInfo['old_deleted'] = true;
-                    }
-                }
-                
-                $profile->dp = 'public/uploads/profile/' . $filename;
-            } else {
-                $debugInfo['file_saved'] = false;
-            }
-        } catch (\Exception $e) {
-            $debugInfo['error'] = $e->getMessage();
-        }
-        
-        
-    }
-
-    //dd($debugInfo);
+    $this->persistProfileImage($request, $profile);
     
     $profile->user_id = Auth::id();
     $profile->save();
@@ -114,7 +86,7 @@ public function store(Request $request)
   
 
 public function ProSetting(){
-    $doctor = Profile::where('user_id', Auth::id())->first();
+    $doctor = Profile::firstOrNew(['user_id' => Auth::id()]);
     return view('doctor.profilesettings', compact('doctor'));
 }
 
@@ -137,7 +109,7 @@ public function updateProfile1(Request $request)
         'start_date' => 'nullable|date',
         'end_date' => 'nullable|date',
         'about_membership' => 'nullable|string|max:255',
-        'dp' => 'nullable|image|mimes:jpg,png,svg|max:4096', // match form input name
+        'dp' => 'nullable|image|mimes:jpg,jpeg,png,svg,webp|max:4096',
     ]);
 
     // Find the logged-in doctor profile
@@ -149,18 +121,7 @@ public function updateProfile1(Request $request)
         $doctor->user_id = Auth::id();
     }
 
-    // Handle profile image upload
-    if ($request->hasFile('dp')) {
-        // Delete old image if exists
-        if ($doctor->dp && file_exists(public_path($doctor->dp))) {
-            unlink(public_path($doctor->dp));
-        }
-
-        $file = $request->file('dp');
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('uploads/profile'), $filename);
-        $doctor->dp = 'public/uploads/profile/' . $filename;
-    }
+    $this->persistProfileImage($request, $doctor);
 
     // Only update fields that exist in the request
     foreach ($validated as $key => $value) {
