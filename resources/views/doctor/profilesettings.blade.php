@@ -322,7 +322,9 @@
                                 <div class="change-avatar img-upload">
                                     <div class="profile-img">
                                         @if (!empty($doctor->dp))
-                                            <img src="{{ asset($doctor->dp) }}" alt="Profile Image" class="img-fluid rounded-circle">
+                                            <img src="{{ asset($doctor->dp) }}" alt="Profile Image" class="img-fluid rounded-circle"
+                                                style="width: 120px; height: 120px; object-fit: cover;"
+                                                onerror="this.src='{{ asset('images/default.jpeg') }}'">
                                         @else
                                             <i class="fa-solid fa-file-image"></i>
                                         @endif

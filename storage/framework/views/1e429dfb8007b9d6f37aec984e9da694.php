@@ -39,10 +39,10 @@
                                     <a href="<?php echo e(route('pharmacy.product')); ?>">Pharmacy</i></a>
                                 </li>
                                 <li class="menu">
-                                    <a href="about-us.html">About Us</a>
+                                    <a href="<?php echo e(route('about.us')); ?>">About Us</a>
                                 </li>
                                 <li class="menu">
-                                    <a href="blog-grid.html">Blog Grid</i></a>
+                                    <a href="<?php echo e(route('blog.grid')); ?>">Blog Grid</a>
                                 </li>
                                 <li class="menu">
                                     <a href="<?php echo e(route('logout')); ?>">logout</i></a>

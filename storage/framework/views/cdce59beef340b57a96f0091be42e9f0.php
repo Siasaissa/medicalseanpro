@@ -164,10 +164,10 @@
 										<a href="<?php echo e(route('login')); ?>">Pharmacy</i></a>
 									</li>-->
 									<li class="has-submenu">
-										<a href="#">About Us</a>
+										<a href="<?php echo e(route('about.us')); ?>">About Us</a>
 									</li>
 									<!--<li class="has-submenu">
-										<a href="#">Blog Grid</i></a>
+										<a href="<?php echo e(route('blog.grid')); ?>">Blog Grid</a>
 									</li>-->
 									<li class="menu">
 										<a href="<?php echo e(route('login')); ?>">Login</a>
@@ -798,7 +798,7 @@
 						</div>
 					</div>		
 					<div class="text-center load-item aos" data-aos="fade-up">
-						<a href="blog-grid.html" class="btn btn-dark d-inline-flex align-items-center">View All Articles<i class="isax isax-arrow-right-3 ms-2"></i></a>
+						<a href="<?php echo e(route('blog.grid')); ?>" class="btn btn-dark d-inline-flex align-items-center">View All Articles<i class="isax isax-arrow-right-3 ms-2"></i></a>
 					</div>			
 				</div>
 			</section>
@@ -849,7 +849,7 @@
 										<div class="footer-widget footer-menu">
 											<h6 class="footer-title">Company</h6>
 											<ul>
-												<li><a href="about-us.html">About</a></li>
+												<li><a href="<?php echo e(route('about.us')); ?>">About</a></li>
 												<li><a href="search.html">Features</a></li>
 												<li><a href="javascript:void(0);">Works</a></li>
 												<li><a href="javascript:void(0);">Careers</a></li>
@@ -1006,4 +1006,5 @@
 	
 	<script src="js/rocket-loader.min.js" data-cf-settings="ba4f4e0a45006c59f1e697b9-|49" defer=""></script><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" data-cf-beacon="{" rayid":"97c5a364dfc89ff0","servertiming":{"name":{"cfextpri":true,"cfedge":true,"cforigin":true,"cfl4":true,"cfspeedbrain":true,"cfcachestatus":true}},"version":"2025.8.0","token":"3ca157e612a14eccbb30cf6db6691c29"}"="" crossorigin="anonymous"></script>
 
-</body></html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/welcome.blade.php ENDPATH**/ ?>
+</body></html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/welcome.blade.php ENDPATH**/ ?>

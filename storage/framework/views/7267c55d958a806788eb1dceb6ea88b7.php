@@ -65,14 +65,14 @@
 									<span></span>
 								</span>
 							</a>
-							<a href="index.html" class="navbar-brand logo">
+							<a href="<?php echo e(route('welcome')); ?>" class="navbar-brand logo">
 								<img src="images/logo.svg" class="img-fluid" alt="Logo">
 							</a>
 						</div>
 						<div class="header-menu">
 							<div class="main-menu-wrapper">
 								<div class="menu-header">
-									<a href="index.html" class="menu-logo">
+									<a href="<?php echo e(route('welcome')); ?>" class="menu-logo">
 										<img src="images/logo.svg" class="img-fluid" alt="Logo">
 									</a>
 									<a id="menu_close" class="menu-close" href="javascript:void(0);">
@@ -84,13 +84,13 @@
 										<a href="doctor-grid01.html">Doctors</i></a>		
 									</li>
 									<li class="has-submenu">
-										<a href="pharmacy-index.html">Pharmacy</i></a>
+										<a href="<?php echo e(route('pharmacy.product')); ?>">Pharmacy</a>
 									</li>
 									<li class="has-submenu">
-										<a href="about-us.html">About Us</a>
+										<a href="<?php echo e(route('about.us')); ?>">About Us</a>
 									</li>
 									<li class="has-submenu">
-										<a href="blog-grid.html">Blog Grid</i></a>
+										<a href="<?php echo e(route('blog.grid')); ?>">Blog Grid</a>
 									</li>
 									
 								</ul>
@@ -289,7 +289,7 @@
 										<div class="footer-widget footer-menu">
 											<h6 class="footer-title">Company</h6>
 											<ul>
-												<li><a href="about-us.html">About</a></li>
+												<li><a href="<?php echo e(route('about.us')); ?>">About</a></li>
 												<li><a href="search.html">Features</a></li>
 												<li><a href="javascript:void(0);">Works</a></li>
 												<li><a href="javascript:void(0);">Careers</a></li>
@@ -428,4 +428,5 @@
 
 
 		
-					</body></html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/auth/register.blade.php ENDPATH**/ ?>
+					</body></html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/auth/register.blade.php ENDPATH**/ ?>

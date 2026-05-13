@@ -1,155 +1,216 @@
 <?php echo $__env->make('layouts.adminHead', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-<body>
-<div class="main-wrapper">
-    <?php echo $__env->make('layouts.adminHeader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-    <?php echo $__env->make('layouts.adminSidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-    <div class="page-wrapper">
-        <div class="content container-fluid">
-            <div class="page-header">
-                <div class="row">
-                    <div class="col-sm-12 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="page-title">Admin Control Center</h3>
+<body>
+    <div class="main-wrapper">
+        <?php echo $__env->make('layouts.adminHeader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php echo $__env->make('layouts.adminSidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
+        <div class="page-wrapper">
+            <div class="content container-fluid">
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3 class="page-title">Admin Dashboard</h3>
                             <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="<?php echo e(route('admin.dashboard')); ?>">Admin</a></li>
                                 <li class="breadcrumb-item active">Dashboard</li>
                             </ul>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <?php if(session('success')): ?>
-                <div class="alert alert-success"><?php echo e(session('success')); ?></div>
-            <?php endif; ?>
-            <?php if(session('error')): ?>
-                <div class="alert alert-danger"><?php echo e(session('error')); ?></div>
-            <?php endif; ?>
+                <?php if(session('success')): ?>
+                    <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+                <?php endif; ?>
 
-            <div class="row">
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="dash-widget-header">
-                                <span class="dash-widget-icon text-primary border-primary"><i class="fe fe-users"></i></span>
-                                <div class="dash-count"><h3><?php echo e($doctor); ?></h3></div>
-                            </div>
-                            <div class="dash-widget-info"><h6 class="text-muted">Doctors</h6></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="dash-widget-header">
-                                <span class="dash-widget-icon text-success border-success"><i class="fe fe-user"></i></span>
-                                <div class="dash-count"><h3><?php echo e($patient); ?></h3></div>
-                            </div>
-                            <div class="dash-widget-info"><h6 class="text-muted">Patients</h6></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="dash-widget-header">
-                                <span class="dash-widget-icon text-danger border-danger"><i class="fe fe-calendar"></i></span>
-                                <div class="dash-count"><h3><?php echo e($booking); ?></h3></div>
-                            </div>
-                            <div class="dash-widget-info"><h6 class="text-muted">Bookings</h6></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="dash-widget-header">
-                                <span class="dash-widget-icon text-warning border-warning"><i class="fe fe-dollar-sign"></i></span>
-                                <div class="dash-count"><h6>Tsh <?php echo e(number_format((float) $revenue, 2)); ?></h6></div>
-                            </div>
-                            <div class="dash-widget-info"><h6 class="text-muted">Total Revenue</h6></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <?php if(session('error')): ?>
+                    <div class="alert alert-danger"><?php echo e(session('error')); ?></div>
+                <?php endif; ?>
 
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="mb-3">Quick Controls</h5>
-                            <div class="d-flex flex-wrap gap-2">
-                                <a href="<?php echo e(route('admin.doctorList')); ?>" class="btn btn-outline-primary">Manage Doctors</a>
-                                <a href="<?php echo e(route('admin.patientList')); ?>" class="btn btn-outline-primary">Manage Patients</a>
-                                <a href="<?php echo e(route('admin.appointment')); ?>" class="btn btn-outline-primary">Manage Bookings</a>
-                                <a href="<?php echo e(route('admin.Transaction')); ?>" class="btn btn-outline-primary">Manage Transactions</a>
+                <div class="row">
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="dash-widget-header">
+                                    <span class="dash-widget-icon text-primary border-primary">
+                                        <i class="fe fe-user-plus"></i>
+                                    </span>
+                                    <div class="dash-count">
+                                        <h3><?php echo e(number_format($doctor ?? 0)); ?></h3>
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6 class="text-muted">Doctors</h6>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-primary w-100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="dash-widget-header">
+                                    <span class="dash-widget-icon text-success">
+                                        <i class="fe fe-users"></i>
+                                    </span>
+                                    <div class="dash-count">
+                                        <h3><?php echo e(number_format($patient ?? 0)); ?></h3>
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6 class="text-muted">Patients</h6>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-success w-100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="dash-widget-header">
+                                    <span class="dash-widget-icon text-warning border-warning">
+                                        <i class="fe fe-calendar"></i>
+                                    </span>
+                                    <div class="dash-count">
+                                        <h3><?php echo e(number_format($booking ?? 0)); ?></h3>
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6 class="text-muted">Bookings</h6>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-warning w-100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="dash-widget-header">
+                                    <span class="dash-widget-icon text-danger border-danger">
+                                        <i class="fe fe-credit-card"></i>
+                                    </span>
+                                    <div class="dash-count">
+                                        <h3>TSh <?php echo e(number_format((float) ($revenue ?? 0), 0)); ?></h3>
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6 class="text-muted">Revenue</h6>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-danger w-100"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Recent Bookings</h5></div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-sm mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Doctor</th>
-                                            <th>Patient</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php $__empty_1 = true; $__currentLoopData = $recentBookings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                            <?php $status = strtoupper((string) $b->status); ?>
+                <div class="row">
+                    <div class="col-xl-8 d-flex">
+                        <div class="card flex-fill">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Recent Bookings</h5>
+                                    <a href="<?php echo e(route('admin.appointment')); ?>" class="btn btn-sm btn-primary">View all</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-center mb-0">
+                                        <thead>
                                             <tr>
-                                                <td>#APT<?php echo e(str_pad($b->id, 4, '0', STR_PAD_LEFT)); ?></td>
-                                                <td><?php echo e($b->doctor?->name ?? 'N/A'); ?></td>
-                                                <td><?php echo e($b->patient?->name ?? 'N/A'); ?></td>
-                                                <td><?php echo e($status); ?></td>
+                                                <th>#</th>
+                                                <th>Patient</th>
+                                                <th>Doctor</th>
+                                                <th>Status</th>
+                                                <th>Created</th>
                                             </tr>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                            <tr><td colspan="4" class="text-muted text-center">No bookings yet.</td></tr>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            <?php $__empty_1 = true; $__currentLoopData = $recentBookings ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                                <tr>
+                                                    <td>#<?php echo e($item->id); ?></td>
+                                                    <td><?php echo e($item->patient->name ?? 'N/A'); ?></td>
+                                                    <td><?php echo e($item->doctor->name ?? 'N/A'); ?></td>
+                                                    <td>
+                                                        <span class="badge bg-info-light"><?php echo e($item->status ?? 'N/A'); ?></span>
+                                                    </td>
+                                                    <td><?php echo e(optional($item->created_at)->format('d M Y, h:i A') ?? 'N/A'); ?></td>
+                                                </tr>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted py-4">No recent bookings found.</td>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 d-flex">
+                        <div class="card flex-fill">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Recent Transactions</h5>
+                                    <a href="<?php echo e(route('admin.Transaction')); ?>" class="btn btn-sm btn-outline-primary">Open ledger</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group list-group-flush">
+                                    <?php $__empty_1 = true; $__currentLoopData = $recentTransactions ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1">Order #<?php echo e($transaction->id); ?></h6>
+                                                    <p class="mb-1 text-muted small">
+                                                        <?php echo e($transaction->user->name ?? $transaction->name ?? 'Guest customer'); ?>
+
+                                                    </p>
+                                                    <span class="badge bg-secondary-light"><?php echo e($transaction->status ?? 'pending'); ?></span>
+                                                </div>
+                                                <strong>TSh <?php echo e(number_format((float) ($transaction->total ?? 0), 0)); ?></strong>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <div class="text-center text-muted py-4">No recent transactions found.</div>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Recent Transactions</h5></div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-sm mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>User</th>
-                                            <th>Total</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php $__empty_1 = true; $__currentLoopData = $recentTransactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                            <tr>
-                                                <td>#ORD<?php echo e(str_pad($t->id, 4, '0', STR_PAD_LEFT)); ?></td>
-                                                <td><?php echo e($t->user?->name ?? 'Guest'); ?></td>
-                                                <td>Tsh <?php echo e(number_format((float) $t->total, 2)); ?></td>
-                                                <td><?php echo e(strtoupper((string) $t->status)); ?></td>
-                                            </tr>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                            <tr><td colspan="4" class="text-muted text-center">No transactions yet.</td></tr>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Quick Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-6 mb-3">
+                                        <a href="<?php echo e(route('admin.appointment')); ?>" class="btn btn-outline-primary w-100">Manage Appointments</a>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6 mb-3">
+                                        <a href="<?php echo e(route('admin.doctorList')); ?>" class="btn btn-outline-primary w-100">Review Doctors</a>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6 mb-3">
+                                        <a href="<?php echo e(route('admin.patientList')); ?>" class="btn btn-outline-primary w-100">Browse Patients</a>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6 mb-3">
+                                        <a href="<?php echo e(route('admin.pharmacy')); ?>" class="btn btn-outline-primary w-100">Open Pharmacy Admin</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -157,12 +218,11 @@
             </div>
         </div>
     </div>
-</div>
 
-<script src="<?php echo e(asset('admincss/js/jquery-3.7.1.min.js')); ?>"></script>
-<script src="<?php echo e(asset('admincss/js/bootstrap.bundle.min.js')); ?>"></script>
-<script src="<?php echo e(asset('admincss/js/jquery.slimscroll.min.js')); ?>"></script>
-<script src="<?php echo e(asset('admincss/js/script.js')); ?>"></script>
+    <script src="<?php echo e(asset('admincss/js/jquery-3.7.1.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('admincss/js/bootstrap.bundle.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('admincss/js/feather.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('admincss/js/script.js')); ?>"></script>
 </body>
 </html>
 <?php /**PATH /Users/dope/Downloads/public_htm/resources/views/admin/dashboard.blade.php ENDPATH**/ ?>

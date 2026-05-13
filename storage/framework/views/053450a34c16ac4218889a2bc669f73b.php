@@ -49,6 +49,10 @@
                     </div>
                      
                     <div class="col-lg-8 col-xl-9">
+                        <?php if(session('success')): ?>
+                            <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+                        <?php endif; ?>
+
                         <?php if($errors->any()): ?>
                             <div class="alert alert-danger">
                                 <ul>
@@ -317,7 +321,13 @@
                             <div class="setting-card">
                                 <div class="change-avatar img-upload">
                                     <div class="profile-img">
-                                        <i class="fa-solid fa-file-image"></i>
+                                        <?php if(!empty($doctor->dp)): ?>
+                                            <img src="<?php echo e(asset($doctor->dp)); ?>" alt="Profile Image" class="img-fluid rounded-circle"
+                                                style="width: 120px; height: 120px; object-fit: cover;"
+                                                onerror="this.src='<?php echo e(asset('images/default.jpeg')); ?>'">
+                                        <?php else: ?>
+                                            <i class="fa-solid fa-file-image"></i>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="upload-img">
                                         <h5>Profile Image</h5>
@@ -325,9 +335,8 @@
                                             <div class="change-photo">
                                                 Upload New
                                                 <input type="file" name="dp" class="upload"
-                                                    accept=".jpg,.jpeg,.png,.svg">
+                                                    accept=".jpg,.jpeg,.png,.svg,.webp">
                                             </div>
-                                            <a href="#" class="upload-remove">Remove</a>
                                         </div>
                                         <p class="form-text">
                                             Your image should be below 4 MB. Accepted formats: JPG, PNG, SVG.
@@ -346,6 +355,7 @@
                                         <div class="form-wrap">
                                             <label class="form-label">Sex <span class="text-danger">*</span></label>
                                             <input type="text" name="sex" class="form-control"
+                                                value="<?php echo e(old('sex', $doctor->sex)); ?>"
                                                 placeholder="e.g., Male / Female / Other">
                                         </div>
                                     </div>
@@ -354,7 +364,8 @@
                                         <div class="form-wrap">
                                             <label class="form-label">Date of Birth <span
                                                     class="text-danger">*</span></label>
-                                            <input type="date" name="dob" class="form-control">
+                                            <input type="date" name="dob" class="form-control"
+                                                value="<?php echo e(old('dob', $doctor->dob)); ?>">
                                         </div>
                                     </div>
 
@@ -363,6 +374,7 @@
                                             <label class="form-label">Blood Group <span
                                                     class="text-danger">*</span></label>
                                             <input type="text" name="blood_group" class="form-control"
+                                                value="<?php echo e(old('blood_group', $doctor->blood_group)); ?>"
                                                 placeholder="e.g., A+, O-, B+">
                                         </div>
                                     </div>
@@ -372,6 +384,7 @@
                                             <label class="form-label">Marital Status <span
                                                     class="text-danger">*</span></label>
                                             <input type="text" name="marital_status" class="form-control"
+                                                value="<?php echo e(old('marital_status', $doctor->marital_status)); ?>"
                                                 placeholder="e.g., Single, Married, Divorced">
                                         </div>
                                     </div>
@@ -380,6 +393,7 @@
                                         <div class="form-wrap">
                                             <label class="form-label">Address <span class="text-danger">*</span></label>
                                             <input type="text" name="address" class="form-control"
+                                                value="<?php echo e(old('address', $doctor->address)); ?>"
                                                 placeholder="Enter your residential address">
                                         </div>
                                     </div>
@@ -389,6 +403,7 @@
                                             <label class="form-label">Phone Number(s) <span
                                                     class="text-danger">*</span></label>
                                             <input type="text" name="phone_numbers" class="form-control"
+                                                value="<?php echo e(old('phone_numbers', $doctor->phone_numbers)); ?>"
                                                 placeholder="e.g., +255 700 123 456">
                                         </div>
                                     </div>
@@ -400,6 +415,7 @@
                                             <div class="input-block input-block-new mb-0">
                                                 <input class="input-tags form-control" id="inputBox3" type="text"
                                                     name="known_languages" data-role="tagsinput"
+                                                    value="<?php echo e(old('known_languages', $doctor->known_languages)); ?>"
                                                     placeholder="e.g., English, Swahili, French">
                                             </div>
                                         </div>
@@ -419,6 +435,7 @@
                                                 <label class="form-label">Title <span
                                                         class="text-danger">*</span></label>
                                                 <input type="text" name="title" class="form-control"
+                                                    value="<?php echo e(old('title', $doctor->title)); ?>"
                                                     placeholder="e.g., Senior Surgeon">
                                             </div>
                                         </div>
@@ -428,6 +445,7 @@
                                                 <label class="form-label">Hospital <span
                                                         class="text-danger">*</span></label>
                                                 <input type="text" name="hospital" class="form-control"
+                                                    value="<?php echo e(old('hospital', $doctor->hospital)); ?>"
                                                     placeholder="e.g., Aga Khan Hospital">
                                             </div>
                                         </div>
@@ -437,6 +455,7 @@
                                                 <label class="form-label">Years of Experience <span
                                                         class="text-danger">*</span></label>
                                                 <input type="number" name="year_of_experience" class="form-control"
+                                                    value="<?php echo e(old('year_of_experience', $doctor->year_of_experience)); ?>"
                                                     placeholder="e.g., 10">
                                             </div>
                                         </div>
@@ -446,6 +465,7 @@
                                                 <label class="form-label">Location <span
                                                         class="text-danger">*</span></label>
                                                 <input type="text" name="location" class="form-control"
+                                                    value="<?php echo e(old('location', $doctor->location)); ?>"
                                                     placeholder="e.g., Dar es Salaam, Tanzania">
                                             </div>
                                         </div>
@@ -455,7 +475,7 @@
                                                 <label class="form-label">Job Description <span
                                                         class="text-danger">*</span></label>
                                                 <textarea name="job_description" class="form-control"
-                                                    placeholder="Briefly describe your role and duties"></textarea>
+                                                    placeholder="Briefly describe your role and duties"><?php echo e(old('job_description', $doctor->job_description)); ?></textarea>
                                             </div>
                                         </div>
 
@@ -463,7 +483,8 @@
                                             <div class="form-wrap">
                                                 <label class="form-label">Start Date <span
                                                         class="text-danger">*</span></label>
-                                                <input type="date" name="start_date" class="form-control">
+                                                <input type="date" name="start_date" class="form-control"
+                                                    value="<?php echo e(old('start_date', $doctor->start_date)); ?>">
                                             </div>
                                         </div>
 
@@ -471,7 +492,8 @@
                                             <div class="form-wrap">
                                                 <label class="form-label">End Date <span
                                                         class="text-danger">*</span></label>
-                                                <input type="date" name="end_date" class="form-control">
+                                                <input type="date" name="end_date" class="form-control"
+                                                    value="<?php echo e(old('end_date', $doctor->end_date)); ?>">
                                             </div>
                                         </div>
 
@@ -480,6 +502,7 @@
                                                 <div class="form-wrap w-100">
                                                     <label class="form-label">About Membership</label>
                                                     <input type="text" name="about_membership" class="form-control"
+                                                        value="<?php echo e(old('about_membership', $doctor->about_membership)); ?>"
                                                         placeholder="e.g., Member of Medical Association of Tanzania">
                                                 </div>
                                                 <div class="form-wrap ms-2">
@@ -548,4 +571,5 @@
 
 </body>
 
-</html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/doctor/profilesettings.blade.php ENDPATH**/ ?>
+</html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/doctor/profilesettings.blade.php ENDPATH**/ ?>

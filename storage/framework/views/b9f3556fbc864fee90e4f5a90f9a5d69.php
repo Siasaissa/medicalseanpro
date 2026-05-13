@@ -31,10 +31,10 @@
 										<a href="<?php echo e(route('pharmacy.product')); ?>">Pharmacy</i></a>
 									</li>
 									<li class="menu">
-										<a href="#">About Us</a>
+										<a href="<?php echo e(route('about.us')); ?>">About Us</a>
 									</li>
 									<li class="menu">
-										<a href="#">Blog Grid</i></a>
+										<a href="<?php echo e(route('blog.grid')); ?>">Blog Grid</a>
 									</li>
 									<li class="menu">
 										<a href="#">
@@ -110,4 +110,5 @@
 					</div>
 				</div>
 				<?php endif; ?>
-			</header><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/layouts/header.blade.php ENDPATH**/ ?>
+			</header>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/layouts/header.blade.php ENDPATH**/ ?>

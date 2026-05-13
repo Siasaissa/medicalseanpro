@@ -8,8 +8,8 @@
 										<div class="footer-widget footer-menu">
 											<h6 class="footer-title">Company</h6>
 											<ul>
-												<li><a href="javascript:void(0);">Digital Medical Equipment</a></li>
-												<li><a href="javascript:void(0);">Video,Voice,Chat</a></li>
+												<li><a href="<?php echo e(route('about.us')); ?>">About MedicalSean</a></li>
+												<li><a href="<?php echo e(route('blog.grid')); ?>">Health Blog</a></li>
 												<li><a href="javascript:void(0);">Dar es Salaam Tanzania</a></li>
 											</ul>
 										</div>
@@ -111,4 +111,5 @@
 						<!-- /Copyright -->					
 					</div>
 				</div>
-			</footer><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/layouts/footer.blade.php ENDPATH**/ ?>
+			</footer>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/layouts/footer.blade.php ENDPATH**/ ?>

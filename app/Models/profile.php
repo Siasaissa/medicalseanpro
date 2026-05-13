@@ -72,4 +72,18 @@ class Profile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getDpAttribute($value)
+    {
+        if (! $value) {
+            return $value;
+        }
+
+        // Older records stored "public/uploads/..." while views expect a public-relative path.
+        if (str_starts_with($value, 'public/')) {
+            return substr($value, 7);
+        }
+
+        return $value;
+    }
 }

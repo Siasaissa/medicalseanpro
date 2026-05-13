@@ -16,14 +16,14 @@
 									<span></span>
 								</span>
 							</a>
-							<a href="index.html" class="navbar-brand logo">
+							<a href="<?php echo e(route('welcome')); ?>" class="navbar-brand logo">
 								<img src="images/logo.svg" class="img-fluid" alt="Logo">
 							</a>
 						</div>
 						<div class="header-menu">
 							<div class="main-menu-wrapper">
 								<div class="menu-header">
-									<a href="index.html" class="menu-logo">
+									<a href="<?php echo e(route('welcome')); ?>" class="menu-logo">
 										<img src="images/logo.svg" class="img-fluid" alt="Logo">
 									</a>
 									<a id="menu_close" class="menu-close" href="javascript:void(0);">
@@ -35,13 +35,13 @@
 										<a href="doctor-grid01.html">Doctors</i></a>		
 									</li>
 									<li class="has-submenu">
-										<a href="pharmacy-index.html">Pharmacy</i></a>
+										<a href="<?php echo e(route('pharmacy.product')); ?>">Pharmacy</a>
 									</li>
 									<li class="has-submenu">
-										<a href="about-us.html">About Us</a>
+										<a href="<?php echo e(route('about.us')); ?>">About Us</a>
 									</li>
 									<li class="has-submenu">
-										<a href="blog-grid.html">Blog Grid</i></a>
+										<a href="<?php echo e(route('blog.grid')); ?>">Blog Grid</a>
 									</li>
 									
 								</ul>
@@ -211,4 +211,5 @@
 		
 	<script src="js/rocket-loader.min.js" data-cf-settings="edc3d497d6ab314fddf6bd34-|49" defer=""></script><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" data-cf-beacon="{" rayid":"97c65d02ddf766a9","servertiming":{"name":{"cfextpri":true,"cfedge":true,"cforigin":true,"cfl4":true,"cfspeedbrain":true,"cfcachestatus":true}},"version":"2025.8.0","token":"3ca157e612a14eccbb30cf6db6691c29"}"="" crossorigin="anonymous"></script>
 
-</body></html><?php /**PATH /Users/dope/Downloads/public_htm/resources/views/auth/login.blade.php ENDPATH**/ ?>
+</body></html>
+<?php /**PATH /Users/dope/Downloads/public_htm/resources/views/auth/login.blade.php ENDPATH**/ ?>
