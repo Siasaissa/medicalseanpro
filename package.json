@@ -19,6 +19,7 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "@georgeroberts/ai-workflows": "^0.2.0",
         "@zegocloud/zego-uikit-prebuilt": "^2.17.0",
         "laravel-echo": "^1.19.0",
         "pusher-js": "^7.6.0"
